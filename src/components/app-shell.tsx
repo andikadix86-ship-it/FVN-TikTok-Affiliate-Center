@@ -68,6 +68,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           })}
         </div>
       </nav>
+      <footer className="border-t border-line bg-white px-4 py-6 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-6xl flex-col gap-2 text-sm text-muted sm:flex-row sm:items-center sm:justify-between">
+          <p>FVN TikTok Affiliate Center</p>
+          <div className="flex gap-4">
+            <a href="/terms" className="font-semibold hover:text-ink">Terms of Service</a>
+            <a href="/privacy" className="font-semibold hover:text-ink">Privacy Policy</a>
+          </div>
+        </div>
+      </footer>
       <div className="h-20 sm:hidden" />
     </main>
   );

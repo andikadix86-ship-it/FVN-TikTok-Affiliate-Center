@@ -28,5 +28,9 @@ describe("AppShell navigation", () => {
     expect(html).toContain("/analytics");
     expect(html).toContain("/action-plan");
     expect(html).toContain("/#settings");
+    expect(html).toContain("/terms");
+    expect(html).toContain("/privacy");
+    expect(html).toContain("Terms of Service");
+    expect(html).toContain("Privacy Policy");
   });
 });
