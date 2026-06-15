@@ -9,7 +9,8 @@ describe("GET /api/health", () => {
     expect(payload.app).toBe("ok");
     expect(["connected", "error"]).toContain(payload.database);
     expect(["configured", "missing", "invalid"]).toContain(payload.tiktokOAuth);
+    expect(["configured", "missing"]).toContain(payload.tiktokShopApi);
     expect(["configured", "template_mode"]).toContain(payload.aiProvider);
-    expect(["demo", "manual", "csv_import", "real_api"]).toContain(payload.productSource);
+    expect(["demo", "manual", "csv", "real_api"]).toContain(payload.productSource);
   });
 });

@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { env } from "@/lib/env";
 import { getPromptEngineMode } from "@/modules/prompt-engine/fallback";
 import { getTikTokEnvStatus } from "@/modules/tiktok/env-status";
+import { isTikTokShopApiConfigured } from "@/modules/tiktok-shop/tiktok-shop-api";
 
 export const dynamic = "force-dynamic";
 
@@ -56,6 +57,7 @@ export async function GET() {
     app: "ok",
     database: await getDatabaseStatus(),
     tiktokOAuth: tiktok.oauth === "Configured" ? "configured" : tiktok.oauth === "Invalid" ? "invalid" : "missing",
+    tiktokShopApi: isTikTokShopApiConfigured().configured ? "configured" : "missing",
     aiProvider: promptEngineMode === "AI_CONNECTED" ? "configured" : "template_mode",
     productSource: await getProductSource()
   });

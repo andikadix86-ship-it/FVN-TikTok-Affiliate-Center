@@ -126,18 +126,32 @@ npm test
 2. Import the repo to Vercel.
 3. Add all environment variables in Vercel Project Settings.
 4. Deploy.
-5. Copy the production callback URL:
+5. Redeploy after every environment variable update.
+6. Open `/api/health`.
+7. Open `/tiktok/oauth-test`.
+8. Copy the production redirect URI:
 
 ```text
 https://your-vercel-domain.vercel.app/api/auth/tiktok/callback
 ```
 
-6. Add the callback URL to TikTok Developer Portal Login Kit config.
-7. Test `/api/health`.
-8. Test `/tiktok/oauth-test`.
-9. Test the Connect TikTok button from the deployed HTTPS URL.
+9. Add the redirect URI to TikTok Developer Portal Login Kit config.
+10. Test the Connect TikTok button from the deployed HTTPS URL.
 
 Vercel runs `npm install`, `postinstall` runs `prisma generate`, and the build script runs `prisma generate && next build`.
+
+## Production Checklist
+
+Before production testing:
+
+- `DATABASE_URL`, `DIRECT_URL`, and `NEXT_PUBLIC_APP_URL` are configured in Vercel.
+- `NEXT_PUBLIC_APP_URL` starts with `https://`.
+- `TIKTOK_CLIENT_KEY`, `TIKTOK_CLIENT_SECRET`, and `TIKTOK_REDIRECT_URI` are configured in Vercel.
+- `TIKTOK_REDIRECT_URI` starts with `https://` and has no query string or hash.
+- `TIKTOK_OAUTH_PKCE_ENABLED` is set to `false` unless PKCE is intentionally enabled end to end.
+- `/api/health` returns safe statuses only and does not expose secrets.
+- `/tiktok/oauth-test` shows configured/missing status and safe OAuth errors.
+- TikTok Shop API env is optional and the app stays in manual/CSV/demo mode until official API access is connected.
 
 ## TikTok OAuth Troubleshooting
 
