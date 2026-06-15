@@ -33,7 +33,14 @@ describe("Product Hunter sources", () => {
   });
 
   it("shows workflow source modes without presenting demo products as real API", () => {
-    const html = renderToStaticMarkup(<AffiliateWorkflow tiktokConnected={false} promptEngineMode="TEMPLATE_MODE" />);
+    const html = renderToStaticMarkup(
+      <AffiliateWorkflow
+        tiktokConnected={false}
+        promptEngineMode="TEMPLATE_MODE"
+        initialProducts={sampleProducts}
+        databaseConnected={false}
+      />
+    );
 
     expect(html).toContain("DEMO DATA - Not from TikTok Shop");
     expect(html).toContain("MANUAL");

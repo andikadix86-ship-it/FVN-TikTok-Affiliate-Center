@@ -86,13 +86,17 @@ function sortProducts(products: AffiliateProduct[]) {
 
 export function AffiliateWorkflow({
   tiktokConnected,
-  promptEngineMode
+  promptEngineMode,
+  initialProducts,
+  databaseConnected
 }: {
   tiktokConnected: boolean;
   promptEngineMode: PromptEngineMode;
+  initialProducts: AffiliateProduct[];
+  databaseConnected: boolean;
 }) {
-  const [products, setProducts] = useState<AffiliateProduct[]>(sampleProducts);
-  const [selectedId, setSelectedId] = useState(sampleProducts[0]?.id ?? "");
+  const [products, setProducts] = useState<AffiliateProduct[]>(initialProducts.length > 0 ? initialProducts : sampleProducts);
+  const [selectedId, setSelectedId] = useState((initialProducts[0] ?? sampleProducts[0])?.id ?? "");
   const [form, setForm] = useState(initialForm);
   const [csv, setCsv] = useState(SAMPLE_PRODUCT_CSV);
   const [csvErrors, setCsvErrors] = useState<string[]>([]);
@@ -103,6 +107,8 @@ export function AffiliateWorkflow({
   const [campaignGoal, setCampaignGoal] = useState<CampaignGoal>("testing product");
   const [campaignStatus, setCampaignStatus] = useState<CampaignStatus>("Draft");
   const [performance, setPerformance] = useState<CampaignPerformanceDay[]>(Array.from({ length: 14 }, () => ({ ...emptyCampaignPerformanceDay })));
+  const [saveStatus, setSaveStatus] = useState(databaseConnected ? "Database connected" : "Database not connected - using demo fallback");
+  const [campaignId, setCampaignId] = useState<string | null>(null);
 
   const sortedProducts = useMemo(() => sortProducts(products), [products]);
   const selectedProduct = sortedProducts.find((product) => product.id === selectedId) ?? sortedProducts[0];
@@ -128,14 +134,33 @@ export function AffiliateWorkflow({
     setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
   }
 
-  function addManualProduct() {
+  async function addManualProduct() {
     const product = productFromForm("MANUAL", form);
     setProducts((current) => sortProducts([product, ...current]));
     setSelectedId(product.id);
     setForm(initialForm);
+
+    try {
+      const response = await fetch("/api/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(product)
+      });
+      const payload = await response.json();
+
+      if (response.ok && payload.product) {
+        setProducts((current) => sortProducts(current.map((item) => (item.id === product.id ? payload.product : item))));
+        setSelectedId(payload.product.id);
+        setSaveStatus("Manual product saved to database");
+      } else {
+        setSaveStatus(payload.message ?? "Manual product saved locally only");
+      }
+    } catch {
+      setSaveStatus("Manual product saved locally only");
+    }
   }
 
-  function importCsv() {
+  async function importCsv() {
     const result = validateAndParseCsv(csv);
     setCsvErrors(result.errors);
 
@@ -145,6 +170,28 @@ export function AffiliateWorkflow({
 
     setProducts((current) => sortProducts([...result.products, ...current]));
     setSelectedId(result.products[0].id);
+
+    try {
+      const response = await fetch("/api/products/import-csv", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ csv })
+      });
+      const payload = await response.json();
+
+      if (response.ok && payload.products) {
+        setProducts((current) => {
+          const withoutLocalImports = current.filter((product) => !result.products.some((imported) => imported.id === product.id));
+          return sortProducts([...payload.products, ...withoutLocalImports]);
+        });
+        setSelectedId(payload.products[0].id);
+        setSaveStatus(`${payload.products.length} CSV products saved to database`);
+      } else {
+        setSaveStatus(payload.message ?? "CSV products imported locally only");
+      }
+    } catch {
+      setSaveStatus("CSV products imported locally only");
+    }
   }
 
   function addUrlProduct() {
@@ -194,6 +241,68 @@ export function AffiliateWorkflow({
     }
 
     setGeneratedPack(pack);
+    fetch("/api/content-packs/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        productId: selectedProduct.id,
+        contentPack: pack,
+        providerMode: promptEngineMode === "AI_CONNECTED" ? "AI" : "TEMPLATE"
+      })
+    })
+      .then((response) => {
+        setSaveStatus(response.ok ? "Content pack saved to database" : "Content pack generated locally");
+      })
+      .catch(() => setSaveStatus("Content pack generated locally"));
+  }
+
+  async function saveCampaign() {
+    try {
+      const response = await fetch("/api/campaigns", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          productId: selectedProduct.id,
+          name: `${selectedProduct.productName} ${campaignDuration}-day ${campaignGoal} campaign`,
+          durationDays: campaignDuration,
+          goal: campaignGoal,
+          status: campaignStatus.toUpperCase(),
+          dailyPlan: campaign
+        })
+      });
+      const payload = await response.json();
+
+      if (response.ok) {
+        setCampaignId(payload.campaign.id);
+        setSaveStatus("Campaign saved to database");
+      } else {
+        setSaveStatus(payload.message ?? "Campaign saved locally only");
+      }
+    } catch {
+      setSaveStatus("Campaign saved locally only");
+    }
+  }
+
+  async function savePerformance() {
+    if (!campaignId) {
+      setSaveStatus("Save campaign before saving performance");
+      return;
+    }
+
+    try {
+      await Promise.all(
+        visiblePerformance.map((day, index) =>
+          fetch(`/api/campaigns/${campaignId}/performance`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ...day, dayNumber: index + 1 })
+          })
+        )
+      );
+      setSaveStatus("Performance saved to database");
+    } catch {
+      setSaveStatus("Performance saved locally only");
+    }
   }
 
   return (
@@ -245,6 +354,10 @@ export function AffiliateWorkflow({
               </div>
             ))}
           </div>
+        </div>
+        <div className="mt-4 rounded-2xl border border-line bg-white p-4">
+          <p className="text-xs font-bold uppercase tracking-wide text-muted">Database status</p>
+          <p className="mt-2 text-sm font-bold text-ink">{saveStatus}</p>
         </div>
       </section>
 
@@ -501,6 +614,7 @@ export function AffiliateWorkflow({
         <div className="mb-4 rounded-2xl border border-line bg-slate-50 p-4">
           <p className="text-sm font-black text-ink">Campaign from selected product</p>
           <p className="mt-1 text-sm text-muted">{selectedProduct.productName}</p>
+          <button onClick={saveCampaign} className="mt-3 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white">Save Campaign</button>
         </div>
         <div className="grid gap-3 lg:grid-cols-7">
           {campaign.map((day) => (
@@ -547,6 +661,7 @@ export function AffiliateWorkflow({
             <MetricPill label="CTR" value={`${performanceSummary.ctr.toFixed(2)}%`} />
             <MetricPill label="Conversion" value={`${performanceSummary.conversionRate.toFixed(2)}%`} />
           </div>
+          <button onClick={savePerformance} className="mt-4 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white">Save Performance</button>
           {suggestions.length > 0 ? (
             <div className="mt-4 rounded-2xl border border-orange-200 bg-orange-50 p-4">
               <p className="text-sm font-black text-orange-900">AI improvement suggestions after 5 days</p>

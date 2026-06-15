@@ -8,53 +8,124 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-model TikTokAccount {
-  id           String   @id @default(cuid())
-  tiktokUserId String?  @unique
-  displayName  String?
-  avatarUrl    String?
-  accessToken  String?
-  refreshToken String?
-  expiresAt    DateTime?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+enum ProductSource {
+  DEMO
+  MANUAL
+  CSV_IMPORT
+  REAL_API
+}
+
+enum CampaignStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  COMPLETED
+}
+
+enum ProviderMode {
+  AI
+  TEMPLATE
 }
 
 model Product {
-  id             String     @id @default(cuid())
-  name           String
-  niche          String
-  price          Decimal
-  commissionRate Int
-  salesVelocity  Int
-  rating         Decimal
-  contentFit     Int
-  competition    String
-  hook           String
-  score          Int?
-  campaigns      Campaign[]
-  createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @updatedAt
+  id               String        @id @default(cuid())
+  productName      String
+  platform         String        @default("TikTok")
+  category         String
+  price            Decimal       @db.Decimal(10, 2)
+  commissionRate   Decimal       @db.Decimal(5, 2)
+  salesScore       Int
+  soldCount        Int?
+  rating           Decimal?      @db.Decimal(3, 2)
+  reviewCount      Int?
+  competitionLevel String
+  productUrl       String?
+  imageUrl         String?
+  source           ProductSource @default(MANUAL)
+  notes            String?
+  score            Int
+  recommendation   String
+  contentPacks     ContentPack[]
+  campaigns        Campaign[]
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  @@index([source])
+  @@index([score])
 }
 
-model PromptTemplate {
-  id        String   @id @default(cuid())
-  name      String
-  provider  String
-  prompt    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model ContentPack {
+  id                 String       @id @default(cuid())
+  productId          String
+  product            Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  hooks              Json
+  script15s          String       @db.Text
+  script30s          String       @db.Text
+  scenePlan          Json
+  caption            String       @db.Text
+  hashtags           Json
+  cta                String       @db.Text
+  safeClaimChecklist Json
+  providerMode       ProviderMode @default(TEMPLATE)
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  @@index([productId])
 }
 
 model Campaign {
-  id          String   @id @default(cuid())
-  title       String
-  productId   String?
-  product     Product? @relation(fields: [productId], references: [id])
-  contentType String
-  status      String   @default("planned")
-  scheduledAt DateTime?
-  notes       String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id          String                @id @default(cuid())
+  productId   String
+  product     Product               @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name        String
+  durationDays Int
+  goal        String
+  status      CampaignStatus        @default(DRAFT)
+  dailyPlan   Json
+  performance CampaignPerformance[]
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+
+  @@index([productId])
+  @@index([status])
+}
+
+model CampaignPerformance {
+  id         String   @id @default(cuid())
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  dayNumber  Int
+  views      Int      @default(0)
+  likes      Int      @default(0)
+  comments   Int      @default(0)
+  shares     Int      @default(0)
+  clicks     Int      @default(0)
+  orders     Int      @default(0)
+  revenue    Decimal  @default(0) @db.Decimal(10, 2)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([campaignId, dayNumber])
+  @@index([campaignId])
+}
+
+model TikTokAccount {
+  id                    String   @id @default(cuid())
+  openId                String   @unique
+  displayName           String?
+  avatarUrl             String?
+  profileDeepLink       String?
+  accessTokenEncrypted  String?
+  refreshTokenEncrypted String?
+  connectedAt           DateTime @default(now())
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model AppSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
