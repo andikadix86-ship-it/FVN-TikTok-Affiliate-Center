@@ -62,3 +62,13 @@ Use this checklist before sharing, deploying, or continuing development of FVN T
 - [ ] TikTok Shop API status visible.
 - [ ] Clear demo data only deletes DEMO.
 
+## I. Production Readiness
+
+- [ ] Navigation only shows MVP menus.
+- [ ] No demo, manual, or CSV product is shown as real TikTok Shop data.
+- [ ] Empty states are visible for products, drafts, campaigns, posted content, analytics, and TikTok account.
+- [ ] API errors do not expose database URL, API keys, client secret, access token, or refresh token.
+- [ ] `.env`, `.env.local`, `.env.production`, `.vercel`, `.next`, `node_modules`, and logs are ignored.
+- [ ] `npm run lint` passes.
+- [ ] `npm run build` passes.
+- [ ] `npm test` passes.

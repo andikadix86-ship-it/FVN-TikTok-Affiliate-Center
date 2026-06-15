@@ -24,11 +24,10 @@ export async function POST(request: NextRequest) {
     );
 
     return NextResponse.json({ products: products.map(mapDbProduct) }, { status: 201 });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
-        message: "Unable to import CSV products.",
-        error: error instanceof Error ? error.message : "Unknown error"
+        message: "CSV belum bisa diimpor. Cek format file dan koneksi database."
       },
       { status: 400 }
     );

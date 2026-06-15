@@ -13,7 +13,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     });
 
     if (!contentPack) {
-      return NextResponse.json({ message: "Content draft not found." }, { status: 404 });
+      return NextResponse.json({ message: "Draft konten tidak ditemukan." }, { status: 404 });
     }
 
     const input = postedContentInputSchema.parse({
@@ -30,11 +30,10 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     });
 
     return NextResponse.json({ postedContent }, { status: 201 });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
-        message: "Konten belum bisa ditandai sudah posting.",
-        error: error instanceof Error ? error.message : "Unknown error"
+        message: "Konten belum bisa ditandai sudah posting. Cek URL video TikTok dan koneksi database."
       },
       { status: 400 }
     );

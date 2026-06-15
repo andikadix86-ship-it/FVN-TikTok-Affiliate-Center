@@ -49,12 +49,11 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       return NextResponse.json({ postedContent });
     }
 
-    return NextResponse.json({ message: "Unsupported posted content action." }, { status: 400 });
-  } catch (error) {
+    return NextResponse.json({ message: "Aksi konten terposting tidak didukung." }, { status: 400 });
+  } catch {
     return NextResponse.json(
       {
-        message: "Konten terposting belum bisa diperbarui.",
-        error: error instanceof Error ? error.message : "Unknown error"
+        message: "Konten terposting belum bisa diperbarui. Cek input dan koneksi database."
       },
       { status: 400 }
     );

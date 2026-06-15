@@ -22,11 +22,10 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({ campaign }, { status: 201 });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
-        message: "Unable to create campaign.",
-        error: error instanceof Error ? error.message : "Unknown error"
+        message: "Campaign belum bisa dibuat. Cek produk, durasi, dan koneksi database."
       },
       { status: 400 }
     );

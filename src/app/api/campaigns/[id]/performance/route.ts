@@ -16,11 +16,10 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     );
 
     return NextResponse.json({ performance }, { status: 201 });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
-        message: "Unable to save campaign performance.",
-        error: error instanceof Error ? error.message : "Unknown error"
+        message: "Performa campaign belum bisa disimpan. Cek angka input dan koneksi database."
       },
       { status: 400 }
     );

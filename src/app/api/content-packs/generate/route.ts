@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (!product) {
-      return NextResponse.json({ message: "Product not found." }, { status: 404 });
+      return NextResponse.json({ message: "Produk tidak ditemukan." }, { status: 404 });
     }
 
     const pack =
@@ -59,11 +59,10 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({ contentPack }, { status: 201 });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
-        message: "Unable to generate content pack.",
-        error: error instanceof Error ? error.message : "Unknown error"
+        message: "Konten belum bisa dibuat. Cek produk terpilih dan koneksi database."
       },
       { status: 400 }
     );

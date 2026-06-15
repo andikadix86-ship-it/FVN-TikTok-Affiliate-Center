@@ -21,7 +21,7 @@ export async function GET(_request: Request, { params }: { params: { id: string 
   const contentPack = await findDraft(params.id);
 
   if (!contentPack) {
-    return NextResponse.json({ message: "Content pack not found." }, { status: 404 });
+    return NextResponse.json({ message: "Draft konten tidak ditemukan." }, { status: 404 });
   }
 
   return NextResponse.json({ contentPack });
@@ -37,11 +37,10 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     });
 
     return NextResponse.json({ contentPack: mapDbContentDraft(contentPack) });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
-        message: "Unable to update content draft.",
-        error: error instanceof Error ? error.message : "Unknown error"
+        message: "Draft konten belum bisa diperbarui. Cek input dan koneksi database."
       },
       { status: 400 }
     );
@@ -54,7 +53,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
   const draft = await findDraft(params.id);
 
   if (!draft) {
-    return NextResponse.json({ message: "Content pack not found." }, { status: 404 });
+    return NextResponse.json({ message: "Draft konten tidak ditemukan." }, { status: 404 });
   }
 
   if (action === "duplicate") {
@@ -76,7 +75,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     return NextResponse.json({ contentPack: mapDbContentDraft(archived) });
   }
 
-  return NextResponse.json({ message: "Unsupported content draft action." }, { status: 400 });
+  return NextResponse.json({ message: "Aksi draft konten tidak didukung." }, { status: 400 });
 }
 
 export async function DELETE(_request: NextRequest, { params }: { params: { id: string } }) {

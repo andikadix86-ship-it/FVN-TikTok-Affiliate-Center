@@ -10,7 +10,7 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
   });
 
   if (!product) {
-    return NextResponse.json({ message: "Product not found." }, { status: 404 });
+    return NextResponse.json({ message: "Produk tidak ditemukan." }, { status: 404 });
   }
 
   return NextResponse.json({ product: mapDbProduct(product) });
@@ -25,7 +25,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     });
 
     if (!existing) {
-      return NextResponse.json({ message: "Product not found." }, { status: 404 });
+      return NextResponse.json({ message: "Produk tidak ditemukan." }, { status: 404 });
     }
 
     const data = buildProductCreateData(body, existing.source);
@@ -35,11 +35,10 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     });
 
     return NextResponse.json({ product: mapDbProduct(product) });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
-        message: "Unable to update product.",
-        error: error instanceof Error ? error.message : "Unknown error"
+        message: "Produk belum bisa diperbarui. Cek input produk dan koneksi database."
       },
       { status: 400 }
     );

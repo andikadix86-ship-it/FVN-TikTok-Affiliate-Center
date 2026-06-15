@@ -92,7 +92,7 @@ export function SettingsPanel({
       return;
     }
 
-    setActionMessage("Clearing demo data...");
+    setActionMessage("Menghapus DEMO DATA...");
 
     try {
       const response = await fetch("/api/products?source=DEMO", {
@@ -101,14 +101,14 @@ export function SettingsPanel({
 
       if (!response.ok) {
         const payload = await response.json();
-        setActionMessage(payload.message ?? "Unable to clear demo data.");
+        setActionMessage(payload.message ?? "DEMO DATA belum bisa dihapus. Cek koneksi database.");
         return;
       }
 
-      setActionMessage("DEMO DATA cleared. Manual and CSV products were kept.");
+      setActionMessage("DEMO DATA sudah dihapus. MANUAL DATA dan CSV IMPORT tetap aman.");
       window.location.reload();
     } catch {
-      setActionMessage("Unable to clear demo data. Check database connection.");
+      setActionMessage("DEMO DATA belum bisa dihapus. Cek koneksi database.");
     }
   }
 
@@ -156,7 +156,7 @@ export function SettingsPanel({
       <div className="mt-4 flex flex-wrap gap-2">
         <button onClick={clearDemoData} className="inline-flex items-center gap-2 rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold text-ink">
           <Trash2 className="h-4 w-4" />
-          Clear Demo Data
+          Hapus Demo Data
         </button>
         <a
           href={`data:text/csv;charset=utf-8,${encodeURIComponent(SAMPLE_PRODUCT_CSV)}`}
@@ -171,12 +171,12 @@ export function SettingsPanel({
           className="inline-flex items-center gap-2 rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold text-ink"
         >
           <ExternalLink className="h-4 w-4" />
-          Open TikTok OAuth Test Page
+          Buka Test OAuth TikTok
         </a>
         <button
           onClick={() => {
             navigator.clipboard.writeText(tiktokRedirectUri);
-            setActionMessage("Redirect URI copied.");
+            setActionMessage("Redirect URI berhasil disalin.");
           }}
           className="inline-flex items-center gap-2 rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold text-ink"
         >

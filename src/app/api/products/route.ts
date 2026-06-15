@@ -19,7 +19,7 @@ export async function GET() {
     return NextResponse.json({
       source: "fallback",
       products: sampleProducts,
-      warning: "Database is not connected. Showing demo fallback products."
+      warning: "Database belum terhubung. Menampilkan DEMO DATA sebagai fallback."
     });
   }
 }
@@ -32,11 +32,10 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({ product: mapDbProduct(product) }, { status: 201 });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
-        message: "Unable to create product.",
-        error: error instanceof Error ? error.message : "Unknown error"
+        message: "Produk belum bisa disimpan. Cek input produk dan koneksi database."
       },
       { status: 400 }
     );
@@ -49,7 +48,7 @@ export async function DELETE(request: NextRequest) {
   if (source !== "DEMO") {
     return NextResponse.json(
       {
-        message: "Only source=DEMO can be cleared from this endpoint."
+        message: "Endpoint ini hanya boleh menghapus source=DEMO."
       },
       { status: 400 }
     );
@@ -64,7 +63,7 @@ export async function DELETE(request: NextRequest) {
   } catch {
     return NextResponse.json(
       {
-        message: "Unable to clear demo data. Check database connection."
+        message: "DEMO DATA belum bisa dihapus. Cek koneksi database."
       },
       { status: 500 }
     );

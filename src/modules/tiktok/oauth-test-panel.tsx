@@ -11,22 +11,50 @@ export function OAuthTestPanel({
 }) {
   const [message, setMessage] = useState("");
   const [generatedUrl, setGeneratedUrl] = useState("");
+  const [loadingAction, setLoadingAction] = useState<"env" | "url" | "copy" | null>(null);
 
   async function copyRedirectUri() {
-    await navigator.clipboard.writeText(redirectUri);
-    setMessage("Redirect URI berhasil disalin.");
+    setLoadingAction("copy");
+
+    try {
+      await navigator.clipboard.writeText(redirectUri);
+      setMessage("Redirect URI berhasil disalin.");
+    } catch {
+      setMessage("Redirect URI belum bisa disalin otomatis. Salin manual dari kartu di atas.");
+    } finally {
+      setLoadingAction(null);
+    }
+  }
+
+  function showEnvironmentStatus() {
+    setLoadingAction("env");
+    setMessage("Mengecek status environment...");
+    window.setTimeout(() => {
+      setMessage("Environment status ditampilkan di kartu di atas.");
+      setLoadingAction(null);
+    }, 200);
+  }
+
+  function showLoginUrl() {
+    setLoadingAction("url");
+    setMessage("Membuat Login URL...");
+    window.setTimeout(() => {
+      setGeneratedUrl(loginUrl);
+      setMessage("Login URL berhasil dibuat. Tidak ada code_challenge saat PKCE nonaktif.");
+      setLoadingAction(null);
+    }, 200);
   }
 
   return (
     <div className="flex flex-wrap gap-2">
-      <button onClick={() => setMessage("Environment status ditampilkan di kartu di atas.")} className="rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold text-ink">
-        Test Environment
+      <button onClick={showEnvironmentStatus} disabled={loadingAction !== null} className="rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold text-ink disabled:opacity-60">
+        {loadingAction === "env" ? "Testing..." : "Test Environment"}
       </button>
-      <button onClick={() => setGeneratedUrl(loginUrl)} className="rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold text-ink">
-        Generate Login URL
+      <button onClick={showLoginUrl} disabled={loadingAction !== null} className="rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold text-ink disabled:opacity-60">
+        {loadingAction === "url" ? "Generating..." : "Generate Login URL"}
       </button>
-      <button onClick={copyRedirectUri} className="rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold text-ink">
-        Copy Redirect URI
+      <button onClick={copyRedirectUri} disabled={loadingAction !== null} className="rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold text-ink disabled:opacity-60">
+        {loadingAction === "copy" ? "Copying..." : "Copy Redirect URI"}
       </button>
       <a href="/api/auth/tiktok/login" className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white">
         Connect TikTok
