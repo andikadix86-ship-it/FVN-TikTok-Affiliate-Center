@@ -4,12 +4,12 @@ A standalone Next.js 14 MVP for beginner TikTok affiliate workflows.
 
 ## Focus
 
-- Product Hunter
+- Produk Affiliate
 - Product Scoring
-- Content Factory / Prompt Engineer
+- Buat Konten / Prompt Engineer
 - TikTok Account Connection
-- Campaign Planner
-- Settings
+- Rencana Posting
+- Pengaturan
 
 ## Getting Started
 
@@ -95,3 +95,19 @@ Vercel runs `npm install`, then `postinstall` runs `prisma generate`. The build 
 ## TikTok Redirect URI Setup
 
 TikTok Web Login requires an HTTPS redirect URI. Use your Vercel deployment URL or an ngrok HTTPS URL for local testing, then set the same value in TikTok Developer settings and `TIKTOK_REDIRECT_URI`.
+
+## Panduan Penggunaan untuk Pemula
+
+1. Tambah produk lewat Produk Affiliate dengan input manual, CSV import, atau link produk.
+2. Cek score produk dan label rekomendasi: Layak Promosi, Test Dulu, atau Hindari.
+3. Buka Buat Konten untuk membuat hook, script, caption, hashtag, dan CTA keranjang kuning.
+4. Buat campaign 7 hari atau 14 hari di Rencana Posting.
+5. Input performa manual setiap hari: views, likes, comments, shares, clicks, orders, dan revenue.
+6. Perbaiki konten berdasarkan saran AI atau Template Mode setelah minimal 5 hari data performa.
+
+Catatan sumber data:
+
+- DEMO DATA hanya contoh dan bukan data TikTok Shop asli.
+- MANUAL DATA adalah data yang kamu input sendiri.
+- CSV IMPORT adalah data dari file CSV kamu.
+- REAL API DATA hanya digunakan jika integrasi API asli sudah connected.

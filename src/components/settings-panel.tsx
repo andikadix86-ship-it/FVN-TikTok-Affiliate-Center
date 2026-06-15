@@ -65,9 +65,9 @@ export function SettingsPanel({
     { label: "Database", value: databaseConnected ? "Connected" : "Error / Not Connected" },
     { label: "TikTok OAuth", value: tiktokOAuthConfigured ? "Configured" : "Missing" },
     { label: "AI Provider", value: aiProviderConfigured ? "Configured" : "Template Mode" },
-    { label: "Product source mode", value: status.productDataSource },
+    { label: "Product Source", value: status.productDataSource },
     { label: "Product count from database", value: String(counts.totalProducts) },
-    { label: "Demo product count", value: String(counts.demoProducts) },
+    { label: "Demo Data Count", value: String(counts.demoProducts) },
     { label: "Manual product count", value: String(counts.manualProducts) },
     { label: "CSV product count", value: String(counts.csvProducts) },
     { label: "Health check status", value: healthStatus }
@@ -101,14 +101,14 @@ export function SettingsPanel({
   return (
     <SectionCard
       id="settings"
-      title="Settings"
-      description="Configure environment variables before enabling live integrations."
+      title="Pengaturan"
+      description="Cek koneksi database, OAuth TikTok, AI Provider, dan sumber data produk."
       icon={Settings}
     >
       {status.productDataSource === "Demo Mode" ? (
         <div className="mb-4 rounded-2xl border border-orange-200 bg-orange-50 p-4">
-          <p className="text-sm font-black text-orange-900">DEMO DATA - Not from TikTok Shop</p>
-          <p className="mt-1 text-sm leading-6 text-orange-900/80">Use manual input or CSV import before treating products as real affiliate candidates.</p>
+          <p className="text-sm font-black text-orange-900">DEMO DATA - Bukan dari TikTok Shop</p>
+          <p className="mt-1 text-sm leading-6 text-orange-900/80">Gunakan input manual atau CSV import sebelum membaca produk sebagai kandidat affiliate kamu.</p>
         </div>
       ) : null}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -132,7 +132,7 @@ export function SettingsPanel({
       <div className="mt-4 flex flex-wrap gap-2">
         <button onClick={clearDemoData} className="inline-flex items-center gap-2 rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold text-ink">
           <Trash2 className="h-4 w-4" />
-          Clear DEMO DATA
+          Clear Demo Data
         </button>
         <a
           href={`data:text/csv;charset=utf-8,${encodeURIComponent(SAMPLE_PRODUCT_CSV)}`}
@@ -140,7 +140,7 @@ export function SettingsPanel({
           className="inline-flex items-center gap-2 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white"
         >
           <Download className="h-4 w-4" />
-          Export sample CSV
+          Download Sample CSV
         </a>
         <a
           href="/api/health"
@@ -148,7 +148,7 @@ export function SettingsPanel({
           className="inline-flex items-center gap-2 rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold text-ink"
         >
           <ExternalLink className="h-4 w-4" />
-          Health check
+          Health Check
         </a>
       </div>
       {actionMessage ? (

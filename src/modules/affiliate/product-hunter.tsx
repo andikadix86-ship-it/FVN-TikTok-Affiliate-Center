@@ -16,8 +16,8 @@ export function ProductHunter({ tiktokConnected = false }: { tiktokConnected?: b
   return (
     <SectionCard
       id="product-hunter"
-      title="Product Hunter"
-      description="Shortlist beginner-friendly products with clear hooks and simple demos."
+      title="Produk Affiliate"
+      description="Pilih produk yang ramah pemula, mudah didemokan, dan punya peluang konten jelas."
       icon={PackageSearch}
     >
       <ApiStatusPanel status={status} />

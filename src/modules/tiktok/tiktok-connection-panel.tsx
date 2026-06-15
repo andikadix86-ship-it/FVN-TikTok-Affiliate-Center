@@ -15,15 +15,15 @@ export function TikTokConnectionPanel({
     ["TIKTOK_CLIENT_KEY", envStatus.clientKey],
     ["TIKTOK_CLIENT_SECRET", envStatus.clientSecret],
     ["TIKTOK_REDIRECT_URI", envStatus.redirectUri],
-    ["Connection Status", loginConnected ? "Connected" : "Not Connected"],
-    ["Last OAuth Error", lastOAuthError || "none"]
+    ["Status koneksi", loginConnected ? "Connected" : "Not Connected"],
+    ["Error OAuth terakhir", lastOAuthError || "none"]
   ];
 
   return (
     <SectionCard
       id="tiktok-accounts"
-      title="TikTok Accounts"
-      description="OAuth/Login Kit is wired as a placeholder route for real TikTok app credentials."
+      title="Akun TikTok"
+      description="Hubungkan TikTok Login Kit saat credential aplikasi sudah siap. Mode manual tetap bisa dipakai dulu."
       icon={Link2}
     >
       <div className="mb-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -42,9 +42,9 @@ export function TikTokConnectionPanel({
       </div>
       <div className="flex flex-col gap-3 rounded-2xl border border-line p-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-sm font-bold text-ink">Connection status</p>
+          <p className="text-sm font-bold text-ink">Status koneksi</p>
           <p className="mt-1 text-sm text-muted">
-            {loginConnected ? "Connected. TikTok Login Kit authorization completed." : "TikTok account is not connected yet."}
+            {loginConnected ? "Connected. TikTok Login Kit authorization completed." : "Akun TikTok belum terhubung. Kamu tetap bisa pakai mode manual dulu."}
           </p>
           <div className="mt-3 grid gap-2 sm:grid-cols-4">
             {[
@@ -61,7 +61,7 @@ export function TikTokConnectionPanel({
           </div>
         </div>
         <a href="/api/auth/tiktok/login" className="rounded-full bg-ink px-4 py-2 text-center text-sm font-semibold text-white">
-          Start TikTok Login
+          Hubungkan TikTok
         </a>
       </div>
     </SectionCard>

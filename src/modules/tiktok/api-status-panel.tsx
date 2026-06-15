@@ -15,9 +15,9 @@ export function ApiStatusPanel({ status }: { status: ApiStatus }) {
       <div className="flex items-start gap-3">
         <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-orange-700" />
         <div>
-          <p className="text-sm font-black text-orange-900">DEMO DATA - Not from TikTok Shop</p>
+          <p className="text-sm font-black text-orange-900">DEMO DATA - Bukan dari TikTok Shop</p>
           <p className="mt-1 text-sm leading-6 text-orange-900/80">
-            These products are sample data only. Connect TikTok Shop API, import CSV, or add products manually to use real data.
+            Produk demo hanya contoh. Tambahkan produk manual atau import CSV agar analisa lebih sesuai kebutuhan kamu.
           </p>
         </div>
       </div>

@@ -6,6 +6,7 @@ import { AffiliateWorkflow } from "./affiliate-workflow";
 import { ProductHunter } from "./product-hunter";
 import { selectProductsByPriority } from "./product-source";
 import { getSourceBadgeText, getSourceTrustText } from "./source-badge";
+import { getRecommendationLabel } from "@/modules/scoring/recommendation-label";
 
 describe("Product Hunter sources", () => {
   it("marks every sample product as DEMO", () => {
@@ -28,8 +29,7 @@ describe("Product Hunter sources", () => {
   it("shows that demo products are not from TikTok Shop", () => {
     const html = renderToStaticMarkup(<ProductHunter />);
 
-    expect(html).toContain("DEMO DATA - Not from TikTok Shop");
-    expect(html).toContain("These products are sample data only. Connect TikTok Shop API, import CSV, or add products manually to use real data.");
+    expect(html).toContain("DEMO DATA - Bukan dari TikTok Shop");
   });
 
   it("shows workflow source modes without presenting demo products as real API", () => {
@@ -42,24 +42,31 @@ describe("Product Hunter sources", () => {
       />
     );
 
-    expect(html).toContain("DEMO DATA - Not from TikTok Shop");
+    expect(html).toContain("DEMO DATA - Bukan dari TikTok Shop");
     expect(html).toContain("MANUAL");
     expect(html).toContain("CSV_IMPORT");
     expect(html).toContain("REAL_API");
     expect(html).toContain("MANUAL DATA");
     expect(html).toContain("CSV IMPORT");
-    expect(html).toContain("User Provided Data");
+    expect(html).toContain("Data input user");
     expect(html).toContain("only after API fetch");
   });
 
   it("returns honest source badge labels", () => {
-    expect(getSourceBadgeText("DEMO")).toBe("DEMO DATA - Not from TikTok Shop");
+    expect(getSourceBadgeText("DEMO")).toBe("DEMO DATA - Bukan dari TikTok Shop");
     expect(getSourceBadgeText("MANUAL")).toBe("MANUAL DATA");
     expect(getSourceBadgeText("CSV_IMPORT")).toBe("CSV IMPORT");
     expect(getSourceBadgeText("REAL_API")).toBe("REAL API DATA");
-    expect(getSourceTrustText("MANUAL")).toBe("User Provided Data");
-    expect(getSourceTrustText("CSV_IMPORT")).toBe("User Provided Data");
-    expect(getSourceTrustText("REAL_API")).toBe("Real API Data");
+    expect(getSourceTrustText("DEMO")).toBe("Bukan dari TikTok Shop");
+    expect(getSourceTrustText("MANUAL")).toBe("Data input user");
+    expect(getSourceTrustText("CSV_IMPORT")).toBe("Data dari file user");
+    expect(getSourceTrustText("REAL_API")).toBe("Data API asli");
+  });
+
+  it("returns beginner recommendation labels", () => {
+    expect(getRecommendationLabel("Promote")).toBe("Layak Promosi");
+    expect(getRecommendationLabel("Test First")).toBe("Test Dulu");
+    expect(getRecommendationLabel("Avoid")).toBe("Hindari");
   });
 
   it("shows beginner workflow fallback and empty-state guidance", () => {
@@ -73,7 +80,13 @@ describe("Product Hunter sources", () => {
     );
 
     expect(html).toContain("AI Provider Not Connected - Template Mode");
-    expect(html).toContain("Belum ada content pack yang dibuat.");
+    expect(html).toContain("Belum ada konten. Pilih produk lalu buat script konten.");
     expect(html).toContain("Data ini disimpan sebagai MANUAL DATA");
+    expect(html).toContain("Copy Hook");
+    expect(html).toContain("Copy Script");
+    expect(html).toContain("Copy Caption");
+    expect(html).toContain("Copy Hashtag");
+    expect(html).toContain("Copy Full Pack");
+    expect(html).toContain("Belum ada rencana posting. Buat campaign 7 hari dari produk terbaik kamu.");
   });
 });

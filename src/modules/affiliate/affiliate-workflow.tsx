@@ -6,6 +6,7 @@ import {
   CalendarDays,
   CheckCircle2,
   ClipboardList,
+  Copy,
   FileUp,
   Link,
   Loader2,
@@ -28,6 +29,7 @@ import {
 import { buildCampaignPlan } from "@/modules/prompt-engine/campaign.prompt";
 import { buildTemplateContentPack } from "@/modules/prompt-engine/fallback";
 import { ContentPack, PromptEngineMode } from "@/modules/prompt-engine/types";
+import { getRecommendationLabel } from "@/modules/scoring/recommendation-label";
 import { scoreProduct } from "@/modules/scoring/score-product";
 import { SAMPLE_PRODUCT_CSV, validateAndParseCsv } from "./csv-import";
 import { sampleProducts } from "./sample-products";
@@ -58,6 +60,7 @@ function sourceBadge(source: ProductSource) {
 
 type SaveTone = "info" | "success" | "error";
 type LoadingAction = "manual" | "csv" | "url" | "hooks" | "script" | "caption" | "full" | "campaign" | "performance" | null;
+type ProductFilter = "all" | "manual" | "csv" | "demo" | "highScore" | "lowCompetition";
 
 function productFromForm(source: ProductSource, form: typeof initialForm): AffiliateProduct {
   const now = new Date().toISOString();
@@ -115,10 +118,39 @@ export function AffiliateWorkflow({
   const [saveTone, setSaveTone] = useState<SaveTone>(databaseConnected ? "success" : "info");
   const [loadingAction, setLoadingAction] = useState<LoadingAction>(null);
   const [campaignId, setCampaignId] = useState<string | null>(null);
+  const [productFilter, setProductFilter] = useState<ProductFilter>("all");
 
   const sortedProducts = useMemo(() => sortProducts(products), [products]);
+  const filteredProducts = useMemo(() => {
+    return sortedProducts.filter((product) => {
+      const score = scoreProduct(product);
+
+      if (productFilter === "manual") {
+        return product.source === "MANUAL";
+      }
+
+      if (productFilter === "csv") {
+        return product.source === "CSV_IMPORT";
+      }
+
+      if (productFilter === "demo") {
+        return product.source === "DEMO";
+      }
+
+      if (productFilter === "highScore") {
+        return score.total >= 80;
+      }
+
+      if (productFilter === "lowCompetition") {
+        return product.competitionLevel === "low";
+      }
+
+      return true;
+    });
+  }, [productFilter, sortedProducts]);
   const selectedProduct = sortedProducts.find((product) => product.id === selectedId) ?? sortedProducts[0];
   const selectedScore = scoreProduct(selectedProduct);
+  const selectedRecommendation = getRecommendationLabel(selectedScore.recommendation);
   const promptInput = { product: selectedProduct, mode: promptEngineMode };
   const promptAssets = generatedPack ?? buildTemplateContentPack(promptInput);
   const campaign = buildCampaignPlan(promptInput, campaignDuration, campaignGoal);
@@ -268,6 +300,28 @@ export function AffiliateWorkflow({
     );
   }
 
+  async function copyOutput(label: string, value: string) {
+    try {
+      await navigator.clipboard.writeText(value);
+      showStatus(`${label} berhasil disalin.`, "success");
+    } catch {
+      showStatus(`${label} belum bisa disalin otomatis. Salin manual dari teks di bawah.`, "error");
+    }
+  }
+
+  function fullPackText() {
+    return [
+      `Hook:\n${promptAssets.hooks.join("\n")}`,
+      `Script 15 detik:\n${promptAssets.script15}`,
+      `Script 30 detik:\n${promptAssets.script30}`,
+      `Scene Plan:\n${promptAssets.scenePlan.join("\n")}`,
+      `Caption:\n${promptAssets.caption}`,
+      `Hashtag:\n${promptAssets.hashtags.join(" ")}`,
+      `CTA:\n${promptAssets.cta}`,
+      `Checklist Klaim Aman:\n${promptAssets.safeClaimChecklist.join("\n")}`
+    ].join("\n\n");
+  }
+
   function generatePack(part: "hooks" | "script" | "caption" | "full") {
     setLoadingAction(part);
     const pack = buildTemplateContentPack(promptInput);
@@ -371,30 +425,50 @@ export function AffiliateWorkflow({
       <section id="dashboard" className="rounded-[2rem] border border-white bg-white/85 p-5 shadow-soft backdrop-blur sm:p-7">
         <p className="text-sm font-semibold uppercase tracking-wide text-mint">Dashboard</p>
         <h1 className="mt-2 max-w-3xl text-3xl font-bold leading-tight text-ink sm:text-5xl">
-          TikTok affiliate workflow for product, content, and campaign decisions.
+          Kelola produk, konten, dan rencana posting affiliate TikTok dari satu tempat.
         </h1>
+        <div className="mt-4 rounded-2xl bg-ink p-5 text-white">
+          <p className="text-sm font-bold text-white/70">Produk terbaik hari ini</p>
+          <h2 className="mt-2 text-2xl font-black">{topProducts[0]?.product.productName ?? "Belum ada produk"}</h2>
+          <p className="mt-2 text-sm text-white/70">
+            Score {topProducts[0]?.score.total ?? 0}/100 - {topProducts[0] ? getRecommendationLabel(topProducts[0].score.recommendation) : "Tambahkan produk dulu"}
+          </p>
+        </div>
         {isDemoOnly ? (
           <div className="mt-4 rounded-2xl border border-orange-200 bg-orange-50 p-4">
-            <p className="text-sm font-black text-orange-900">DEMO DATA - Not from TikTok Shop</p>
-            <p className="mt-1 text-sm leading-6 text-orange-900/80">Connect TikTok Shop API later, or use manual/CSV products now.</p>
+            <p className="text-sm font-black text-orange-900">DEMO DATA - Bukan dari TikTok Shop</p>
+            <p className="mt-1 text-sm leading-6 text-orange-900/80">
+              Produk demo hanya contoh. Tambahkan produk manual atau import CSV agar analisa lebih sesuai kebutuhan kamu.
+            </p>
           </div>
         ) : null}
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
-          <MetricPill label="Total products" value={String(products.length)} />
-          <MetricPill label="Manual" value={String(sourceCounts.MANUAL)} />
-          <MetricPill label="CSV imported" value={String(sourceCounts.CSV_IMPORT)} />
-          <MetricPill label="Demo" value={String(sourceCounts.DEMO)} tone={sourceCounts.DEMO > 0 ? "warn" : "neutral"} />
-          <MetricPill label="Active campaigns" value={String(activeCampaigns)} />
-          <MetricPill label="Draft packs" value={String(draftContentPacks)} />
+          <MetricPill label="Produk tersimpan" value={String(products.length)} />
+          <MetricPill label="Produk manual" value={String(sourceCounts.MANUAL)} />
+          <MetricPill label="Produk CSV" value={String(sourceCounts.CSV_IMPORT)} />
+          <MetricPill label="Produk demo" value={String(sourceCounts.DEMO)} tone={sourceCounts.DEMO > 0 ? "warn" : "neutral"} />
+          <MetricPill label="Campaign aktif" value={String(activeCampaigns)} />
+          <MetricPill label="Draft konten" value={String(draftContentPacks)} />
+        </div>
+        <p className="mt-4 text-sm font-black text-ink">Mulai dari sini</p>
+        <div className="mt-2 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            ["Tambah Produk", "#product-hunter", "Input produk manual pertama kamu."],
+            ["Import CSV", "#product-hunter", "Masukkan banyak produk dari file CSV."],
+            ["Buat Konten", "#content-factory", "Generate hook, script, caption, dan CTA."],
+            ["Buat Rencana Posting", "#campaign-planner", "Susun campaign 7 atau 14 hari."]
+          ].map(([title, href, detail]) => (
+            <a key={title} href={href} className="rounded-2xl border border-line bg-white p-4 transition hover:border-mint hover:bg-teal-50">
+              <p className="text-sm font-black text-ink">{title}</p>
+              <p className="mt-2 text-sm leading-6 text-muted">{detail}</p>
+            </a>
+          ))}
         </div>
         <div className="mt-4 grid gap-3 lg:grid-cols-3">
           {[
-            ["Product Hunter Status", `${products.length} products ready`],
-            ["Best Product Today", `${topProducts[0]?.product.productName ?? "No product"} (${topProducts[0]?.score.total ?? 0}/100)`],
-            ["Campaign Progress", `${campaignStatus} / ${campaignDuration} days / ${campaignGoal}`],
-            ["TikTok Account", tiktokConnected ? "Connected" : "Not Connected"],
-            ["AI Prompt Engine", promptEngineMode === "AI_CONNECTED" ? "AI Connected" : "Template Mode"],
-            ["Data Source", isDemoOnly ? "DEMO DATA" : "User Provided Data"]
+            ["Mode AI", promptEngineMode === "AI_CONNECTED" ? "AI Connected" : "Template Mode"],
+            ["Status TikTok", tiktokConnected ? "Connected" : "Not Connected"],
+            ["Sumber data", isDemoOnly ? "DEMO DATA" : "MANUAL DATA / CSV IMPORT"]
           ].map(([title, value]) => (
             <div key={title} className="rounded-2xl border border-line bg-white p-4">
               <p className="text-xs font-bold uppercase tracking-wide text-muted">{title}</p>
@@ -403,13 +477,13 @@ export function AffiliateWorkflow({
           ))}
         </div>
         <div className="mt-4 rounded-2xl border border-line bg-white p-4">
-          <p className="text-sm font-black text-ink">Top 5 recommended products by score</p>
+          <p className="text-sm font-black text-ink">Top 5 produk rekomendasi</p>
           <div className="mt-3 grid gap-2">
             {topProducts.map(({ product, score }) => (
               <div key={product.id} className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-3 py-2">
                 <div>
                   <p className="text-sm font-bold text-ink">{product.productName}</p>
-                  <p className="text-xs text-muted">{getSourceBadgeText(product.source)} · {getSourceTrustText(product.source)}</p>
+                  <p className="text-xs text-muted">{getSourceBadgeText(product.source)} - {getSourceTrustText(product.source)}</p>
                 </div>
                 <span className="rounded-full bg-ink px-3 py-1 text-xs font-bold text-white">{score.total}</span>
               </div>
@@ -423,20 +497,20 @@ export function AffiliateWorkflow({
               ? "border-orange-200 bg-orange-50"
               : "border-line bg-white"
         }`}>
-          <p className="text-xs font-bold uppercase tracking-wide text-muted">Database status</p>
+          <p className="text-xs font-bold uppercase tracking-wide text-muted">Status simpan data</p>
           <p className="mt-2 text-sm font-bold text-ink">{saveStatus}</p>
         </div>
       </section>
 
-      <SectionCard id="product-hunter" title="Product Hunter" description="Add products manually, from CSV, or by saving a product URL for research." icon={PackageSearch}>
+      <SectionCard id="product-hunter" title="Produk Affiliate" description="Tambah produk manual, import CSV, atau simpan link produk untuk riset." icon={PackageSearch}>
         {isDemoOnly ? (
           <div className="mb-4 rounded-2xl border border-orange-200 bg-orange-50 p-4">
             <div className="flex gap-3">
               <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-orange-700" />
               <div>
-                <p className="text-sm font-black text-orange-900">DEMO DATA - Not from TikTok Shop</p>
+                <p className="text-sm font-black text-orange-900">DEMO DATA - Bukan dari TikTok Shop</p>
                 <p className="mt-1 text-sm leading-6 text-orange-900/80">
-                  These products are sample data only. Connect TikTok Shop API, import CSV, or add products manually to use real data.
+                  Produk demo hanya contoh. Tambahkan produk manual atau import CSV agar analisa lebih sesuai kebutuhan kamu.
                 </p>
               </div>
             </div>
@@ -456,25 +530,46 @@ export function AffiliateWorkflow({
           ))}
         </div>
 
+        <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
+          {[
+            ["all", "Semua"],
+            ["manual", "Manual"],
+            ["csv", "CSV"],
+            ["demo", "Demo"],
+            ["highScore", "Score tinggi"],
+            ["lowCompetition", "Kompetisi rendah"]
+          ].map(([value, label]) => (
+            <button
+              key={value}
+              onClick={() => setProductFilter(value as ProductFilter)}
+              className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold ${
+                productFilter === value ? "bg-ink text-white" : "border border-line bg-white text-ink"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
         <div className="grid gap-4 lg:grid-cols-3">
           <div className="rounded-2xl border border-line p-4">
             <div className="mb-3 flex items-center gap-2">
               <Plus className="h-4 w-4" />
-              <p className="text-sm font-bold text-ink">Manual product input</p>
+              <p className="text-sm font-bold text-ink">Input produk manual</p>
             </div>
             <div className="grid gap-2">
               {[
-                ["productName", "Product name"],
-                ["category", "Category"],
-                ["price", "Price"],
-                ["commissionRate", "Commission rate"],
-                ["salesScore", "Sales score"],
+                ["productName", "Nama produk"],
+                ["category", "Kategori"],
+                ["price", "Harga"],
+                ["commissionRate", "Komisi"],
+                ["salesScore", "Score penjualan"],
                 ["rating", "Rating"],
-                ["reviewCount", "Review count"],
-                ["productUrl", "Product URL"],
-                ["imageUrl", "Image URL"],
-                ["contentPotential", "Content potential"],
-                ["beginnerFriendliness", "Beginner friendliness"]
+                ["reviewCount", "Jumlah review"],
+                ["productUrl", "Link produk"],
+                ["imageUrl", "Link gambar"],
+                ["contentPotential", "Potensi konten"],
+                ["beginnerFriendliness", "Cocok pemula"]
               ].map(([name, placeholder]) => (
                 <input
                   key={name}
@@ -486,11 +581,11 @@ export function AffiliateWorkflow({
                 />
               ))}
               <select name="competitionLevel" value={form.competitionLevel} onChange={updateForm} className="min-h-11 rounded-xl border border-line px-3 text-sm outline-none focus:border-mint">
-                <option value="low">Low competition</option>
-                <option value="medium">Medium competition</option>
-                <option value="high">High competition</option>
+                <option value="low">Kompetisi rendah</option>
+                <option value="medium">Kompetisi sedang</option>
+                <option value="high">Kompetisi tinggi</option>
               </select>
-              <textarea name="notes" value={form.notes} onChange={updateForm} placeholder="Notes" className="min-h-20 rounded-xl border border-line px-3 py-2 text-sm outline-none focus:border-mint" />
+              <textarea name="notes" value={form.notes} onChange={updateForm} placeholder="Catatan produk" className="min-h-20 rounded-xl border border-line px-3 py-2 text-sm outline-none focus:border-mint" />
               <ActionButton loading={loadingAction === "manual"} onClick={addManualProduct}>
                 Simpan Produk Manual
               </ActionButton>
@@ -501,7 +596,7 @@ export function AffiliateWorkflow({
           <div className="rounded-2xl border border-line p-4">
             <div className="mb-3 flex items-center gap-2">
               <FileUp className="h-4 w-4" />
-              <p className="text-sm font-bold text-ink">CSV import</p>
+              <p className="text-sm font-bold text-ink">Import CSV</p>
             </div>
             <textarea value={csv} onChange={(event) => setCsv(event.target.value)} className="min-h-56 w-full rounded-xl border border-line px-3 py-2 text-sm outline-none focus:border-mint" />
             <div className="mt-3 flex flex-wrap gap-2">
@@ -532,10 +627,10 @@ export function AffiliateWorkflow({
           <div className="rounded-2xl border border-line p-4">
             <div className="mb-3 flex items-center gap-2">
               <Link className="h-4 w-4" />
-              <p className="text-sm font-bold text-ink">Product URL input</p>
+              <p className="text-sm font-bold text-ink">Input link produk</p>
             </div>
-            <input value={urlInput} onChange={(event) => setUrlInput(event.target.value)} placeholder="Paste product URL" className="min-h-11 w-full rounded-xl border border-line px-3 text-sm outline-none focus:border-mint" />
-            <p className="mt-2 text-sm leading-6 text-muted">URL products are saved as MANUAL until real API fetching is connected.</p>
+            <input value={urlInput} onChange={(event) => setUrlInput(event.target.value)} placeholder="Tempel link produk" className="min-h-11 w-full rounded-xl border border-line px-3 text-sm outline-none focus:border-mint" />
+            <p className="mt-2 text-sm leading-6 text-muted">Link produk disimpan sebagai MANUAL DATA sampai integrasi API asli aktif.</p>
             <ActionButton loading={loadingAction === "url"} onClick={addUrlProduct} className="mt-3">
               Simpan URL
             </ActionButton>
@@ -544,18 +639,17 @@ export function AffiliateWorkflow({
         </div>
 
         <div className="mt-4 grid gap-3 lg:grid-cols-2">
-          {sortedProducts.length === 0 ? (
+          {filteredProducts.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-line bg-slate-50 p-6 text-center lg:col-span-2">
-              <p className="text-sm font-black text-ink">Belum ada produk.</p>
-              <p className="mt-2 text-sm leading-6 text-muted">Tambahkan produk manual atau import CSV untuk mulai membuat konten affiliate.</p>
+              <p className="text-sm font-black text-ink">Belum ada produk. Tambahkan produk pertama kamu untuk mulai.</p>
+              <p className="mt-2 text-sm leading-6 text-muted">Ganti filter, tambah produk manual, atau import CSV untuk melihat daftar produk.</p>
             </div>
           ) : null}
-          {sortedProducts.map((product) => {
+          {filteredProducts.map((product) => {
             const productScore = scoreProduct(product);
             return (
-              <button
+              <article
                 key={product.id}
-                onClick={() => setSelectedId(product.id)}
                 className={`rounded-2xl border p-4 text-left transition ${selectedProduct.id === product.id ? "border-mint bg-teal-50" : "border-line bg-white hover:bg-slate-50"}`}
               >
                 <div className="flex items-start gap-3">
@@ -573,40 +667,47 @@ export function AffiliateWorkflow({
                       <span className={sourceBadge(product.source)}>{product.source}</span>
                       <span className="rounded-full bg-white px-3 py-1 text-[10px] font-black text-ink">{getSourceBadgeText(product.source)}</span>
                       <span className="rounded-full bg-white px-3 py-1 text-[10px] font-black text-ink">{getSourceTrustText(product.source)}</span>
-                      <span className="rounded-full bg-white px-3 py-1 text-[10px] font-black text-ink">{productScore.recommendation}</span>
+                      <span className="rounded-full bg-white px-3 py-1 text-[10px] font-black text-ink">{getRecommendationLabel(productScore.recommendation)}</span>
                     </div>
                     <p className="mt-2 text-sm font-bold text-ink">{product.productName}</p>
                     <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-muted">{product.category}</p>
                     <p className="mt-2 text-sm leading-6 text-muted">{product.notes}</p>
                     <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
-                      <MetricPill label="Commission" value={`${product.commissionRate}%`} />
-                      <MetricPill label="Sales" value={`${product.salesScore}/100`} />
-                      <MetricPill label="Competition" value={product.competitionLevel} />
+                      <MetricPill label="Harga" value={`$${product.price}`} />
+                      <MetricPill label="Komisi" value={`${product.commissionRate}%`} />
+                      <MetricPill label="Score" value={`${productScore.total}/100`} />
                     </div>
+                    <a
+                      href="#content-factory"
+                      onClick={() => setSelectedId(product.id)}
+                      className="mt-3 inline-flex rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white"
+                    >
+                      Buat Konten
+                    </a>
                   </div>
                   <span className="rounded-full bg-ink px-3 py-1 text-xs font-bold text-white">{productScore.total}</span>
                 </div>
-              </button>
+              </article>
             );
           })}
         </div>
       </SectionCard>
 
-      <SectionCard id="product-detail" title="Product Detail" description="Review the selected product fields before generating content." icon={PackageSearch}>
+      <SectionCard id="product-detail" title="Detail Produk" description="Cek ringkasan produk sebelum membuat konten." icon={PackageSearch}>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {[
-            ["Product", selectedProduct.productName],
+            ["Produk", selectedProduct.productName],
             ["Platform", selectedProduct.platform],
-            ["Category", selectedProduct.category],
-            ["Source", `${getSourceBadgeText(selectedProduct.source)} · ${getSourceTrustText(selectedProduct.source)}`],
-            ["Price", String(selectedProduct.price)],
-            ["Commission", `${selectedProduct.commissionRate}%`],
-            ["Sold/Sales", selectedProduct.soldCount ? String(selectedProduct.soldCount) : `${selectedProduct.salesScore}/100`],
+            ["Kategori", selectedProduct.category],
+            ["Sumber", `${getSourceBadgeText(selectedProduct.source)} - ${getSourceTrustText(selectedProduct.source)}`],
+            ["Harga", String(selectedProduct.price)],
+            ["Komisi", `${selectedProduct.commissionRate}%`],
+            ["Terjual/Sales", selectedProduct.soldCount ? String(selectedProduct.soldCount) : `${selectedProduct.salesScore}/100`],
             ["Rating", `${selectedProduct.rating} (${selectedProduct.reviewCount} reviews)`],
-            ["Competition", selectedProduct.competitionLevel],
-            ["Created", new Date(selectedProduct.createdAt).toLocaleDateString()],
-            ["Updated", new Date(selectedProduct.updatedAt).toLocaleDateString()],
-            ["Product URL", selectedProduct.productUrl || "Not set"]
+            ["Kompetisi", selectedProduct.competitionLevel],
+            ["Dibuat", new Date(selectedProduct.createdAt).toLocaleDateString()],
+            ["Diupdate", new Date(selectedProduct.updatedAt).toLocaleDateString()],
+            ["Link produk", selectedProduct.productUrl || "Belum diisi"]
           ].map(([label, value]) => (
             <div key={label} className="rounded-2xl border border-line p-4">
               <p className="text-xs font-bold uppercase tracking-wide text-muted">{label}</p>
@@ -615,16 +716,16 @@ export function AffiliateWorkflow({
           ))}
         </div>
         <div className="mt-3 rounded-2xl border border-line p-4">
-          <p className="text-xs font-bold uppercase tracking-wide text-muted">Notes</p>
+          <p className="text-xs font-bold uppercase tracking-wide text-muted">Catatan</p>
           <p className="mt-2 text-sm leading-6 text-muted">{selectedProduct.notes}</p>
         </div>
       </SectionCard>
 
-      <SectionCard id="content-factory" title="Content Factory" description="Generate TikTok hooks, scripts, scenes, captions, hashtags, CTAs, and safe talking points for the selected product." icon={Sparkles}>
+      <SectionCard id="content-factory" title="Buat Konten" description="Buat hook, script, caption, hashtag, CTA, dan checklist klaim aman untuk produk terpilih." icon={Sparkles}>
         {promptEngineMode === "TEMPLATE_MODE" ? (
           <div className="mb-4 rounded-2xl border border-yellow-200 bg-yellow-50 p-4">
             <p className="text-sm font-black text-yellow-900">AI Provider Not Connected - Template Mode</p>
-            <p className="mt-1 text-sm leading-6 text-yellow-900/80">Add `GEMINI_API_KEY` or `OPENAI_API_KEY` to enable provider-backed generation later.</p>
+            <p className="mt-1 text-sm leading-6 text-yellow-900/80">Tambahkan `GEMINI_API_KEY` atau `OPENAI_API_KEY` untuk mengaktifkan AI Connected nanti.</p>
           </div>
         ) : null}
         <div className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
@@ -634,7 +735,7 @@ export function AffiliateWorkflow({
             <p className="mt-2 text-sm leading-6 text-white/70">{selectedProduct.notes}</p>
             <div className="mt-5 grid grid-cols-2 gap-2">
               <div><p className="text-xs text-white/60">Score</p><p className="text-2xl font-black">{selectedScore.total}/100</p></div>
-              <div><p className="text-xs text-white/60">Recommendation</p><p className="text-lg font-bold">{selectedScore.recommendation}</p></div>
+              <div><p className="text-xs text-white/60">Rekomendasi</p><p className="text-lg font-bold">{selectedRecommendation}</p></div>
             </div>
           </div>
           <div className="grid gap-3">
@@ -648,43 +749,46 @@ export function AffiliateWorkflow({
         </div>
 
         <div className="mt-4 flex flex-wrap gap-2">
-          <ActionButton loading={loadingAction === "hooks"} onClick={() => generatePack("hooks")}>Generate Hooks</ActionButton>
-          <ActionButton loading={loadingAction === "script"} onClick={() => generatePack("script")}>Generate Script</ActionButton>
-          <ActionButton loading={loadingAction === "caption"} onClick={() => generatePack("caption")}>Generate Caption</ActionButton>
-          <ActionButton loading={loadingAction === "full"} onClick={() => generatePack("full")} className="bg-mint">Generate Full Content Pack</ActionButton>
+          <ActionButton loading={loadingAction === "hooks"} onClick={() => generatePack("hooks")}>Buat Hook</ActionButton>
+          <ActionButton loading={loadingAction === "script"} onClick={() => generatePack("script")}>Buat Script</ActionButton>
+          <ActionButton loading={loadingAction === "caption"} onClick={() => generatePack("caption")}>Buat Caption</ActionButton>
+          <ActionButton loading={loadingAction === "full"} onClick={() => generatePack("full")} className="bg-mint">Buat Full Pack</ActionButton>
+          <button onClick={() => copyOutput("Full Pack", fullPackText())} className="inline-flex items-center gap-2 rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold text-ink">
+            <Copy className="h-4 w-4" />
+            Copy Full Pack
+          </button>
         </div>
-        <p className="mt-2 text-xs leading-5 text-muted">Klik full content pack untuk menyimpan draft lengkap ke database. Jika AI belum aktif, template lokal tetap bisa dipakai.</p>
+        <p className="mt-2 text-xs leading-5 text-muted">Gunakan script ini sebagai draft. Sesuaikan dengan gaya bicara kamu sebelum posting.</p>
         {!generatedPack ? (
           <div className="mt-4 rounded-2xl border border-dashed border-line bg-slate-50 p-4">
-            <p className="text-sm font-black text-ink">Belum ada content pack yang dibuat.</p>
-            <p className="mt-1 text-sm leading-6 text-muted">Pilih produk, lalu generate hooks, script, caption, atau paket lengkap.</p>
+            <p className="text-sm font-black text-ink">Belum ada konten. Pilih produk lalu buat script konten.</p>
+            <p className="mt-1 text-sm leading-6 text-muted">Mulai dari hook, script 15 detik, caption, atau full pack.</p>
           </div>
         ) : null}
 
         <div className="mt-4 grid gap-3 lg:grid-cols-2">
-          <PromptBlock title="5 TikTok hooks" items={promptAssets.hooks} />
-          <PromptBlock title="15-second script" text={promptAssets.script15} />
-          <PromptBlock title="30-second script" text={promptAssets.script30} />
-          <PromptBlock title="Scene-by-scene plan" items={promptAssets.scenePlan} />
-          <PromptBlock title="Caption" text={promptAssets.caption} />
-          <PromptBlock title="Hashtags" items={promptAssets.hashtags} />
-          <PromptBlock title="CTA for TikTok Shop / keranjang kuning" text={promptAssets.cta} />
-          <PromptBlock title="Safe claim checklist" items={promptAssets.safeClaimChecklist} />
-          <PromptBlock title="Product talking points" items={promptAssets.talkingPoints} />
+          <PromptBlock title="Hook 3 detik pertama" items={promptAssets.hooks} copyLabel="Copy Hook" onCopy={() => copyOutput("Hook", promptAssets.hooks.join("\n"))} />
+          <PromptBlock title="Script 15 detik" text={promptAssets.script15} copyLabel="Copy Script" onCopy={() => copyOutput("Script", promptAssets.script15)} />
+          <PromptBlock title="Script 30 detik" text={promptAssets.script30} copyLabel="Copy Script" onCopy={() => copyOutput("Script", promptAssets.script30)} />
+          <PromptBlock title="Scene Plan" items={promptAssets.scenePlan} />
+          <PromptBlock title="Caption" text={promptAssets.caption} copyLabel="Copy Caption" onCopy={() => copyOutput("Caption", promptAssets.caption)} />
+          <PromptBlock title="Hashtag" items={promptAssets.hashtags} copyLabel="Copy Hashtag" onCopy={() => copyOutput("Hashtag", promptAssets.hashtags.join(" "))} />
+          <PromptBlock title="CTA" text={promptAssets.cta} />
+          <PromptBlock title="Checklist Klaim Aman" items={promptAssets.safeClaimChecklist} />
         </div>
       </SectionCard>
 
-      <SectionCard id="campaign-planner" title="Campaign Planner" description="Create a campaign from the selected product and enter simple performance data by day." icon={CalendarDays}>
+      <SectionCard id="campaign-planner" title="Rencana Posting" description="Buat rencana posting 7 atau 14 hari dari produk terpilih dan isi performa manual per hari." icon={CalendarDays}>
         <div className="mb-4 grid gap-3 sm:grid-cols-3">
           <label className="rounded-2xl border border-line p-4">
-            <span className="text-xs font-bold uppercase tracking-wide text-muted">Campaign duration</span>
+            <span className="text-xs font-bold uppercase tracking-wide text-muted">Durasi campaign</span>
             <select value={campaignDuration} onChange={(event) => setCampaignDuration(Number(event.target.value) as CampaignDuration)} className="mt-2 min-h-11 w-full rounded-xl border border-line px-3 text-sm outline-none focus:border-mint">
-              <option value={7}>7 days</option>
-              <option value={14}>14 days</option>
+              <option value={7}>7 hari</option>
+              <option value={14}>14 hari</option>
             </select>
           </label>
           <label className="rounded-2xl border border-line p-4">
-            <span className="text-xs font-bold uppercase tracking-wide text-muted">Campaign goal</span>
+            <span className="text-xs font-bold uppercase tracking-wide text-muted">Tujuan campaign</span>
             <select value={campaignGoal} onChange={(event) => setCampaignGoal(event.target.value as CampaignGoal)} className="mt-2 min-h-11 w-full rounded-xl border border-line px-3 text-sm outline-none focus:border-mint">
               <option value="awareness">awareness</option>
               <option value="clicks">clicks</option>
@@ -693,7 +797,7 @@ export function AffiliateWorkflow({
             </select>
           </label>
           <label className="rounded-2xl border border-line p-4">
-            <span className="text-xs font-bold uppercase tracking-wide text-muted">Campaign status</span>
+            <span className="text-xs font-bold uppercase tracking-wide text-muted">Status campaign</span>
             <select value={campaignStatus} onChange={(event) => setCampaignStatus(event.target.value as CampaignStatus)} className="mt-2 min-h-11 w-full rounded-xl border border-line px-3 text-sm outline-none focus:border-mint">
               <option value="Draft">Draft</option>
               <option value="Active">Active</option>
@@ -703,20 +807,29 @@ export function AffiliateWorkflow({
           </label>
         </div>
         <div className="mb-4 rounded-2xl border border-line bg-slate-50 p-4">
-          <p className="text-sm font-black text-ink">Campaign from selected product</p>
+          <p className="text-sm font-black text-ink">Campaign dari produk terpilih</p>
           <p className="mt-1 text-sm text-muted">{selectedProduct.productName}</p>
           <ActionButton loading={loadingAction === "campaign"} onClick={saveCampaign} className="mt-3">
             Simpan Campaign
           </ActionButton>
           <p className="mt-2 text-xs leading-5 text-muted">Campaign tersimpan sebagai draft sederhana. Ubah status ke Active saat mulai posting.</p>
         </div>
+        {!campaignId ? (
+          <div className="mb-4 rounded-2xl border border-dashed border-line bg-slate-50 p-4">
+            <p className="text-sm font-black text-ink">Belum ada rencana posting. Buat campaign 7 hari dari produk terbaik kamu.</p>
+          </div>
+        ) : null}
         <div className="grid gap-3 lg:grid-cols-7">
           {campaign.map((day) => (
             <article key={day.day} className="rounded-2xl border border-line p-4">
-              <p className="text-xs font-black uppercase tracking-wide text-coral">Day {day.day}</p>
+              <p className="text-xs font-black uppercase tracking-wide text-coral">Hari ke-{day.day}</p>
               <h3 className="mt-2 text-sm font-bold text-ink">{day.angle}</h3>
-              <p className="mt-2 text-sm leading-6 text-muted">{day.hook}</p>
-              <p className="mt-2 text-sm leading-6 text-muted">{day.scriptIdea}</p>
+              <p className="mt-2 text-xs font-bold uppercase tracking-wide text-muted">Hook</p>
+              <p className="mt-1 text-sm leading-6 text-muted">{day.hook}</p>
+              <p className="mt-2 text-xs font-bold uppercase tracking-wide text-muted">Ide video</p>
+              <p className="mt-1 text-sm leading-6 text-muted">{day.scriptIdea}</p>
+              <p className="mt-2 text-xs font-bold uppercase tracking-wide text-muted">Caption</p>
+              <p className="mt-1 text-sm leading-6 text-muted">{day.caption}</p>
               <p className="mt-2 text-xs font-semibold text-ink">{day.cta}</p>
               <p className="mt-2 text-xs leading-5 text-muted">{day.postingNote}</p>
             </article>
@@ -726,12 +839,12 @@ export function AffiliateWorkflow({
         <div className="mt-4 rounded-2xl border border-line p-4">
           <div className="mb-3 flex items-center gap-2">
             <ClipboardList className="h-4 w-4" />
-            <p className="text-sm font-bold text-ink">Manual performance input</p>
+            <p className="text-sm font-bold text-ink">Input performa manual</p>
           </div>
           <div className="grid gap-3">
             {visiblePerformance.map((day, dayIndex) => (
               <div key={dayIndex} className="rounded-xl bg-slate-50 p-3">
-                <p className="mb-2 text-xs font-black uppercase tracking-wide text-muted">Day {dayIndex + 1}</p>
+                <p className="mb-2 text-xs font-black uppercase tracking-wide text-muted">Hari ke-{dayIndex + 1}</p>
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
                   {(Object.keys(day) as Array<keyof CampaignPerformanceDay>).map((field) => (
                     <input
@@ -750,10 +863,10 @@ export function AffiliateWorkflow({
           <div className="mt-4 grid gap-2 sm:grid-cols-3 lg:grid-cols-6">
             <MetricPill label="Total views" value={String(performanceSummary.totalViews)} />
             <MetricPill label="Total clicks" value={String(performanceSummary.totalClicks)} />
-            <MetricPill label="Total orders" value={String(performanceSummary.totalOrders)} />
+            <MetricPill label="Total order" value={String(performanceSummary.totalOrders)} />
             <MetricPill label="Revenue" value={`$${performanceSummary.estimatedRevenue.toFixed(2)}`} />
             <MetricPill label="CTR" value={`${performanceSummary.ctr.toFixed(2)}%`} />
-            <MetricPill label="Conversion" value={`${performanceSummary.conversionRate.toFixed(2)}%`} />
+            <MetricPill label="Conversion rate" value={`${performanceSummary.conversionRate.toFixed(2)}%`} />
           </div>
           <ActionButton loading={loadingAction === "performance"} onClick={savePerformance} className="mt-4">
             Simpan Performa
@@ -761,7 +874,7 @@ export function AffiliateWorkflow({
           <p className="mt-2 text-xs leading-5 text-muted">Masukkan angka manual dari TikTok atau TikTok Shop. App hanya menghitung dari data yang Anda isi.</p>
           {suggestions.length > 0 ? (
             <div className="mt-4 rounded-2xl border border-orange-200 bg-orange-50 p-4">
-              <p className="text-sm font-black text-orange-900">AI improvement suggestions after 5 days</p>
+              <p className="text-sm font-black text-orange-900">Saran perbaikan setelah 5 hari</p>
               <ul className="mt-2 space-y-2 text-sm leading-6 text-orange-900/80">
                 {suggestions.map((suggestion) => (
                   <li key={suggestion}>- {suggestion}</li>
@@ -771,7 +884,7 @@ export function AffiliateWorkflow({
           ) : (
             <div className="mt-4 flex items-start gap-2 rounded-2xl border border-teal-200 bg-teal-50 p-4">
               <CheckCircle2 className="mt-0.5 h-4 w-4 text-teal-700" />
-              <p className="text-sm leading-6 text-teal-900">Enter the first 5 days of performance to unlock improvement suggestions when results are weak.</p>
+              <p className="text-sm leading-6 text-teal-900">Isi performa 5 hari pertama untuk melihat saran perbaikan jika hasil masih lemah.</p>
             </div>
           )}
         </div>
@@ -780,10 +893,30 @@ export function AffiliateWorkflow({
   );
 }
 
-function PromptBlock({ title, text, items }: { title: string; text?: string; items?: string[] }) {
+function PromptBlock({
+  title,
+  text,
+  items,
+  copyLabel,
+  onCopy
+}: {
+  title: string;
+  text?: string;
+  items?: string[];
+  copyLabel?: string;
+  onCopy?: () => void;
+}) {
   return (
     <div className="rounded-2xl border border-line bg-white p-4">
-      <p className="text-sm font-bold text-ink">{title}</p>
+      <div className="flex items-start justify-between gap-3">
+        <p className="text-sm font-bold text-ink">{title}</p>
+        {copyLabel && onCopy ? (
+          <button onClick={onCopy} className="inline-flex shrink-0 items-center gap-1 rounded-full border border-line px-3 py-1 text-xs font-semibold text-ink">
+            <Copy className="h-3.5 w-3.5" />
+            {copyLabel}
+          </button>
+        ) : null}
+      </div>
       {text ? <p className="mt-2 text-sm leading-6 text-muted">{text}</p> : null}
       {items ? (
         <ul className="mt-2 space-y-2 text-sm leading-6 text-muted">

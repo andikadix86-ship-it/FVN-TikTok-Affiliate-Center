@@ -10,8 +10,8 @@ export function ContentFactory() {
   return (
     <SectionCard
       id="content-factory"
-      title="Content Factory"
-      description="Turn a selected product into a beginner-safe TikTok script prompt."
+      title="Buat Konten"
+      description="Ubah produk terpilih menjadi draft script TikTok yang aman untuk pemula."
       icon={Sparkles}
     >
       <div className="rounded-2xl border border-line bg-slate-50 p-4">

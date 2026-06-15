@@ -1,12 +1,20 @@
 import { CalendarDays, Gauge, Link2, PackageSearch, Settings, Sparkles } from "lucide-react";
 
 const navItems = [
-  { href: "#dashboard", label: "Dashboard", icon: Gauge },
-  { href: "#product-hunter", label: "Product Hunter", icon: PackageSearch },
-  { href: "#content-factory", label: "Content Factory", icon: Sparkles },
-  { href: "#campaign-planner", label: "Campaign Planner", icon: CalendarDays },
-  { href: "#tiktok-accounts", label: "TikTok Accounts", icon: Link2 },
-  { href: "#settings", label: "Settings", icon: Settings }
+  { href: "/#dashboard", label: "Dashboard", icon: Gauge },
+  { href: "/#product-hunter", label: "Produk Affiliate", icon: PackageSearch },
+  { href: "/#content-factory", label: "Buat Konten", icon: Sparkles },
+  { href: "/#campaign-planner", label: "Rencana Posting", icon: CalendarDays },
+  { href: "/#tiktok-accounts", label: "Akun TikTok", icon: Link2 },
+  { href: "/#settings", label: "Pengaturan", icon: Settings }
+];
+
+const mobileNavItems = [
+  { href: "/#dashboard", label: "Dashboard", icon: Gauge },
+  { href: "/#product-hunter", label: "Produk", icon: PackageSearch },
+  { href: "/#content-factory", label: "Konten", icon: Sparkles },
+  { href: "/#campaign-planner", label: "Campaign", icon: CalendarDays },
+  { href: "/#settings", label: "Settings", icon: Settings }
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -16,7 +24,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
           <div>
             <p className="text-sm font-bold text-ink">FVN Affiliate</p>
-            <p className="text-xs text-muted">TikTok MVP</p>
+            <p className="text-xs text-muted">Pusat kerja affiliate TikTok</p>
           </div>
           <nav className="hidden flex-1 justify-center gap-1 md:flex">
             {navItems.map((item) => (
@@ -33,14 +41,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             href="/api/auth/tiktok/login"
             className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white transition hover:bg-black"
           >
-            Connect TikTok
+            Hubungkan TikTok
           </a>
         </div>
       </header>
       {children}
       <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-line bg-white/95 px-2 py-2 backdrop-blur sm:hidden">
-        <div className="grid grid-cols-6 gap-1">
-          {navItems.map((item) => {
+        <div className="grid grid-cols-5 gap-1">
+          {mobileNavItems.map((item) => {
             const Icon = item.icon;
             return (
               <a
