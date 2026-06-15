@@ -5,19 +5,16 @@ import {
   TIKTOK_OAUTH_ERROR_COOKIE,
   TIKTOK_STATE_COOKIE
 } from "@/modules/tiktok/oauth";
+import { buildSafeOAuthError } from "@/modules/tiktok/production-oauth";
 
 function oauthErrorResponse(message: string, status: number, details?: unknown) {
+  const payload = buildSafeOAuthError(message, details);
   const response = NextResponse.json(
-    {
-      connected: false,
-      provider: "tiktok",
-      message,
-      details
-    },
+    payload,
     { status }
   );
 
-  response.cookies.set(TIKTOK_OAUTH_ERROR_COOKIE, message, {
+  response.cookies.set(TIKTOK_OAUTH_ERROR_COOKIE, payload.details ? `${message} ${payload.details}` : message, {
     httpOnly: true,
     maxAge: 60 * 30,
     path: "/",
@@ -37,23 +34,23 @@ export async function GET(request: NextRequest) {
 
   if (oauthError) {
     return oauthErrorResponse(
-      oauthErrorDescription ? `${oauthError}: ${oauthErrorDescription}` : oauthError,
+      oauthErrorDescription ? `TikTok returned an error: ${oauthError}. ${oauthErrorDescription}` : `TikTok returned an error: ${oauthError}.`,
       400
     );
   }
 
   if (!code) {
-    return oauthErrorResponse("Missing TikTok authorization code.", 400);
+    return oauthErrorResponse("TikTok callback is missing authorization code.", 400);
   }
 
   if (!state || !expectedState || state !== expectedState) {
-    return oauthErrorResponse("Invalid TikTok OAuth state.", 400);
+    return oauthErrorResponse("TikTok OAuth state mismatch. Please retry the connection from this app.", 400);
   }
 
   const tokenResult = await exchangeTikTokCode(code);
 
   if (!tokenResult.ok) {
-    return oauthErrorResponse("TikTok token exchange failed.", 502, {
+    return oauthErrorResponse("TikTok token exchange failed. Check OAuth app credentials and redirect URI.", 502, {
       status: tokenResult.status,
       payload: tokenResult.payload
     });

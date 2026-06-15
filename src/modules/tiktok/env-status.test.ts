@@ -9,18 +9,22 @@ describe("TikTok env status helper", () => {
     expect(status.clientSecret).toBe("Missing");
     expect(status.redirectUri).toBe("Missing");
     expect(status.oauth).toBe("Missing");
+    expect(status.errors.length).toBeGreaterThan(0);
   });
 
   it("shows configured when all OAuth env values are present", () => {
     const status = getTikTokEnvStatus({
       clientKey: "key",
       clientSecret: "secret",
-      redirectUri: "https://example.com/api/auth/tiktok/callback"
+      redirectUri: "https://example.com/api/auth/tiktok/callback",
+      appUrl: "https://example.com",
+      nodeEnv: "production"
     });
 
     expect(status.clientKey).toBe("Configured");
     expect(status.clientSecret).toBe("Configured");
     expect(status.redirectUri).toBe("Configured");
     expect(status.oauth).toBe("Configured");
+    expect(status.errors).toEqual([]);
   });
 });

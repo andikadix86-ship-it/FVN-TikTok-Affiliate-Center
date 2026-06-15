@@ -57,7 +57,9 @@ export default async function Home() {
   const tiktokEnvStatus = getTikTokEnvStatus({
     clientKey: env.TIKTOK_CLIENT_KEY,
     clientSecret: env.TIKTOK_CLIENT_SECRET,
-    redirectUri: env.TIKTOK_REDIRECT_URI
+    redirectUri: env.TIKTOK_REDIRECT_URI,
+    appUrl: env.NEXT_PUBLIC_APP_URL,
+    nodeEnv: process.env.NODE_ENV
   });
   const settingsStatus = getSettingsStatus({
     appUrl: env.NEXT_PUBLIC_APP_URL,
@@ -89,6 +91,9 @@ export default async function Home() {
             counts={database.counts}
             tiktokOAuthConfigured={tiktokEnvStatus.oauth === "Configured"}
             aiProviderConfigured={promptEngineMode === "AI_CONNECTED"}
+            productionUrl={env.NEXT_PUBLIC_APP_URL}
+            tiktokRedirectUri={env.TIKTOK_REDIRECT_URI}
+            tiktokOAuthErrors={tiktokEnvStatus.errors}
           />
         </div>
       </section>

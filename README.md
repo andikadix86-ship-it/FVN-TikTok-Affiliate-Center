@@ -61,15 +61,36 @@ Add these environment variables in Vercel:
 ```bash
 DATABASE_URL=""
 DIRECT_URL=""
-NEXT_PUBLIC_APP_URL="https://your-domain.vercel.app"
+NEXT_PUBLIC_APP_URL="https://your-vercel-domain.vercel.app"
 TIKTOK_CLIENT_KEY=""
 TIKTOK_CLIENT_SECRET=""
-TIKTOK_REDIRECT_URI="https://your-domain.vercel.app/api/auth/tiktok/callback"
+TIKTOK_REDIRECT_URI="https://your-vercel-domain.vercel.app/api/auth/tiktok/callback"
 GEMINI_API_KEY=""
 OPENAI_API_KEY=""
 ```
 
 Run `npm run build` locally before deploying.
+
+## Vercel Production Deploy Guide
+
+1. Push this repository to GitHub.
+2. Import the GitHub project into Vercel.
+3. Add all production environment variables in Vercel Project Settings.
+4. Redeploy after every environment variable update.
+5. Copy the production callback URL:
+
+```text
+https://your-vercel-domain.vercel.app/api/auth/tiktok/callback
+```
+
+6. Add that callback URL to the TikTok Developer Portal Login Kit configuration.
+7. Open `/api/health` on the deployed app and confirm:
+   - `app` is `ok`
+   - `database` is `connected`
+   - `tiktokOAuth` is `configured`
+8. Test the TikTok connect button from the deployed HTTPS URL.
+
+Vercel runs `npm install`, then `postinstall` runs `prisma generate`. The build script also runs `prisma generate && next build`.
 
 ## TikTok Redirect URI Setup
 
