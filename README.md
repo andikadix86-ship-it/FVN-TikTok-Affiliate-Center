@@ -1,147 +1,168 @@
 # FVN TikTok Affiliate Center
 
-A standalone Next.js 14 MVP for beginner TikTok affiliate workflows.
+FVN TikTok Affiliate Center is a simple TikTok Affiliate operating system for beginner affiliates. It helps users collect product ideas, score product opportunity, generate TikTok content drafts, plan manual posting, track posted videos, review manual analytics, and follow a daily action plan.
 
-## Focus
+## Main Workflow
 
-- Produk Affiliate
-- Product Scoring
-- Buat Konten / Prompt Engineer
-- TikTok Account Connection
-- Rencana Posting
-- Pengaturan
+1. Add product manually or import CSV.
+2. Score product opportunity.
+3. Generate TikTok content pack.
+4. Save draft content.
+5. Prepare posting checklist.
+6. Upload manually to TikTok.
+7. Save posted video URL.
+8. Input manual performance.
+9. Review analytics.
+10. Follow daily action plan.
 
-## Getting Started
+## Features
 
-```bash
+- Dashboard: overview of products, drafts, posted content, analytics, and next actions.
+- Rencana Hari Ini / Action Plan: simple daily recommendations based on available data.
+- Produk Affiliate / Product Hunter: manual product input, CSV import, URL input, source badges, and scoring.
+- Product Scoring: 0-100 score with beginner-friendly recommendation labels.
+- CSV Import: validated product import from user CSV file.
+- Manual Product Input: add products before TikTok Shop API is connected.
+- Buat Konten / Prompt Engine: generate hooks, scripts, captions, hashtags, CTA, checklist, and campaign ideas.
+- Draft Konten / Content Library: save, search, edit, copy, duplicate, archive, and reuse generated drafts.
+- Rencana Posting / Campaign Planner: create 7-day or 14-day posting plans and input manual performance.
+- Konten Terposting / Posted Content: save TikTok video URLs after manual upload and track performance.
+- Analisa Affiliate / Simple Analytics: calculate views, clicks, orders, revenue, CTR, conversion rate, and engagement rate from manual data.
+- Akun TikTok / TikTok OAuth Diagnostics: Login Kit readiness, environment status, and OAuth error display.
+- Pengaturan / Status Panel: database, AI provider, TikTok OAuth, TikTok Shop API, product source, demo data, health check, and sample CSV.
+
+## Data Sources
+
+### DEMO DATA
+
+Sample only, not from TikTok Shop. Demo products are for onboarding and UI testing.
+
+### MANUAL DATA
+
+Data entered by the user. Manual data should never be shown as official TikTok Shop data.
+
+### CSV IMPORT
+
+Data imported from the user's CSV file. CSV data should never be shown as official TikTok Shop data.
+
+### REAL API DATA
+
+Official API data, only if TikTok Shop API is connected later.
+
+Important: never claim demo, manual, or CSV data as real TikTok Shop data.
+
+## TikTok Integration
+
+- TikTok Login Kit is for account connection.
+- TikTok Shop API is separate from TikTok Login.
+- Product Hunter does not automatically pull TikTok Shop products yet.
+- TikTok auto-posting is not enabled in this MVP.
+- Manual publishing workflow is used for safety and simplicity.
+- The app does not scrape TikTok and does not fake TikTok analytics.
+- All analytics come from manual performance input unless an official API is connected later.
+
+## Environment Variables
+
+Create `.env` locally and configure the same values in Vercel for production.
+
+```env
+DATABASE_URL=""
+DIRECT_URL=""
+NEXT_PUBLIC_APP_URL="https://your-vercel-domain.vercel.app"
+
+TIKTOK_CLIENT_KEY=""
+TIKTOK_CLIENT_SECRET=""
+TIKTOK_REDIRECT_URI="https://your-vercel-domain.vercel.app/api/auth/tiktok/callback"
+TIKTOK_OAUTH_PKCE_ENABLED="false"
+
+TIKTOK_SHOP_APP_KEY=""
+TIKTOK_SHOP_APP_SECRET=""
+TIKTOK_SHOP_ACCESS_TOKEN=""
+TIKTOK_SHOP_REGION="ID"
+
+GEMINI_API_KEY=""
+OPENAI_API_KEY=""
+```
+
+TikTok Web Login requires an HTTPS redirect URI. Use a Vercel deployment URL or ngrok HTTPS URL for local OAuth testing.
+
+## Local Setup
+
+```bat
+cd /d D:\FVN\TIKTOK
 npm install
-cp .env.example .env
-npm run prisma:generate
+npx prisma generate
+npx prisma migrate dev
 npm run dev
 ```
 
 Open `http://localhost:3000`.
 
-## Database
-
-The Prisma schema is ready for Supabase/PostgreSQL. Set `DATABASE_URL` and `DIRECT_URL`, then run:
+Optional demo seed:
 
 ```bash
-npm run prisma:generate
-npm run prisma:migrate
 npm run prisma:seed
 ```
 
-## Local Setup
+## Build And Test
 
-1. Install dependencies with `npm install`.
-2. Copy `.env.example` to `.env`.
-3. Add Supabase/PostgreSQL values for `DATABASE_URL` and `DIRECT_URL`.
-4. Run `npm run prisma:generate`.
-5. Run `npm run prisma:migrate`.
-6. Run `npm run prisma:seed` to add demo products.
-7. Start the app with `npm run dev`.
+```bash
+npm run lint
+npm run build
+npm test
+```
 
 ## Supabase Setup
 
-Create a Supabase project, copy the pooled connection string into `DATABASE_URL`, and copy the direct connection string into `DIRECT_URL`. Keep both values secret.
+1. Create a Supabase project.
+2. Copy the pooled PostgreSQL connection string into `DATABASE_URL`.
+3. Copy the direct PostgreSQL connection string into `DIRECT_URL`.
+4. Run Prisma migration from a trusted local or CI environment.
+5. Keep database credentials out of Git.
 
-## Prisma Migrate
+## Vercel Deploy Guide
 
-Use `npm run prisma:migrate` during local development. For production deploys, run Prisma migrations from a trusted environment before or during deployment.
-
-## Seed Demo Data
-
-Run `npm run prisma:seed`. The seed only creates demo products with `source=DEMO`.
-
-## Vercel Deploy
-
-Add these environment variables in Vercel:
-
-```bash
-DATABASE_URL=""
-DIRECT_URL=""
-NEXT_PUBLIC_APP_URL="https://your-vercel-domain.vercel.app"
-TIKTOK_CLIENT_KEY=""
-TIKTOK_CLIENT_SECRET=""
-TIKTOK_REDIRECT_URI="https://your-vercel-domain.vercel.app/api/auth/tiktok/callback"
-GEMINI_API_KEY=""
-OPENAI_API_KEY=""
-```
-
-Run `npm run build` locally before deploying.
-
-## Vercel Production Deploy Guide
-
-1. Push this repository to GitHub.
-2. Import the GitHub project into Vercel.
-3. Add all production environment variables in Vercel Project Settings.
-4. Redeploy after every environment variable update.
+1. Push the project to GitHub.
+2. Import the repo to Vercel.
+3. Add all environment variables in Vercel Project Settings.
+4. Deploy.
 5. Copy the production callback URL:
 
 ```text
 https://your-vercel-domain.vercel.app/api/auth/tiktok/callback
 ```
 
-6. Add that callback URL to the TikTok Developer Portal Login Kit configuration.
-7. Open `/api/health` on the deployed app and confirm:
-   - `app` is `ok`
-   - `database` is `connected`
-   - `tiktokOAuth` is `configured`
-8. Test the TikTok connect button from the deployed HTTPS URL.
+6. Add the callback URL to TikTok Developer Portal Login Kit config.
+7. Test `/api/health`.
+8. Test `/tiktok/oauth-test`.
+9. Test the Connect TikTok button from the deployed HTTPS URL.
 
-Vercel runs `npm install`, then `postinstall` runs `prisma generate`. The build script also runs `prisma generate && next build`.
+Vercel runs `npm install`, `postinstall` runs `prisma generate`, and the build script runs `prisma generate && next build`.
 
-## TikTok Redirect URI Setup
+## TikTok OAuth Troubleshooting
 
-TikTok Web Login requires an HTTPS redirect URI. Use your Vercel deployment URL or an ngrok HTTPS URL for local testing, then set the same value in TikTok Developer settings and `TIKTOK_REDIRECT_URI`.
+- `code_challenge` error: Web Login Kit does not need PKCE by default. Keep `TIKTOK_OAUTH_PKCE_ENABLED="false"` unless PKCE is implemented end to end.
+- `redirect_uri` mismatch: `TIKTOK_REDIRECT_URI` must exactly match TikTok Developer Portal.
+- Missing client key or secret: configure `TIKTOK_CLIENT_KEY` and `TIKTOK_CLIENT_SECRET`, then redeploy.
+- State mismatch: restart login from the app. The OAuth cookie may have expired or the callback came from a different browser/session.
+- Localhost/http issue: TikTok Web Login requires HTTPS redirect URI.
 
-## Troubleshooting TikTok Login
-
-- `code_challenge` error: Web Login Kit does not need PKCE by default. Keep `TIKTOK_OAUTH_PKCE_ENABLED="false"` unless you intentionally implement PKCE end to end.
-- `redirect_uri` mismatch: `TIKTOK_REDIRECT_URI` must exactly match the callback URL registered in TikTok Developer Portal.
-- Missing `client_key`: add `TIKTOK_CLIENT_KEY` in Vercel env and redeploy.
-- Missing `client_secret`: add `TIKTOK_CLIENT_SECRET` in Vercel env and redeploy. The app never shows the full secret in UI.
-- State mismatch: restart the connection from the app. This usually means the OAuth cookie expired or the callback came from a different browser/session.
-- Localhost/http problem: TikTok Web Login requires HTTPS redirect URI. Use Vercel preview/deploy URL or ngrok HTTPS.
-- App not approved or scope not approved: Login Kit and optional profile/video scopes must be enabled in TikTok Developer Portal.
-- `video.list` scope not approved: this MVP does not request `video.list` by default. Do not enable it unless TikTok approves the feature.
-
-For MVP, TikTok Shop product data is still not automatic. TikTok account connection is different from TikTok Shop product API. Product Hunter can use DEMO DATA, MANUAL DATA, or CSV IMPORT until a real TikTok Shop API integration is approved and connected.
-
-## Real Product Data Intake
-
-Produk Affiliate now supports real user-provided product data without scraping:
-
-1. Add products manually with product URL, price, commission, audience, problem solved, main benefit, and demo idea.
-2. Paste a TikTok Shop product link and fill the product fields yourself. The app saves this as `MANUAL DATA`, not `REAL API DATA`.
-3. Import CSV using the sample file from Pengaturan. Valid rows are saved as `CSV IMPORT`.
-4. Demo seed products always stay `DEMO DATA - Bukan dari TikTok Shop`.
-5. `REAL API DATA` is reserved only for future official TikTok Shop API results.
-
-TikTok Shop API placeholders are available through:
-
-```env
-TIKTOK_SHOP_APP_KEY=""
-TIKTOK_SHOP_APP_SECRET=""
-TIKTOK_SHOP_ACCESS_TOKEN=""
-TIKTOK_SHOP_REGION="ID"
-```
-
-Current status: `TikTok Shop API belum terhubung`. The adapter does not scrape and does not fake product data.
-
-## Panduan Penggunaan untuk Pemula
+## Beginner Usage Guide
 
 1. Tambah produk lewat Produk Affiliate dengan input manual, CSV import, atau link produk.
-2. Cek score produk dan label rekomendasi: Layak Promosi, Test Dulu, atau Hindari.
+2. Cek score produk dan label rekomendasi.
 3. Buka Buat Konten untuk membuat hook, script, caption, hashtag, dan CTA keranjang kuning.
-4. Buat campaign 7 hari atau 14 hari di Rencana Posting.
-5. Input performa manual setiap hari: views, likes, comments, shares, clicks, orders, dan revenue.
-6. Perbaiki konten berdasarkan saran AI atau Template Mode setelah minimal 5 hari data performa.
+4. Simpan draft di Draft Konten.
+5. Gunakan Checklist Posting sebelum upload manual ke TikTok.
+6. Setelah upload, simpan URL video di Konten Terposting.
+7. Input performa manual: views, likes, comments, shares, saves, clicks, orders, dan revenue.
+8. Buka Analisa Affiliate untuk membaca performa.
+9. Buka Rencana Hari Ini untuk melihat rekomendasi praktis berikutnya.
 
-Catatan sumber data:
+## Safety Notes
 
-- DEMO DATA hanya contoh dan bukan data TikTok Shop asli.
-- MANUAL DATA adalah data yang kamu input sendiri.
-- CSV IMPORT adalah data dari file CSV kamu.
-- REAL API DATA hanya digunakan jika integrasi API asli sudah connected.
+- Do not commit `.env` files or secrets.
+- Do not claim a product is from TikTok Shop unless `source=REAL_API`.
+- Do not promise guaranteed sales, guaranteed virality, or guaranteed income.
+- Manual publishing means the user uploads to TikTok themselves.
+- Manual analytics means the user inputs performance numbers themselves.
