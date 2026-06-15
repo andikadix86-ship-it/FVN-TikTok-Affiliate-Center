@@ -13,11 +13,13 @@ describe("AppShell navigation", () => {
 
     expect(html).toContain("Produk Affiliate");
     expect(html).toContain("Buat Konten");
+    expect(html).toContain("Draft Konten");
     expect(html).toContain("Rencana Posting");
     expect(html).toContain("Akun TikTok");
     expect(html).toContain("Pengaturan");
     expect(html).toContain("Produk");
     expect(html).toContain("Konten");
+    expect(html).toContain("Draft");
     expect(html).toContain("Campaign");
     expect(html).toContain("/#product-hunter");
     expect(html).toContain("/#settings");

@@ -27,6 +27,13 @@ enum ProviderMode {
   TEMPLATE
 }
 
+enum ContentStatus {
+  DRAFT
+  READY
+  POSTED
+  ARCHIVED
+}
+
 enum TikTokOAuthLogStatus {
   SUCCESS
   ERROR
@@ -67,25 +74,49 @@ model ContentPack {
   id                 String       @id @default(cuid())
   productId          String
   product            Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  contentMode        String?
+  targetAudience     String?
+  tone               String?
+  productInsight     String?      @db.Text
+  mainSellingPoint   String?      @db.Text
+  targetAudienceMatch String?     @db.Text
   hooks              Json
+  selectedHook       String?      @db.Text
   script15s          String       @db.Text
   script30s          String       @db.Text
   scenePlan          Json
+  voiceOverDraft     String?      @db.Text
   caption            String       @db.Text
+  captionShort       String?      @db.Text
+  captionMedium      String?      @db.Text
+  captionStorytelling String?     @db.Text
   hashtags           Json
   cta                String       @db.Text
+  ctaSoft            String?      @db.Text
+  ctaDirect          String?      @db.Text
+  ctaKeranjangKuning String?      @db.Text
   safeClaimChecklist Json
+  editingNotes       Json?
+  postingNotes       Json?
+  talkingPoints      Json?
+  notes              String?      @db.Text
+  status             ContentStatus @default(DRAFT)
   providerMode       ProviderMode @default(TEMPLATE)
+  campaigns          Campaign[]
   createdAt          DateTime     @default(now())
   updatedAt          DateTime     @updatedAt
 
   @@index([productId])
+  @@index([status])
+  @@index([createdAt])
 }
 
 model Campaign {
   id          String                @id @default(cuid())
   productId   String
   product     Product               @relation(fields: [productId], references: [id], onDelete: Cascade)
+  contentPackId String?
+  contentPack ContentPack?          @relation(fields: [contentPackId], references: [id], onDelete: SetNull)
   name        String
   durationDays Int
   goal        String
@@ -96,6 +127,7 @@ model Campaign {
   updatedAt   DateTime              @updatedAt
 
   @@index([productId])
+  @@index([contentPackId])
   @@index([status])
 }
 

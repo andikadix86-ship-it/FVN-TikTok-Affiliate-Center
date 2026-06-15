@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { mapDbContentDraft } from "@/modules/database/content-service";
 
 export const dynamic = "force-dynamic";
 
@@ -9,5 +10,5 @@ export async function GET() {
     include: { product: true }
   });
 
-  return NextResponse.json({ contentPacks });
+  return NextResponse.json({ contentPacks: contentPacks.map(mapDbContentDraft) });
 }

@@ -113,12 +113,24 @@ export function AffiliateWorkflow({
   tiktokConnected,
   promptEngineMode,
   initialProducts,
-  databaseConnected
+  databaseConnected,
+  contentStats = {
+    totalDrafts: 0,
+    readyDrafts: 0,
+    postedDrafts: 0,
+    latestDrafts: []
+  }
 }: {
   tiktokConnected: boolean;
   promptEngineMode: PromptEngineMode;
   initialProducts: AffiliateProduct[];
   databaseConnected: boolean;
+  contentStats?: {
+    totalDrafts: number;
+    readyDrafts: number;
+    postedDrafts: number;
+    latestDrafts: Array<{ id: string; productName: string; status: string; hook: string }>;
+  };
 }) {
   const [products, setProducts] = useState<AffiliateProduct[]>(initialProducts.length > 0 ? initialProducts : sampleProducts);
   const [selectedId, setSelectedId] = useState((initialProducts[0] ?? sampleProducts[0])?.id ?? "");
@@ -487,6 +499,9 @@ export function AffiliateWorkflow({
       body: JSON.stringify({
         productId: selectedProduct.id,
         contentPack: pack,
+        contentMode,
+        targetAudience,
+        tone,
         providerMode: promptEngineMode === "AI_CONNECTED" ? "AI" : "TEMPLATE"
       })
     })
@@ -580,7 +595,9 @@ export function AffiliateWorkflow({
           <MetricPill label="Produk CSV" value={String(sourceCounts.CSV_IMPORT)} />
           <MetricPill label="Produk demo" value={String(sourceCounts.DEMO)} tone={sourceCounts.DEMO > 0 ? "warn" : "neutral"} />
           <MetricPill label="Campaign aktif" value={String(activeCampaigns)} />
-          <MetricPill label="Draft konten" value={String(draftContentPacks)} />
+          <MetricPill label="Draft konten" value={String(contentStats.totalDrafts + draftContentPacks)} />
+          <MetricPill label="Siap posting" value={String(contentStats.readyDrafts)} />
+          <MetricPill label="Sudah posting" value={String(contentStats.postedDrafts)} />
         </div>
         <p className="mt-4 text-sm font-black text-ink">Mulai dari sini</p>
         <div className="mt-2 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -588,6 +605,7 @@ export function AffiliateWorkflow({
             ["Tambah Produk", "#product-hunter", "Input produk manual pertama kamu."],
             ["Import CSV", "#product-hunter", "Masukkan banyak produk dari file CSV."],
             ["Buat Konten", "#content-factory", "Generate hook, script, caption, dan CTA."],
+            ["Lihat Draft Konten", "/content-library", "Cari dan pakai ulang draft konten."],
             ["Buat Rencana Posting", "#campaign-planner", "Susun campaign 7 atau 14 hari."]
           ].map(([title, href, detail]) => (
             <a key={title} href={href} className="rounded-2xl border border-line bg-white p-4 transition hover:border-mint hover:bg-teal-50">
@@ -595,6 +613,24 @@ export function AffiliateWorkflow({
               <p className="mt-2 text-sm leading-6 text-muted">{detail}</p>
             </a>
           ))}
+        </div>
+        <div className="mt-4 rounded-2xl border border-line bg-white p-4">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm font-black text-ink">Latest 5 content drafts</p>
+            <a href="/content-library" className="rounded-full border border-line px-3 py-1 text-xs font-bold text-ink">Lihat Draft Konten</a>
+          </div>
+          {contentStats.latestDrafts.length === 0 ? (
+            <p className="mt-2 text-sm leading-6 text-muted">Belum ada draft konten. Pilih produk lalu buat konten pertama kamu.</p>
+          ) : (
+            <div className="mt-3 grid gap-2">
+              {contentStats.latestDrafts.map((draft) => (
+                <a key={draft.id} href={`/content-library/${draft.id}`} className="rounded-xl bg-slate-50 px-3 py-2">
+                  <p className="text-sm font-bold text-ink">{draft.productName}</p>
+                  <p className="mt-1 line-clamp-1 text-xs text-muted">{draft.status} - {draft.hook}</p>
+                </a>
+              ))}
+            </div>
+          )}
         </div>
         <div className="mt-4 grid gap-3 lg:grid-cols-3">
           {[

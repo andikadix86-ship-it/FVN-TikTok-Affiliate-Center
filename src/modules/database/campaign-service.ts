@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 
 export const campaignInputSchema = z.object({
   productId: z.string().min(1),
+  contentPackId: z.string().optional().nullable(),
   name: z.string().min(1),
   durationDays: z.union([z.literal(7), z.literal(14)]),
   goal: z.enum(["awareness", "clicks", "orders", "testing product"]),
@@ -24,6 +25,7 @@ export const campaignPerformanceInputSchema = z.object({
 export function buildCampaignCreateData(input: z.infer<typeof campaignInputSchema>) {
   return {
     productId: input.productId,
+    contentPackId: input.contentPackId ?? undefined,
     name: input.name,
     durationDays: input.durationDays,
     goal: input.goal,

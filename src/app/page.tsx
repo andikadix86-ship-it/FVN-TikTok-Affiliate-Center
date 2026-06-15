@@ -6,6 +6,7 @@ import { SettingsPanel } from "@/components/settings-panel";
 import { env } from "@/lib/env";
 import { prisma } from "@/lib/prisma";
 import { mapDbProduct, sortProductsBySourcePriority } from "@/modules/database/product-service";
+import { contentStatusLabels, mapDbContentDraft } from "@/modules/database/content-service";
 import { getPromptEngineMode } from "@/modules/prompt-engine/fallback";
 import { getSettingsStatus } from "@/modules/settings/status";
 import { getTikTokAccountView } from "@/modules/tiktok/account-service";
@@ -50,11 +51,50 @@ async function getDatabaseSnapshot() {
   }
 }
 
+async function getContentStats() {
+  try {
+    const [totalDrafts, readyDrafts, postedDrafts, latest] = await Promise.all([
+      prisma.contentPack.count(),
+      prisma.contentPack.count({ where: { status: "READY" } }),
+      prisma.contentPack.count({ where: { status: "POSTED" } }),
+      prisma.contentPack.findMany({
+        orderBy: { createdAt: "desc" },
+        take: 5,
+        include: { product: true }
+      })
+    ]);
+
+    return {
+      totalDrafts,
+      readyDrafts,
+      postedDrafts,
+      latestDrafts: latest.map((draft) => {
+        const mapped = mapDbContentDraft(draft);
+
+        return {
+          id: mapped.id,
+          productName: mapped.product.productName,
+          status: contentStatusLabels[mapped.status],
+          hook: mapped.selectedHook || mapped.hooks[0] || mapped.caption
+        };
+      })
+    };
+  } catch {
+    return {
+      totalDrafts: 0,
+      readyDrafts: 0,
+      postedDrafts: 0,
+      latestDrafts: []
+    };
+  }
+}
+
 export default async function Home() {
   const cookieStore = cookies();
   const tiktokConnected = cookieStore.get(TIKTOK_CONNECTED_COOKIE)?.value === "true";
   const lastOAuthError = cookieStore.get(TIKTOK_OAUTH_ERROR_COOKIE)?.value;
   const database = await getDatabaseSnapshot();
+  const contentStats = await getContentStats();
   const accountView = await getTikTokAccountView();
   const promptEngineMode = getPromptEngineMode(Boolean(env.GEMINI_API_KEY), Boolean(env.OPENAI_API_KEY));
   const tiktokEnvStatus = getTikTokEnvStatus({
@@ -87,6 +127,7 @@ export default async function Home() {
             promptEngineMode={promptEngineMode}
             initialProducts={database.products}
             databaseConnected={database.databaseConnected}
+            contentStats={contentStats}
           />
           <TikTokConnectionPanel
             envStatus={tiktokEnvStatus}

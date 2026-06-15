@@ -10,6 +10,7 @@ describe("campaign save logic", () => {
   it("validates and maps campaign create data", () => {
     const input = campaignInputSchema.parse({
       productId: "product-1",
+      contentPackId: "content-1",
       name: "Test Campaign",
       durationDays: 7,
       goal: "orders",
@@ -19,6 +20,7 @@ describe("campaign save logic", () => {
     const data = buildCampaignCreateData(input);
 
     expect(data.productId).toBe("product-1");
+    expect(data.contentPackId).toBe("content-1");
     expect(data.durationDays).toBe(7);
     expect(data.status).toBe("DRAFT");
   });
