@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, useMemo, useState } from "react";
+import { ButtonHTMLAttributes, ChangeEvent, useMemo, useState } from "react";
 import {
   AlertTriangle,
   CalendarDays,
@@ -8,6 +8,7 @@ import {
   ClipboardList,
   FileUp,
   Link,
+  Loader2,
   PackageSearch,
   Plus,
   Sparkles
@@ -30,7 +31,7 @@ import { ContentPack, PromptEngineMode } from "@/modules/prompt-engine/types";
 import { scoreProduct } from "@/modules/scoring/score-product";
 import { SAMPLE_PRODUCT_CSV, validateAndParseCsv } from "./csv-import";
 import { sampleProducts } from "./sample-products";
-import { getSourceBadgeText, getSourceClassName } from "./source-badge";
+import { getSourceBadgeText, getSourceClassName, getSourceTrustText } from "./source-badge";
 import { AffiliateProduct, CompetitionLevel, ProductSource } from "./types";
 
 const sourcePriority: ProductSource[] = ["MANUAL", "CSV_IMPORT", "REAL_API", "DEMO"];
@@ -54,6 +55,9 @@ const initialForm = {
 function sourceBadge(source: ProductSource) {
   return `rounded-full px-3 py-1 text-[10px] font-black ${getSourceClassName(source)}`;
 }
+
+type SaveTone = "info" | "success" | "error";
+type LoadingAction = "manual" | "csv" | "url" | "hooks" | "script" | "caption" | "full" | "campaign" | "performance" | null;
 
 function productFromForm(source: ProductSource, form: typeof initialForm): AffiliateProduct {
   const now = new Date().toISOString();
@@ -108,6 +112,8 @@ export function AffiliateWorkflow({
   const [campaignStatus, setCampaignStatus] = useState<CampaignStatus>("Draft");
   const [performance, setPerformance] = useState<CampaignPerformanceDay[]>(Array.from({ length: 14 }, () => ({ ...emptyCampaignPerformanceDay })));
   const [saveStatus, setSaveStatus] = useState(databaseConnected ? "Database connected" : "Database not connected - using demo fallback");
+  const [saveTone, setSaveTone] = useState<SaveTone>(databaseConnected ? "success" : "info");
+  const [loadingAction, setLoadingAction] = useState<LoadingAction>(null);
   const [campaignId, setCampaignId] = useState<string | null>(null);
 
   const sortedProducts = useMemo(() => sortProducts(products), [products]);
@@ -130,11 +136,22 @@ export function AffiliateWorkflow({
   );
   const activeCampaigns = campaignStatus === "Active" ? 1 : 0;
 
+  function showStatus(message: string, tone: SaveTone = "info") {
+    setSaveStatus(message);
+    setSaveTone(tone);
+  }
+
   function updateForm(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
     setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
   }
 
   async function addManualProduct() {
+    if (!form.productName.trim() || !form.category.trim()) {
+      showStatus("Isi nama produk dan kategori dulu sebelum menyimpan.", "error");
+      return;
+    }
+
+    setLoadingAction("manual");
     const product = productFromForm("MANUAL", form);
     setProducts((current) => sortProducts([product, ...current]));
     setSelectedId(product.id);
@@ -151,20 +168,25 @@ export function AffiliateWorkflow({
       if (response.ok && payload.product) {
         setProducts((current) => sortProducts(current.map((item) => (item.id === product.id ? payload.product : item))));
         setSelectedId(payload.product.id);
-        setSaveStatus("Manual product saved to database");
+        showStatus("Produk manual tersimpan ke database.", "success");
       } else {
-        setSaveStatus(payload.message ?? "Manual product saved locally only");
+        showStatus(payload.message ?? "Produk manual tersimpan lokal saja.", "error");
       }
     } catch {
-      setSaveStatus("Manual product saved locally only");
+      showStatus("Produk manual tersimpan lokal saja.", "error");
+    } finally {
+      setLoadingAction(null);
     }
   }
 
   async function importCsv() {
+    setLoadingAction("csv");
     const result = validateAndParseCsv(csv);
     setCsvErrors(result.errors);
 
     if (result.errors.length > 0 || result.products.length === 0) {
+      showStatus("CSV belum bisa diimpor. Periksa pesan error di bawah kolom CSV.", "error");
+      setLoadingAction(null);
       return;
     }
 
@@ -185,20 +207,24 @@ export function AffiliateWorkflow({
           return sortProducts([...payload.products, ...withoutLocalImports]);
         });
         setSelectedId(payload.products[0].id);
-        setSaveStatus(`${payload.products.length} CSV products saved to database`);
+        showStatus(`${payload.products.length} produk CSV tersimpan ke database.`, "success");
       } else {
-        setSaveStatus(payload.message ?? "CSV products imported locally only");
+        showStatus(payload.message ?? "Produk CSV terimpor lokal saja.", "error");
       }
     } catch {
-      setSaveStatus("CSV products imported locally only");
+      showStatus("Produk CSV terimpor lokal saja.", "error");
+    } finally {
+      setLoadingAction(null);
     }
   }
 
-  function addUrlProduct() {
+  async function addUrlProduct() {
     if (!urlInput.trim()) {
+      showStatus("Tempel URL produk dulu sebelum menyimpan.", "error");
       return;
     }
 
+    setLoadingAction("url");
     const product: AffiliateProduct = {
       ...productFromForm("MANUAL", {
         ...initialForm,
@@ -213,6 +239,27 @@ export function AffiliateWorkflow({
     setProducts((current) => sortProducts([product, ...current]));
     setSelectedId(product.id);
     setUrlInput("");
+
+    try {
+      const response = await fetch("/api/products", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(product)
+      });
+      const payload = await response.json();
+
+      if (response.ok && payload.product) {
+        setProducts((current) => sortProducts(current.map((item) => (item.id === product.id ? payload.product : item))));
+        setSelectedId(payload.product.id);
+        showStatus("URL produk tersimpan sebagai MANUAL DATA.", "success");
+      } else {
+        showStatus(payload.message ?? "URL produk tersimpan lokal saja.", "error");
+      }
+    } catch {
+      showStatus("URL produk tersimpan lokal saja.", "error");
+    } finally {
+      setLoadingAction(null);
+    }
   }
 
   function updatePerformance(dayIndex: number, field: keyof CampaignPerformanceDay, value: string) {
@@ -222,21 +269,28 @@ export function AffiliateWorkflow({
   }
 
   function generatePack(part: "hooks" | "script" | "caption" | "full") {
+    setLoadingAction(part);
     const pack = buildTemplateContentPack(promptInput);
     setDraftContentPacks((current) => current + 1);
 
     if (part === "hooks") {
       setGeneratedPack({ ...promptAssets, hooks: pack.hooks });
+      showStatus("Hooks berhasil dibuat dalam Template Mode.", "success");
+      setLoadingAction(null);
       return;
     }
 
     if (part === "script") {
       setGeneratedPack({ ...promptAssets, script15: pack.script15, script30: pack.script30, scenePlan: pack.scenePlan });
+      showStatus("Script 15 detik dan 30 detik berhasil dibuat.", "success");
+      setLoadingAction(null);
       return;
     }
 
     if (part === "caption") {
       setGeneratedPack({ ...promptAssets, caption: pack.caption, hashtags: pack.hashtags, cta: pack.cta });
+      showStatus("Caption, hashtag, dan CTA berhasil dibuat.", "success");
+      setLoadingAction(null);
       return;
     }
 
@@ -251,12 +305,14 @@ export function AffiliateWorkflow({
       })
     })
       .then((response) => {
-        setSaveStatus(response.ok ? "Content pack saved to database" : "Content pack generated locally");
+        showStatus(response.ok ? "Content pack tersimpan ke database." : "Content pack dibuat lokal saja.", response.ok ? "success" : "error");
       })
-      .catch(() => setSaveStatus("Content pack generated locally"));
+      .catch(() => showStatus("Content pack dibuat lokal saja.", "error"))
+      .finally(() => setLoadingAction(null));
   }
 
   async function saveCampaign() {
+    setLoadingAction("campaign");
     try {
       const response = await fetch("/api/campaigns", {
         method: "POST",
@@ -274,21 +330,24 @@ export function AffiliateWorkflow({
 
       if (response.ok) {
         setCampaignId(payload.campaign.id);
-        setSaveStatus("Campaign saved to database");
+        showStatus("Campaign tersimpan ke database.", "success");
       } else {
-        setSaveStatus(payload.message ?? "Campaign saved locally only");
+        showStatus(payload.message ?? "Campaign tersimpan lokal saja.", "error");
       }
     } catch {
-      setSaveStatus("Campaign saved locally only");
+      showStatus("Campaign tersimpan lokal saja.", "error");
+    } finally {
+      setLoadingAction(null);
     }
   }
 
   async function savePerformance() {
     if (!campaignId) {
-      setSaveStatus("Save campaign before saving performance");
+      showStatus("Simpan campaign dulu sebelum menyimpan performa.", "error");
       return;
     }
 
+    setLoadingAction("performance");
     try {
       await Promise.all(
         visiblePerformance.map((day, index) =>
@@ -299,9 +358,11 @@ export function AffiliateWorkflow({
           })
         )
       );
-      setSaveStatus("Performance saved to database");
+      showStatus("Performa harian tersimpan ke database.", "success");
     } catch {
-      setSaveStatus("Performance saved locally only");
+      showStatus("Performa tersimpan lokal saja.", "error");
+    } finally {
+      setLoadingAction(null);
     }
   }
 
@@ -332,8 +393,8 @@ export function AffiliateWorkflow({
             ["Best Product Today", `${topProducts[0]?.product.productName ?? "No product"} (${topProducts[0]?.score.total ?? 0}/100)`],
             ["Campaign Progress", `${campaignStatus} / ${campaignDuration} days / ${campaignGoal}`],
             ["TikTok Account", tiktokConnected ? "Connected" : "Not Connected"],
-            ["AI Prompt Engine", promptEngineMode === "AI_CONNECTED" ? "Connected" : "Template Mode"],
-            ["Data Source", isDemoOnly ? "Demo Mode" : "User Provided Data"]
+            ["AI Prompt Engine", promptEngineMode === "AI_CONNECTED" ? "AI Connected" : "Template Mode"],
+            ["Data Source", isDemoOnly ? "DEMO DATA" : "User Provided Data"]
           ].map(([title, value]) => (
             <div key={title} className="rounded-2xl border border-line bg-white p-4">
               <p className="text-xs font-bold uppercase tracking-wide text-muted">{title}</p>
@@ -348,14 +409,20 @@ export function AffiliateWorkflow({
               <div key={product.id} className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-3 py-2">
                 <div>
                   <p className="text-sm font-bold text-ink">{product.productName}</p>
-                  <p className="text-xs text-muted">{getSourceBadgeText(product.source)}</p>
+                  <p className="text-xs text-muted">{getSourceBadgeText(product.source)} · {getSourceTrustText(product.source)}</p>
                 </div>
                 <span className="rounded-full bg-ink px-3 py-1 text-xs font-bold text-white">{score.total}</span>
               </div>
             ))}
           </div>
         </div>
-        <div className="mt-4 rounded-2xl border border-line bg-white p-4">
+        <div className={`mt-4 rounded-2xl border p-4 ${
+          saveTone === "success"
+            ? "border-teal-200 bg-teal-50"
+            : saveTone === "error"
+              ? "border-orange-200 bg-orange-50"
+              : "border-line bg-white"
+        }`}>
           <p className="text-xs font-bold uppercase tracking-wide text-muted">Database status</p>
           <p className="mt-2 text-sm font-bold text-ink">{saveStatus}</p>
         </div>
@@ -381,6 +448,7 @@ export function AffiliateWorkflow({
             <div key={source} className="rounded-xl bg-white px-3 py-2">
               <span className={sourceBadge(source)}>{source}</span>
               <p className="mt-2 text-xs font-bold text-ink">{getSourceBadgeText(source)}</p>
+              <p className="mt-1 text-xs font-semibold text-muted">{getSourceTrustText(source)}</p>
               <p className="mt-1 text-xs font-semibold text-muted">
                 {source === "REAL_API" ? "only after API fetch" : "available"}
               </p>
@@ -423,7 +491,10 @@ export function AffiliateWorkflow({
                 <option value="high">High competition</option>
               </select>
               <textarea name="notes" value={form.notes} onChange={updateForm} placeholder="Notes" className="min-h-20 rounded-xl border border-line px-3 py-2 text-sm outline-none focus:border-mint" />
-              <button onClick={addManualProduct} className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white">Add Manual Product</button>
+              <ActionButton loading={loadingAction === "manual"} onClick={addManualProduct}>
+                Simpan Produk Manual
+              </ActionButton>
+              <p className="text-xs leading-5 text-muted">Data ini disimpan sebagai MANUAL DATA, bukan data resmi TikTok Shop.</p>
             </div>
           </div>
 
@@ -434,7 +505,9 @@ export function AffiliateWorkflow({
             </div>
             <textarea value={csv} onChange={(event) => setCsv(event.target.value)} className="min-h-56 w-full rounded-xl border border-line px-3 py-2 text-sm outline-none focus:border-mint" />
             <div className="mt-3 flex flex-wrap gap-2">
-              <button onClick={importCsv} className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white">Import CSV Products</button>
+              <ActionButton loading={loadingAction === "csv"} onClick={importCsv}>
+                Import Produk CSV
+              </ActionButton>
               <a
                 href={`data:text/csv;charset=utf-8,${encodeURIComponent(SAMPLE_PRODUCT_CSV)}`}
                 download="tiktok-affiliate-products-sample.csv"
@@ -443,6 +516,7 @@ export function AffiliateWorkflow({
                 Download Sample CSV
               </a>
             </div>
+            <p className="mt-2 text-xs leading-5 text-muted">Baris valid akan disimpan sebagai CSV IMPORT. Baris invalid ditolak dengan pesan jelas.</p>
             {csvErrors.length > 0 ? (
               <div className="mt-3 rounded-2xl border border-orange-200 bg-orange-50 p-3">
                 <p className="text-sm font-black text-orange-900">CSV validation errors</p>
@@ -462,11 +536,20 @@ export function AffiliateWorkflow({
             </div>
             <input value={urlInput} onChange={(event) => setUrlInput(event.target.value)} placeholder="Paste product URL" className="min-h-11 w-full rounded-xl border border-line px-3 text-sm outline-none focus:border-mint" />
             <p className="mt-2 text-sm leading-6 text-muted">URL products are saved as MANUAL until real API fetching is connected.</p>
-            <button onClick={addUrlProduct} className="mt-3 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white">Save URL</button>
+            <ActionButton loading={loadingAction === "url"} onClick={addUrlProduct} className="mt-3">
+              Simpan URL
+            </ActionButton>
+            <p className="mt-2 text-xs leading-5 text-muted">URL hanya menjadi catatan riset manual sampai REAL API DATA aktif.</p>
           </div>
         </div>
 
         <div className="mt-4 grid gap-3 lg:grid-cols-2">
+          {sortedProducts.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-line bg-slate-50 p-6 text-center lg:col-span-2">
+              <p className="text-sm font-black text-ink">Belum ada produk.</p>
+              <p className="mt-2 text-sm leading-6 text-muted">Tambahkan produk manual atau import CSV untuk mulai membuat konten affiliate.</p>
+            </div>
+          ) : null}
           {sortedProducts.map((product) => {
             const productScore = scoreProduct(product);
             return (
@@ -489,6 +572,7 @@ export function AffiliateWorkflow({
                     <div className="flex flex-wrap items-center gap-2">
                       <span className={sourceBadge(product.source)}>{product.source}</span>
                       <span className="rounded-full bg-white px-3 py-1 text-[10px] font-black text-ink">{getSourceBadgeText(product.source)}</span>
+                      <span className="rounded-full bg-white px-3 py-1 text-[10px] font-black text-ink">{getSourceTrustText(product.source)}</span>
                       <span className="rounded-full bg-white px-3 py-1 text-[10px] font-black text-ink">{productScore.recommendation}</span>
                     </div>
                     <p className="mt-2 text-sm font-bold text-ink">{product.productName}</p>
@@ -514,7 +598,7 @@ export function AffiliateWorkflow({
             ["Product", selectedProduct.productName],
             ["Platform", selectedProduct.platform],
             ["Category", selectedProduct.category],
-            ["Source", getSourceBadgeText(selectedProduct.source)],
+            ["Source", `${getSourceBadgeText(selectedProduct.source)} · ${getSourceTrustText(selectedProduct.source)}`],
             ["Price", String(selectedProduct.price)],
             ["Commission", `${selectedProduct.commissionRate}%`],
             ["Sold/Sales", selectedProduct.soldCount ? String(selectedProduct.soldCount) : `${selectedProduct.salesScore}/100`],
@@ -564,11 +648,18 @@ export function AffiliateWorkflow({
         </div>
 
         <div className="mt-4 flex flex-wrap gap-2">
-          <button onClick={() => generatePack("hooks")} className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white">Generate Hooks</button>
-          <button onClick={() => generatePack("script")} className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white">Generate Script</button>
-          <button onClick={() => generatePack("caption")} className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white">Generate Caption</button>
-          <button onClick={() => generatePack("full")} className="rounded-full bg-mint px-4 py-2 text-sm font-semibold text-white">Generate Full Content Pack</button>
+          <ActionButton loading={loadingAction === "hooks"} onClick={() => generatePack("hooks")}>Generate Hooks</ActionButton>
+          <ActionButton loading={loadingAction === "script"} onClick={() => generatePack("script")}>Generate Script</ActionButton>
+          <ActionButton loading={loadingAction === "caption"} onClick={() => generatePack("caption")}>Generate Caption</ActionButton>
+          <ActionButton loading={loadingAction === "full"} onClick={() => generatePack("full")} className="bg-mint">Generate Full Content Pack</ActionButton>
         </div>
+        <p className="mt-2 text-xs leading-5 text-muted">Klik full content pack untuk menyimpan draft lengkap ke database. Jika AI belum aktif, template lokal tetap bisa dipakai.</p>
+        {!generatedPack ? (
+          <div className="mt-4 rounded-2xl border border-dashed border-line bg-slate-50 p-4">
+            <p className="text-sm font-black text-ink">Belum ada content pack yang dibuat.</p>
+            <p className="mt-1 text-sm leading-6 text-muted">Pilih produk, lalu generate hooks, script, caption, atau paket lengkap.</p>
+          </div>
+        ) : null}
 
         <div className="mt-4 grid gap-3 lg:grid-cols-2">
           <PromptBlock title="5 TikTok hooks" items={promptAssets.hooks} />
@@ -614,7 +705,10 @@ export function AffiliateWorkflow({
         <div className="mb-4 rounded-2xl border border-line bg-slate-50 p-4">
           <p className="text-sm font-black text-ink">Campaign from selected product</p>
           <p className="mt-1 text-sm text-muted">{selectedProduct.productName}</p>
-          <button onClick={saveCampaign} className="mt-3 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white">Save Campaign</button>
+          <ActionButton loading={loadingAction === "campaign"} onClick={saveCampaign} className="mt-3">
+            Simpan Campaign
+          </ActionButton>
+          <p className="mt-2 text-xs leading-5 text-muted">Campaign tersimpan sebagai draft sederhana. Ubah status ke Active saat mulai posting.</p>
         </div>
         <div className="grid gap-3 lg:grid-cols-7">
           {campaign.map((day) => (
@@ -635,7 +729,7 @@ export function AffiliateWorkflow({
             <p className="text-sm font-bold text-ink">Manual performance input</p>
           </div>
           <div className="grid gap-3">
-            {performance.map((day, dayIndex) => (
+            {visiblePerformance.map((day, dayIndex) => (
               <div key={dayIndex} className="rounded-xl bg-slate-50 p-3">
                 <p className="mb-2 text-xs font-black uppercase tracking-wide text-muted">Day {dayIndex + 1}</p>
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
@@ -661,7 +755,10 @@ export function AffiliateWorkflow({
             <MetricPill label="CTR" value={`${performanceSummary.ctr.toFixed(2)}%`} />
             <MetricPill label="Conversion" value={`${performanceSummary.conversionRate.toFixed(2)}%`} />
           </div>
-          <button onClick={savePerformance} className="mt-4 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white">Save Performance</button>
+          <ActionButton loading={loadingAction === "performance"} onClick={savePerformance} className="mt-4">
+            Simpan Performa
+          </ActionButton>
+          <p className="mt-2 text-xs leading-5 text-muted">Masukkan angka manual dari TikTok atau TikTok Shop. App hanya menghitung dari data yang Anda isi.</p>
           {suggestions.length > 0 ? (
             <div className="mt-4 rounded-2xl border border-orange-200 bg-orange-50 p-4">
               <p className="text-sm font-black text-orange-900">AI improvement suggestions after 5 days</p>
@@ -696,5 +793,23 @@ function PromptBlock({ title, text, items }: { title: string; text?: string; ite
         </ul>
       ) : null}
     </div>
+  );
+}
+
+function ActionButton({
+  loading,
+  className = "",
+  children,
+  ...props
+}: ButtonHTMLAttributes<HTMLButtonElement> & { loading?: boolean }) {
+  return (
+    <button
+      {...props}
+      disabled={loading || props.disabled}
+      className={`inline-flex items-center justify-center gap-2 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-60 ${className}`}
+    >
+      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+      {children}
+    </button>
   );
 }

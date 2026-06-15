@@ -55,9 +55,18 @@ export async function DELETE(request: NextRequest) {
     );
   }
 
-  const deleted = await prisma.product.deleteMany({
-    where: { source: "DEMO" }
-  });
+  try {
+    const deleted = await prisma.product.deleteMany({
+      where: { source: "DEMO" }
+    });
 
-  return NextResponse.json({ deleted: deleted.count });
+    return NextResponse.json({ deleted: deleted.count });
+  } catch {
+    return NextResponse.json(
+      {
+        message: "Unable to clear demo data. Check database connection."
+      },
+      { status: 500 }
+    );
+  }
 }

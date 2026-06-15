@@ -5,7 +5,7 @@ import { sampleProducts } from "./sample-products";
 import { AffiliateWorkflow } from "./affiliate-workflow";
 import { ProductHunter } from "./product-hunter";
 import { selectProductsByPriority } from "./product-source";
-import { getSourceBadgeText } from "./source-badge";
+import { getSourceBadgeText, getSourceTrustText } from "./source-badge";
 
 describe("Product Hunter sources", () => {
   it("marks every sample product as DEMO", () => {
@@ -46,13 +46,34 @@ describe("Product Hunter sources", () => {
     expect(html).toContain("MANUAL");
     expect(html).toContain("CSV_IMPORT");
     expect(html).toContain("REAL_API");
+    expect(html).toContain("MANUAL DATA");
+    expect(html).toContain("CSV IMPORT");
+    expect(html).toContain("User Provided Data");
     expect(html).toContain("only after API fetch");
   });
 
   it("returns honest source badge labels", () => {
     expect(getSourceBadgeText("DEMO")).toBe("DEMO DATA - Not from TikTok Shop");
-    expect(getSourceBadgeText("MANUAL")).toBe("User Provided Data");
-    expect(getSourceBadgeText("CSV_IMPORT")).toBe("User Provided Data");
-    expect(getSourceBadgeText("REAL_API")).toBe("Real API Data");
+    expect(getSourceBadgeText("MANUAL")).toBe("MANUAL DATA");
+    expect(getSourceBadgeText("CSV_IMPORT")).toBe("CSV IMPORT");
+    expect(getSourceBadgeText("REAL_API")).toBe("REAL API DATA");
+    expect(getSourceTrustText("MANUAL")).toBe("User Provided Data");
+    expect(getSourceTrustText("CSV_IMPORT")).toBe("User Provided Data");
+    expect(getSourceTrustText("REAL_API")).toBe("Real API Data");
+  });
+
+  it("shows beginner workflow fallback and empty-state guidance", () => {
+    const html = renderToStaticMarkup(
+      <AffiliateWorkflow
+        tiktokConnected={false}
+        promptEngineMode="TEMPLATE_MODE"
+        initialProducts={sampleProducts}
+        databaseConnected={false}
+      />
+    );
+
+    expect(html).toContain("AI Provider Not Connected - Template Mode");
+    expect(html).toContain("Belum ada content pack yang dibuat.");
+    expect(html).toContain("Data ini disimpan sebagai MANUAL DATA");
   });
 });

@@ -61,13 +61,15 @@ export default async function Home() {
     appUrl: env.NEXT_PUBLIC_APP_URL,
     nodeEnv: process.env.NODE_ENV
   });
+  const hasDisplayedDemoProducts = database.products.some((product) => product.source === "DEMO");
+  const hasDisplayedUserProducts = database.products.some((product) => product.source === "MANUAL" || product.source === "CSV_IMPORT" || product.source === "REAL_API");
   const settingsStatus = getSettingsStatus({
     appUrl: env.NEXT_PUBLIC_APP_URL,
     databaseUrl: database.databaseConnected ? env.DATABASE_URL : "",
     tiktokOAuthConfigured: tiktokEnvStatus.oauth === "Configured",
     tiktokConnected,
     promptEngineMode,
-    productSource: database.counts.demoProducts > 0 && database.counts.manualProducts === 0 && database.counts.csvProducts === 0 ? "DEMO" : "MANUAL"
+    productSource: hasDisplayedDemoProducts && !hasDisplayedUserProducts ? "DEMO" : "MANUAL"
   });
 
   return (

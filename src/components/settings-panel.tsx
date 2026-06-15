@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Download, ExternalLink, Settings, Trash2 } from "lucide-react";
 import { SectionCard } from "@/components/section-card";
 import { SAMPLE_PRODUCT_CSV } from "@/modules/affiliate/csv-import";
@@ -29,29 +30,72 @@ export function SettingsPanel({
   tiktokRedirectUri: string;
   tiktokOAuthErrors: string[];
 }) {
+  const [healthStatus, setHealthStatus] = useState("Checking...");
+  const [actionMessage, setActionMessage] = useState("");
+
+  useEffect(() => {
+    let active = true;
+
+    fetch("/api/health")
+      .then((response) => response.json())
+      .then((payload) => {
+        if (!active) {
+          return;
+        }
+
+        setHealthStatus(
+          `app ${payload.app}; database ${payload.database}; TikTok OAuth ${payload.tiktokOAuth}; AI ${payload.aiProvider}; source ${payload.productSource}`
+        );
+      })
+      .catch(() => {
+        if (active) {
+          setHealthStatus("Health check error");
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const settings = [
     { label: "Production URL", value: productionUrl || "Missing" },
     { label: "TikTok Redirect URI", value: tiktokRedirectUri || "Missing" },
-    { label: "App URL status", value: status.appUrl },
-    { label: "Database status", value: databaseConnected ? "Connected" : "Not Connected" },
-    { label: "TikTok OAuth status", value: tiktokOAuthConfigured ? "Configured" : "Missing" },
-    { label: "AI Provider status", value: aiProviderConfigured ? "Configured" : "Missing" },
-    { label: "Product data source status", value: status.productDataSource },
+    { label: "Status App URL", value: status.appUrl },
+    { label: "Database", value: databaseConnected ? "Connected" : "Error / Not Connected" },
+    { label: "TikTok OAuth", value: tiktokOAuthConfigured ? "Configured" : "Missing" },
+    { label: "AI Provider", value: aiProviderConfigured ? "Configured" : "Template Mode" },
+    { label: "Product source mode", value: status.productDataSource },
     { label: "Product count from database", value: String(counts.totalProducts) },
     { label: "Demo product count", value: String(counts.demoProducts) },
     { label: "Manual product count", value: String(counts.manualProducts) },
-    { label: "CSV product count", value: String(counts.csvProducts) }
+    { label: "CSV product count", value: String(counts.csvProducts) },
+    { label: "Health check status", value: healthStatus }
   ];
 
   async function clearDemoData() {
-    if (!window.confirm("Clear only DEMO products? Manual, CSV_IMPORT, and REAL_API products will not be deleted.")) {
+    if (!window.confirm("Hapus hanya DEMO DATA? MANUAL DATA, CSV IMPORT, dan REAL API DATA tidak akan dihapus.")) {
       return;
     }
 
-    await fetch("/api/products?source=DEMO", {
-      method: "DELETE"
-    });
-    window.location.reload();
+    setActionMessage("Clearing demo data...");
+
+    try {
+      const response = await fetch("/api/products?source=DEMO", {
+        method: "DELETE"
+      });
+
+      if (!response.ok) {
+        const payload = await response.json();
+        setActionMessage(payload.message ?? "Unable to clear demo data.");
+        return;
+      }
+
+      setActionMessage("DEMO DATA cleared. Manual and CSV products were kept.");
+      window.location.reload();
+    } catch {
+      setActionMessage("Unable to clear demo data. Check database connection.");
+    }
   }
 
   return (
@@ -88,7 +132,7 @@ export function SettingsPanel({
       <div className="mt-4 flex flex-wrap gap-2">
         <button onClick={clearDemoData} className="inline-flex items-center gap-2 rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold text-ink">
           <Trash2 className="h-4 w-4" />
-          Clear demo data
+          Clear DEMO DATA
         </button>
         <a
           href={`data:text/csv;charset=utf-8,${encodeURIComponent(SAMPLE_PRODUCT_CSV)}`}
@@ -107,6 +151,11 @@ export function SettingsPanel({
           Health check
         </a>
       </div>
+      {actionMessage ? (
+        <div className="mt-4 rounded-2xl border border-line bg-slate-50 p-4">
+          <p className="text-sm font-bold text-ink">{actionMessage}</p>
+        </div>
+      ) : null}
     </SectionCard>
   );
 }
