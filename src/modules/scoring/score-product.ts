@@ -7,11 +7,11 @@ const competitionScore = {
 };
 
 export function getRecommendation(total: number): ProductRecommendation {
-  if (total >= 75) {
+  if (total >= 80) {
     return "Promote";
   }
 
-  if (total >= 55) {
+  if (total >= 60) {
     return "Test First";
   }
 

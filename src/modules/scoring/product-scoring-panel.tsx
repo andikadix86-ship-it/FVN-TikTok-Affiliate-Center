@@ -18,7 +18,7 @@ export function ProductScoringPanel() {
       <div className="grid gap-4 md:grid-cols-[0.9fr_1.1fr]">
         <div className="rounded-2xl bg-ink p-5 text-white">
           <p className="text-sm font-semibold text-white/70">Best candidate</p>
-          <p className="mt-2 text-2xl font-bold">{bestProduct.product.name}</p>
+          <p className="mt-2 text-2xl font-bold">{bestProduct.product.productName}</p>
           <p className="mt-2 text-sm leading-6 text-white/75">{bestProduct.product.notes}</p>
           <div className="mt-5 flex items-end gap-2">
             <span className="text-5xl font-black">{bestProduct.score.total}</span>

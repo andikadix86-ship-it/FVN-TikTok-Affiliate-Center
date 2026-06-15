@@ -5,6 +5,7 @@ import { sampleProducts } from "./sample-products";
 import { AffiliateWorkflow } from "./affiliate-workflow";
 import { ProductHunter } from "./product-hunter";
 import { selectProductsByPriority } from "./product-source";
+import { getSourceBadgeText } from "./source-badge";
 
 describe("Product Hunter sources", () => {
   it("marks every sample product as DEMO", () => {
@@ -32,12 +33,19 @@ describe("Product Hunter sources", () => {
   });
 
   it("shows workflow source modes without presenting demo products as real API", () => {
-    const html = renderToStaticMarkup(<AffiliateWorkflow tiktokConnected={false} />);
+    const html = renderToStaticMarkup(<AffiliateWorkflow tiktokConnected={false} promptEngineMode="TEMPLATE_MODE" />);
 
     expect(html).toContain("DEMO DATA - Not from TikTok Shop");
     expect(html).toContain("MANUAL");
     expect(html).toContain("CSV_IMPORT");
     expect(html).toContain("REAL_API");
     expect(html).toContain("only after API fetch");
+  });
+
+  it("returns honest source badge labels", () => {
+    expect(getSourceBadgeText("DEMO")).toBe("DEMO DATA - Not from TikTok Shop");
+    expect(getSourceBadgeText("MANUAL")).toBe("User Provided Data");
+    expect(getSourceBadgeText("CSV_IMPORT")).toBe("User Provided Data");
+    expect(getSourceBadgeText("REAL_API")).toBe("Real API Data");
   });
 });

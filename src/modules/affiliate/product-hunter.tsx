@@ -28,7 +28,7 @@ export function ProductHunter({ tiktokConnected = false }: { tiktokConnected?: b
             <article key={product.id} className="rounded-2xl border border-line p-4">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-sm font-bold text-ink">{product.name}</p>
+                  <p className="text-sm font-bold text-ink">{product.productName}</p>
                   <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-muted">{product.category}</p>
                 </div>
                 <div className="flex flex-col items-end gap-2">
