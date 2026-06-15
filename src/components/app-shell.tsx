@@ -1,4 +1,4 @@
-import { CalendarDays, ClipboardList, Gauge, Link2, PackageCheck, PackageSearch, Settings, Sparkles } from "lucide-react";
+import { BarChart3, CalendarDays, ClipboardList, Gauge, Link2, PackageCheck, PackageSearch, Settings, Sparkles } from "lucide-react";
 
 const navItems = [
   { href: "/#dashboard", label: "Dashboard", icon: Gauge },
@@ -7,6 +7,7 @@ const navItems = [
   { href: "/content-library", label: "Draft Konten", icon: ClipboardList },
   { href: "/#campaign-planner", label: "Rencana Posting", icon: CalendarDays },
   { href: "/posted-content", label: "Konten Terposting", icon: PackageCheck },
+  { href: "/analytics", label: "Analisa Affiliate", icon: BarChart3 },
   { href: "/#tiktok-accounts", label: "Akun TikTok", icon: Link2 },
   { href: "/#settings", label: "Pengaturan", icon: Settings }
 ];
@@ -15,8 +16,8 @@ const mobileNavItems = [
   { href: "/#dashboard", label: "Dashboard", icon: Gauge },
   { href: "/#product-hunter", label: "Produk", icon: PackageSearch },
   { href: "/content-library", label: "Draft", icon: ClipboardList },
-  { href: "/#campaign-planner", label: "Campaign", icon: CalendarDays },
-  { href: "/posted-content", label: "Posting", icon: PackageCheck }
+  { href: "/posted-content", label: "Posting", icon: PackageCheck },
+  { href: "/analytics", label: "Analisa", icon: BarChart3 }
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {

@@ -16,14 +16,15 @@ describe("AppShell navigation", () => {
     expect(html).toContain("Draft Konten");
     expect(html).toContain("Rencana Posting");
     expect(html).toContain("Konten Terposting");
+    expect(html).toContain("Analisa Affiliate");
     expect(html).toContain("Akun TikTok");
     expect(html).toContain("Pengaturan");
     expect(html).toContain("Produk");
-    expect(html).toContain("Konten");
     expect(html).toContain("Draft");
-    expect(html).toContain("Campaign");
     expect(html).toContain("Posting");
+    expect(html).toContain("Analisa");
     expect(html).toContain("/#product-hunter");
+    expect(html).toContain("/analytics");
     expect(html).toContain("/#settings");
   });
 });

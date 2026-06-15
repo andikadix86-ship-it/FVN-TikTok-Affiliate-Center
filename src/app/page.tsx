@@ -14,6 +14,7 @@ import { getTikTokEnvStatus } from "@/modules/tiktok/env-status";
 import { TIKTOK_CONNECTED_COOKIE, TIKTOK_OAUTH_ERROR_COOKIE } from "@/modules/tiktok/oauth";
 import { TikTokConnectionPanel } from "@/modules/tiktok/tiktok-connection-panel";
 import { isTikTokShopApiConfigured } from "@/modules/tiktok-shop/tiktok-shop-api";
+import { calculateAnalyticsSummary } from "@/modules/analytics/analytics";
 
 async function getDatabaseSnapshot() {
   try {
@@ -134,6 +135,47 @@ async function getPostedStats() {
   }
 }
 
+async function getDashboardAnalyticsStats() {
+  try {
+    const since = new Date();
+    since.setDate(since.getDate() - 7);
+    const items = await prisma.postedContent.findMany({
+      where: { archived: false, postedAt: { gte: since } },
+      include: { product: true, contentPack: true }
+    });
+    const summary = calculateAnalyticsSummary(items.map((item) => ({
+      views: item.views,
+      likes: item.likes,
+      comments: item.comments,
+      shares: item.shares,
+      saves: item.saves,
+      clicks: item.clicks,
+      orders: item.orders,
+      revenue: Number(item.revenue)
+    })));
+    const bestProduct = items.reduce<typeof items[number] | null>((best, item) => (!best || item.orders > best.orders ? item : best), null);
+    const bestContent = items.reduce<typeof items[number] | null>((best, item) => (!best || item.views > best.views ? item : best), null);
+
+    return {
+      viewsThisWeek: summary.views,
+      clicksThisWeek: summary.clicks,
+      ordersThisWeek: summary.orders,
+      revenueThisWeek: summary.revenue,
+      bestProduct: bestProduct?.product.productName ?? "",
+      bestContent: bestContent?.contentPack.selectedHook ?? ""
+    };
+  } catch {
+    return {
+      viewsThisWeek: 0,
+      clicksThisWeek: 0,
+      ordersThisWeek: 0,
+      revenueThisWeek: 0,
+      bestProduct: "",
+      bestContent: ""
+    };
+  }
+}
+
 export default async function Home() {
   const cookieStore = cookies();
   const tiktokConnected = cookieStore.get(TIKTOK_CONNECTED_COOKIE)?.value === "true";
@@ -141,6 +183,7 @@ export default async function Home() {
   const database = await getDatabaseSnapshot();
   const contentStats = await getContentStats();
   const postedStats = await getPostedStats();
+  const analyticsStats = await getDashboardAnalyticsStats();
   const accountView = await getTikTokAccountView();
   const promptEngineMode = getPromptEngineMode(Boolean(env.GEMINI_API_KEY), Boolean(env.OPENAI_API_KEY));
   const tiktokEnvStatus = getTikTokEnvStatus({
@@ -175,6 +218,7 @@ export default async function Home() {
             databaseConnected={database.databaseConnected}
             contentStats={contentStats}
             postedStats={postedStats}
+            analyticsStats={analyticsStats}
           />
           <TikTokConnectionPanel
             envStatus={tiktokEnvStatus}

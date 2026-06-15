@@ -125,6 +125,14 @@ export function AffiliateWorkflow({
     bestByViews: "",
     bestByOrders: "",
     latestPosted: []
+  },
+  analyticsStats = {
+    viewsThisWeek: 0,
+    clicksThisWeek: 0,
+    ordersThisWeek: 0,
+    revenueThisWeek: 0,
+    bestProduct: "",
+    bestContent: ""
   }
 }: {
   tiktokConnected: boolean;
@@ -142,6 +150,14 @@ export function AffiliateWorkflow({
     bestByViews: string;
     bestByOrders: string;
     latestPosted: Array<{ id: string; productName: string; url: string; postedAt: string }>;
+  };
+  analyticsStats?: {
+    viewsThisWeek: number;
+    clicksThisWeek: number;
+    ordersThisWeek: number;
+    revenueThisWeek: number;
+    bestProduct: string;
+    bestContent: string;
   };
 }) {
   const [products, setProducts] = useState<AffiliateProduct[]>(initialProducts.length > 0 ? initialProducts : sampleProducts);
@@ -620,6 +636,7 @@ export function AffiliateWorkflow({
             ["Buat Konten", "#content-factory", "Generate hook, script, caption, dan CTA."],
             ["Lihat Draft Konten", "/content-library", "Cari dan pakai ulang draft konten."],
             ["Lihat Konten Terposting", "/posted-content", "Input performa video yang sudah upload."],
+            ["Analisa Affiliate", "/analytics", "Lihat performa produk, konten, dan campaign."],
             ["Buat Rencana Posting", "#campaign-planner", "Susun campaign 7 atau 14 hari."]
           ].map(([title, href, detail]) => (
             <a key={title} href={href} className="rounded-2xl border border-line bg-white p-4 transition hover:border-mint hover:bg-teal-50">
@@ -627,6 +644,20 @@ export function AffiliateWorkflow({
               <p className="mt-2 text-sm leading-6 text-muted">{detail}</p>
             </a>
           ))}
+        </div>
+        <div className="mt-4 rounded-2xl border border-line bg-white p-4">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm font-black text-ink">Ringkasan Analisa Minggu Ini</p>
+            <a href="/analytics" className="rounded-full border border-line px-3 py-1 text-xs font-bold text-ink">Analisa Affiliate</a>
+          </div>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-6">
+            <MetricPill label="Views this week" value={String(analyticsStats.viewsThisWeek)} />
+            <MetricPill label="Clicks this week" value={String(analyticsStats.clicksThisWeek)} />
+            <MetricPill label="Orders this week" value={String(analyticsStats.ordersThisWeek)} />
+            <MetricPill label="Revenue this week" value={`Rp${analyticsStats.revenueThisWeek.toLocaleString("id-ID")}`} />
+            <MetricPill label="Best product" value={analyticsStats.bestProduct || "Belum ada"} />
+            <MetricPill label="Best content" value={analyticsStats.bestContent || "Belum ada"} />
+          </div>
         </div>
         <div className="mt-4 rounded-2xl border border-line bg-white p-4">
           <div className="flex items-center justify-between gap-3">
