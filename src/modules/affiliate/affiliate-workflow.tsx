@@ -133,6 +133,10 @@ export function AffiliateWorkflow({
     revenueThisWeek: 0,
     bestProduct: "",
     bestContent: ""
+  },
+  actionPlanStats = {
+    mainFocus: "Hari ini fokus menambah produk dan membuat konten pertama.",
+    topActions: []
   }
 }: {
   tiktokConnected: boolean;
@@ -158,6 +162,10 @@ export function AffiliateWorkflow({
     revenueThisWeek: number;
     bestProduct: string;
     bestContent: string;
+  };
+  actionPlanStats?: {
+    mainFocus: string;
+    topActions: string[];
   };
 }) {
   const [products, setProducts] = useState<AffiliateProduct[]>(initialProducts.length > 0 ? initialProducts : sampleProducts);
@@ -633,6 +641,7 @@ export function AffiliateWorkflow({
           {[
             ["Tambah Produk", "#product-hunter", "Input produk manual pertama kamu."],
             ["Import CSV", "#product-hunter", "Masukkan banyak produk dari file CSV."],
+            ["Rencana Hari Ini", "/action-plan", "Lihat aksi prioritas untuk hari ini."],
             ["Buat Konten", "#content-factory", "Generate hook, script, caption, dan CTA."],
             ["Lihat Draft Konten", "/content-library", "Cari dan pakai ulang draft konten."],
             ["Lihat Konten Terposting", "/posted-content", "Input performa video yang sudah upload."],
@@ -644,6 +653,21 @@ export function AffiliateWorkflow({
               <p className="mt-2 text-sm leading-6 text-muted">{detail}</p>
             </a>
           ))}
+        </div>
+        <div className="mt-4 rounded-2xl border border-line bg-white p-4">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm font-black text-ink">Rencana Hari Ini</p>
+            <a href="/action-plan" className="rounded-full border border-line px-3 py-1 text-xs font-bold text-ink">Lihat Full Plan</a>
+          </div>
+          <p className="mt-2 text-sm font-bold leading-6 text-ink">{actionPlanStats.mainFocus}</p>
+          <div className="mt-3 grid gap-2 sm:grid-cols-3">
+            {(actionPlanStats.topActions.length > 0 ? actionPlanStats.topActions : ["Tambah produk", "Buat konten", "Input performa"]).map((action) => (
+              <div key={action} className="rounded-xl bg-slate-50 px-3 py-2">
+                <p className="text-xs font-black uppercase tracking-wide text-muted">Top action</p>
+                <p className="mt-1 text-sm font-bold text-ink">{action}</p>
+              </div>
+            ))}
+          </div>
         </div>
         <div className="mt-4 rounded-2xl border border-line bg-white p-4">
           <div className="flex items-center justify-between gap-3">

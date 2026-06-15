@@ -15,6 +15,7 @@ import { TIKTOK_CONNECTED_COOKIE, TIKTOK_OAUTH_ERROR_COOKIE } from "@/modules/ti
 import { TikTokConnectionPanel } from "@/modules/tiktok/tiktok-connection-panel";
 import { isTikTokShopApiConfigured } from "@/modules/tiktok-shop/tiktok-shop-api";
 import { calculateAnalyticsSummary } from "@/modules/analytics/analytics";
+import { generateActionPlan } from "@/modules/action-plan/action-plan-engine";
 
 async function getDatabaseSnapshot() {
   try {
@@ -176,6 +177,86 @@ async function getDashboardAnalyticsStats() {
   }
 }
 
+async function getDashboardActionPlanStats(tiktokConnected: boolean, aiProviderConnected: boolean) {
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const [products, drafts, postedContent, campaigns] = await Promise.all([
+      prisma.product.findMany({ orderBy: [{ score: "desc" }, { createdAt: "desc" }] }),
+      prisma.contentPack.findMany({ where: { status: { not: "ARCHIVED" } }, include: { product: true } }),
+      prisma.postedContent.findMany({ where: { archived: false }, include: { product: true, contentPack: true, campaign: true } }),
+      prisma.campaign.findMany({ include: { product: true, performance: true } })
+    ]);
+    const plan = generateActionPlan({
+      products: products.map((product) => ({
+        id: product.id,
+        productName: product.productName,
+        source: product.source,
+        score: product.score,
+        recommendation: product.recommendation
+      })),
+      drafts: drafts.map((draft) => ({
+        id: draft.id,
+        productId: draft.productId,
+        productName: draft.product.productName,
+        status: draft.status,
+        hook: draft.selectedHook ?? draft.caption
+      })),
+      postedContent: postedContent.map((item) => ({
+        id: item.id,
+        productId: item.productId,
+        productName: item.product.productName,
+        productSource: item.product.source,
+        productScore: item.product.score,
+        productRecommendation: item.product.recommendation,
+        contentHook: item.contentPack.selectedHook ?? item.contentPack.caption,
+        postedAt: item.postedAt.toISOString(),
+        campaignId: item.campaignId ?? undefined,
+        campaignName: item.campaign?.name,
+        campaignStatus: item.campaign?.status,
+        campaignDurationDays: item.campaign?.durationDays,
+        campaignDayNumber: item.campaignDayNumber ?? undefined,
+        views: item.views,
+        likes: item.likes,
+        comments: item.comments,
+        shares: item.shares,
+        saves: item.saves,
+        clicks: item.clicks,
+        orders: item.orders,
+        revenue: Number(item.revenue)
+      })),
+      campaigns: campaigns.map((campaign) => ({
+        id: campaign.id,
+        productId: campaign.productId,
+        productName: campaign.product.productName,
+        name: campaign.name,
+        status: campaign.status,
+        durationDays: campaign.durationDays,
+        performance: campaign.performance.map((day) => ({
+          dayNumber: day.dayNumber,
+          views: day.views,
+          clicks: day.clicks,
+          orders: day.orders,
+          revenue: Number(day.revenue)
+        }))
+      })),
+      tiktokConnected,
+      aiProviderConnected,
+      postedToday: postedContent.filter((item) => item.postedAt >= today).length
+    });
+
+    return {
+      mainFocus: plan.summary.mainFocus,
+      topActions: plan.actions.slice(0, 3).map((action) => action.title)
+    };
+  } catch {
+    return {
+      mainFocus: "Hari ini fokus menambah produk dan mengisi data performa manual.",
+      topActions: ["Tambah Produk", "Buat Konten", "Input Performa"]
+    };
+  }
+}
+
 export default async function Home() {
   const cookieStore = cookies();
   const tiktokConnected = cookieStore.get(TIKTOK_CONNECTED_COOKIE)?.value === "true";
@@ -186,6 +267,7 @@ export default async function Home() {
   const analyticsStats = await getDashboardAnalyticsStats();
   const accountView = await getTikTokAccountView();
   const promptEngineMode = getPromptEngineMode(Boolean(env.GEMINI_API_KEY), Boolean(env.OPENAI_API_KEY));
+  const aiProviderConnected = promptEngineMode === "AI_CONNECTED";
   const tiktokEnvStatus = getTikTokEnvStatus({
     clientKey: env.TIKTOK_CLIENT_KEY,
     clientSecret: env.TIKTOK_CLIENT_SECRET,
@@ -206,6 +288,7 @@ export default async function Home() {
     productSource: hasManualProducts ? "MANUAL" : hasCsvProducts ? "CSV_IMPORT" : hasRealApiProducts ? "REAL_API" : hasDisplayedDemoProducts ? "DEMO" : "MANUAL"
   });
   const tiktokShopApiStatus = isTikTokShopApiConfigured();
+  const actionPlanStats = await getDashboardActionPlanStats(tiktokConnected || accountView.connected, aiProviderConnected);
 
   return (
     <AppShell>
@@ -219,6 +302,7 @@ export default async function Home() {
             contentStats={contentStats}
             postedStats={postedStats}
             analyticsStats={analyticsStats}
+            actionPlanStats={actionPlanStats}
           />
           <TikTokConnectionPanel
             envStatus={tiktokEnvStatus}
@@ -231,7 +315,7 @@ export default async function Home() {
             databaseConnected={database.databaseConnected}
             counts={database.counts}
             tiktokOAuthConfigured={tiktokEnvStatus.oauth === "Configured"}
-            aiProviderConfigured={promptEngineMode === "AI_CONNECTED"}
+            aiProviderConfigured={aiProviderConnected}
             productionUrl={env.NEXT_PUBLIC_APP_URL}
             tiktokRedirectUri={env.TIKTOK_REDIRECT_URI}
             tiktokOAuthErrors={tiktokEnvStatus.errors}

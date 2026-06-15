@@ -1,7 +1,8 @@
-import { BarChart3, CalendarDays, ClipboardList, Gauge, Link2, PackageCheck, PackageSearch, Settings, Sparkles } from "lucide-react";
+import { BarChart3, CalendarDays, ClipboardList, Gauge, Link2, ListChecks, PackageCheck, PackageSearch, Settings, Sparkles } from "lucide-react";
 
 const navItems = [
   { href: "/#dashboard", label: "Dashboard", icon: Gauge },
+  { href: "/action-plan", label: "Rencana Hari Ini", icon: ListChecks },
   { href: "/#product-hunter", label: "Produk Affiliate", icon: PackageSearch },
   { href: "/#content-factory", label: "Buat Konten", icon: Sparkles },
   { href: "/content-library", label: "Draft Konten", icon: ClipboardList },
@@ -14,8 +15,8 @@ const navItems = [
 
 const mobileNavItems = [
   { href: "/#dashboard", label: "Dashboard", icon: Gauge },
+  { href: "/action-plan", label: "Action", icon: ListChecks },
   { href: "/#product-hunter", label: "Produk", icon: PackageSearch },
-  { href: "/content-library", label: "Draft", icon: ClipboardList },
   { href: "/posted-content", label: "Posting", icon: PackageCheck },
   { href: "/analytics", label: "Analisa", icon: BarChart3 }
 ];
