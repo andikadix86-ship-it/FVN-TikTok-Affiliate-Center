@@ -1,0 +1,14 @@
+import { z } from "zod";
+
+const envSchema = z.object({
+  DATABASE_URL: z.string().optional(),
+  DIRECT_URL: z.string().optional(),
+  NEXT_PUBLIC_APP_URL: z.string().default("http://localhost:3000"),
+  TIKTOK_CLIENT_KEY: z.string().optional(),
+  TIKTOK_CLIENT_SECRET: z.string().optional(),
+  TIKTOK_REDIRECT_URI: z.string().default("http://localhost:3000/api/auth/tiktok/callback"),
+  GEMINI_API_KEY: z.string().optional(),
+  OPENAI_API_KEY: z.string().optional()
+});
+
+export const env = envSchema.parse(process.env);

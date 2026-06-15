@@ -1,0 +1,60 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model TikTokAccount {
+  id           String   @id @default(cuid())
+  tiktokUserId String?  @unique
+  displayName  String?
+  avatarUrl    String?
+  accessToken  String?
+  refreshToken String?
+  expiresAt    DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Product {
+  id             String     @id @default(cuid())
+  name           String
+  niche          String
+  price          Decimal
+  commissionRate Int
+  salesVelocity  Int
+  rating         Decimal
+  contentFit     Int
+  competition    String
+  hook           String
+  score          Int?
+  campaigns      Campaign[]
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+}
+
+model PromptTemplate {
+  id        String   @id @default(cuid())
+  name      String
+  provider  String
+  prompt    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Campaign {
+  id          String   @id @default(cuid())
+  title       String
+  productId   String?
+  product     Product? @relation(fields: [productId], references: [id])
+  contentType String
+  status      String   @default("planned")
+  scheduledAt DateTime?
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
