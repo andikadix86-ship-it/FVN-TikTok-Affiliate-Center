@@ -1,3 +1,5 @@
+import { buildImprovementSuggestions } from "@/modules/prompt-engine/improvement-suggestion.prompt";
+
 export type CampaignStatus = "Draft" | "Active" | "Paused" | "Completed";
 export type CampaignGoal = "awareness" | "clicks" | "orders" | "testing product";
 export type CampaignDuration = 7 | 14;
@@ -81,15 +83,16 @@ export function isPoorCampaignPerformance(days: CampaignPerformanceDay[]) {
   return summary.totalViews < 1500 || summary.ctr < 1.5 || summary.conversionRate < 1 || summary.totalOrders === 0;
 }
 
-export function getImprovementSuggestions(aiConnected: boolean) {
-  const suggestions = [
-    "Change first 3 seconds hook.",
-    "Use stronger problem-solution angle.",
-    "Make product demo clearer.",
-    "Change CTA.",
-    "Test another product.",
-    "Post at different time."
-  ];
+export function getImprovementSuggestions(aiConnected: boolean, days: CampaignPerformanceDay[] = []) {
+  const suggestions = days.length > 0
+    ? buildImprovementSuggestions(days)
+    : [
+        "Low views: perbaiki hook dan 3 detik pertama.",
+        "Low clicks: perjelas CTA dan benefit produk.",
+        "Low orders: tambah trust dan demo produk.",
+        "Low engagement: pakai angle yang lebih relatable.",
+        "High views low orders: cek product match atau perkuat demo."
+      ];
 
   return aiConnected ? suggestions : suggestions.map((suggestion) => `${suggestion} (template suggestion)`);
 }

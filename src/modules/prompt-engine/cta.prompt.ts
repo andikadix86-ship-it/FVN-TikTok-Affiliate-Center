@@ -1,3 +1,1 @@
-export function buildCta() {
-  return "Cek detail produk di TikTok Shop / keranjang kuning sebelum checkout.";
-}
+export { buildCta, buildCtaDirect, buildCtaKeranjangKuning, buildCtaSoft } from "./cta-generator.prompt";

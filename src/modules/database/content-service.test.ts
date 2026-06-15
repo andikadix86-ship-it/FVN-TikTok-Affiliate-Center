@@ -10,8 +10,8 @@ describe("content pack save logic", () => {
     const data = buildContentPackCreateData(input);
 
     expect(data.productId).toBe("product-1");
-    expect(data.hooks).toHaveLength(5);
-    expect(data.script15s).toContain("0-3s");
+    expect(data.hooks).toHaveLength(10);
+    expect(data.script15s).toContain("Opening hook");
     expect(data.providerMode).toBe("TEMPLATE");
   });
 });

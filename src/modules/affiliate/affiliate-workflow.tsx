@@ -28,7 +28,17 @@ import {
 } from "@/modules/campaign/performance";
 import { buildCampaignPlan } from "@/modules/prompt-engine/campaign.prompt";
 import { buildTemplateContentPack } from "@/modules/prompt-engine/fallback";
-import { ContentPack, PromptEngineMode } from "@/modules/prompt-engine/types";
+import {
+  ContentMode,
+  contentModes,
+  ContentPack,
+  defaultPromptOptions,
+  PromptEngineMode,
+  targetAudiences,
+  TargetAudience,
+  toneOptions,
+  ToneOption
+} from "@/modules/prompt-engine/types";
 import { getRecommendationLabel } from "@/modules/scoring/recommendation-label";
 import { scoreProduct } from "@/modules/scoring/score-product";
 import { SAMPLE_PRODUCT_CSV, validateAndParseCsv } from "./csv-import";
@@ -119,6 +129,10 @@ export function AffiliateWorkflow({
   const [loadingAction, setLoadingAction] = useState<LoadingAction>(null);
   const [campaignId, setCampaignId] = useState<string | null>(null);
   const [productFilter, setProductFilter] = useState<ProductFilter>("all");
+  const [contentMode, setContentMode] = useState<ContentMode>(defaultPromptOptions.contentMode);
+  const [targetAudience, setTargetAudience] = useState<TargetAudience>(defaultPromptOptions.targetAudience);
+  const [tone, setTone] = useState<ToneOption>(defaultPromptOptions.tone);
+  const [duration, setDuration] = useState<"15s" | "30s">(defaultPromptOptions.duration);
 
   const sortedProducts = useMemo(() => sortProducts(products), [products]);
   const filteredProducts = useMemo(() => {
@@ -151,12 +165,19 @@ export function AffiliateWorkflow({
   const selectedProduct = sortedProducts.find((product) => product.id === selectedId) ?? sortedProducts[0];
   const selectedScore = scoreProduct(selectedProduct);
   const selectedRecommendation = getRecommendationLabel(selectedScore.recommendation);
-  const promptInput = { product: selectedProduct, mode: promptEngineMode };
+  const promptOptions = {
+    contentMode,
+    targetAudience,
+    tone,
+    duration,
+    outputLanguage: "Bahasa Indonesia" as const
+  };
+  const promptInput = { product: selectedProduct, mode: promptEngineMode, options: promptOptions };
   const promptAssets = generatedPack ?? buildTemplateContentPack(promptInput);
   const campaign = buildCampaignPlan(promptInput, campaignDuration, campaignGoal);
   const visiblePerformance = performance.slice(0, campaignDuration);
   const performanceSummary = calculatePerformanceSummary(visiblePerformance);
-  const suggestions = isPoorCampaignPerformance(visiblePerformance) ? getImprovementSuggestions(promptEngineMode === "AI_CONNECTED") : [];
+  const suggestions = isPoorCampaignPerformance(visiblePerformance) ? getImprovementSuggestions(promptEngineMode === "AI_CONNECTED", visiblePerformance) : [];
   const isDemoOnly = products.every((product) => product.source === "DEMO");
   const topProducts = sortedProducts
     .map((product) => ({ product, score: scoreProduct(product) }))
@@ -312,13 +333,23 @@ export function AffiliateWorkflow({
   function fullPackText() {
     return [
       `Hook:\n${promptAssets.hooks.join("\n")}`,
+      `Product insight:\n${promptAssets.productInsight ?? ""}`,
+      `Main selling point:\n${promptAssets.mainSellingPoint ?? ""}`,
+      `Target audience match:\n${promptAssets.targetAudienceMatch ?? ""}`,
       `Script 15 detik:\n${promptAssets.script15}`,
       `Script 30 detik:\n${promptAssets.script30}`,
       `Scene Plan:\n${promptAssets.scenePlan.join("\n")}`,
-      `Caption:\n${promptAssets.caption}`,
+      `Voice over:\n${promptAssets.voiceOverDraft ?? ""}`,
+      `Caption pendek:\n${promptAssets.captionShort ?? promptAssets.caption}`,
+      `Caption medium:\n${promptAssets.captionMedium ?? promptAssets.caption}`,
+      `Caption storytelling:\n${promptAssets.captionStorytelling ?? promptAssets.caption}`,
       `Hashtag:\n${promptAssets.hashtags.join(" ")}`,
-      `CTA:\n${promptAssets.cta}`,
-      `Checklist Klaim Aman:\n${promptAssets.safeClaimChecklist.join("\n")}`
+      `CTA soft:\n${promptAssets.ctaSoft ?? promptAssets.cta}`,
+      `CTA direct:\n${promptAssets.ctaDirect ?? promptAssets.cta}`,
+      `CTA keranjang kuning:\n${promptAssets.ctaKeranjangKuning ?? promptAssets.cta}`,
+      `Checklist Klaim Aman:\n${promptAssets.safeClaimChecklist.join("\n")}`,
+      `Editing notes:\n${(promptAssets.editingNotes ?? []).join("\n")}`,
+      `Posting notes:\n${(promptAssets.postingNotes ?? []).join("\n")}`
     ].join("\n\n");
   }
 
@@ -748,6 +779,44 @@ export function AffiliateWorkflow({
           </div>
         </div>
 
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          <label className="rounded-2xl border border-line p-4">
+            <span className="text-xs font-bold uppercase tracking-wide text-muted">Content mode</span>
+            <select value={contentMode} onChange={(event) => setContentMode(event.target.value as ContentMode)} className="mt-2 min-h-11 w-full rounded-xl border border-line px-3 text-sm outline-none focus:border-mint">
+              {contentModes.map((mode) => (
+                <option key={mode} value={mode}>{mode}</option>
+              ))}
+            </select>
+          </label>
+          <label className="rounded-2xl border border-line p-4">
+            <span className="text-xs font-bold uppercase tracking-wide text-muted">Target audience</span>
+            <select value={targetAudience} onChange={(event) => setTargetAudience(event.target.value as TargetAudience)} className="mt-2 min-h-11 w-full rounded-xl border border-line px-3 text-sm outline-none focus:border-mint">
+              {targetAudiences.map((audience) => (
+                <option key={audience} value={audience}>{audience}</option>
+              ))}
+            </select>
+          </label>
+          <label className="rounded-2xl border border-line p-4">
+            <span className="text-xs font-bold uppercase tracking-wide text-muted">Tone</span>
+            <select value={tone} onChange={(event) => setTone(event.target.value as ToneOption)} className="mt-2 min-h-11 w-full rounded-xl border border-line px-3 text-sm outline-none focus:border-mint">
+              {toneOptions.map((item) => (
+                <option key={item} value={item}>{item}</option>
+              ))}
+            </select>
+          </label>
+          <label className="rounded-2xl border border-line p-4">
+            <span className="text-xs font-bold uppercase tracking-wide text-muted">Duration</span>
+            <select value={duration} onChange={(event) => setDuration(event.target.value as "15s" | "30s")} className="mt-2 min-h-11 w-full rounded-xl border border-line px-3 text-sm outline-none focus:border-mint">
+              <option value="15s">15s</option>
+              <option value="30s">30s</option>
+            </select>
+          </label>
+          <div className="rounded-2xl border border-line p-4">
+            <p className="text-xs font-bold uppercase tracking-wide text-muted">Output language</p>
+            <p className="mt-3 text-sm font-bold text-ink">Bahasa Indonesia</p>
+          </div>
+        </div>
+
         <div className="mt-4 flex flex-wrap gap-2">
           <ActionButton loading={loadingAction === "hooks"} onClick={() => generatePack("hooks")}>Buat Hook</ActionButton>
           <ActionButton loading={loadingAction === "script"} onClick={() => generatePack("script")}>Buat Script</ActionButton>
@@ -767,14 +836,25 @@ export function AffiliateWorkflow({
         ) : null}
 
         <div className="mt-4 grid gap-3 lg:grid-cols-2">
+          <PromptBlock title="Product insight" text={promptAssets.productInsight} />
+          <PromptBlock title="Main selling point" text={promptAssets.mainSellingPoint} />
+          <PromptBlock title="Target audience match" text={promptAssets.targetAudienceMatch} />
           <PromptBlock title="Hook 3 detik pertama" items={promptAssets.hooks} copyLabel="Copy Hook" onCopy={() => copyOutput("Hook", promptAssets.hooks.join("\n"))} />
-          <PromptBlock title="Script 15 detik" text={promptAssets.script15} copyLabel="Copy Script" onCopy={() => copyOutput("Script", promptAssets.script15)} />
-          <PromptBlock title="Script 30 detik" text={promptAssets.script30} copyLabel="Copy Script" onCopy={() => copyOutput("Script", promptAssets.script30)} />
+          <PromptBlock title="3 variasi script 15 detik" items={promptAssets.script15Variations ?? [promptAssets.script15]} copyLabel="Copy Script" onCopy={() => copyOutput("Script", (promptAssets.script15Variations ?? [promptAssets.script15]).join("\n\n"))} />
+          <PromptBlock title="3 variasi script 30 detik" items={promptAssets.script30Variations ?? [promptAssets.script30]} copyLabel="Copy Script" onCopy={() => copyOutput("Script", (promptAssets.script30Variations ?? [promptAssets.script30]).join("\n\n"))} />
           <PromptBlock title="Scene Plan" items={promptAssets.scenePlan} />
-          <PromptBlock title="Caption" text={promptAssets.caption} copyLabel="Copy Caption" onCopy={() => copyOutput("Caption", promptAssets.caption)} />
+          <PromptBlock title="Voice over draft" text={promptAssets.voiceOverDraft} />
+          <PromptBlock title="Caption short" text={promptAssets.captionShort ?? promptAssets.caption} copyLabel="Copy Caption" onCopy={() => copyOutput("Caption", promptAssets.captionShort ?? promptAssets.caption)} />
+          <PromptBlock title="Caption medium" text={promptAssets.captionMedium ?? promptAssets.caption} copyLabel="Copy Caption" onCopy={() => copyOutput("Caption", promptAssets.captionMedium ?? promptAssets.caption)} />
+          <PromptBlock title="Caption storytelling" text={promptAssets.captionStorytelling ?? promptAssets.caption} copyLabel="Copy Caption" onCopy={() => copyOutput("Caption", promptAssets.captionStorytelling ?? promptAssets.caption)} />
           <PromptBlock title="Hashtag" items={promptAssets.hashtags} copyLabel="Copy Hashtag" onCopy={() => copyOutput("Hashtag", promptAssets.hashtags.join(" "))} />
-          <PromptBlock title="CTA" text={promptAssets.cta} />
+          <PromptBlock title="CTA soft" text={promptAssets.ctaSoft ?? promptAssets.cta} copyLabel="Copy CTA" onCopy={() => copyOutput("CTA", promptAssets.ctaSoft ?? promptAssets.cta)} />
+          <PromptBlock title="CTA direct" text={promptAssets.ctaDirect ?? promptAssets.cta} copyLabel="Copy CTA" onCopy={() => copyOutput("CTA", promptAssets.ctaDirect ?? promptAssets.cta)} />
+          <PromptBlock title="CTA keranjang kuning" text={promptAssets.ctaKeranjangKuning ?? promptAssets.cta} copyLabel="Copy CTA" onCopy={() => copyOutput("CTA", promptAssets.ctaKeranjangKuning ?? promptAssets.cta)} />
           <PromptBlock title="Checklist Klaim Aman" items={promptAssets.safeClaimChecklist} />
+          <PromptBlock title={`Compliance: ${promptAssets.compliance?.status ?? "Safe"}`} items={[...(promptAssets.compliance?.findings ?? []), ...(promptAssets.compliance?.saferRewriteSuggestions ?? [])]} />
+          <PromptBlock title="Editing notes" items={promptAssets.editingNotes} />
+          <PromptBlock title="Posting notes" items={promptAssets.postingNotes} />
         </div>
       </SectionCard>
 
@@ -823,6 +903,7 @@ export function AffiliateWorkflow({
           {campaign.map((day) => (
             <article key={day.day} className="rounded-2xl border border-line p-4">
               <p className="text-xs font-black uppercase tracking-wide text-coral">Hari ke-{day.day}</p>
+              <p className="mt-2 rounded-full bg-slate-100 px-3 py-1 text-[10px] font-black text-ink">{day.contentMode}</p>
               <h3 className="mt-2 text-sm font-bold text-ink">{day.angle}</h3>
               <p className="mt-2 text-xs font-bold uppercase tracking-wide text-muted">Hook</p>
               <p className="mt-1 text-sm leading-6 text-muted">{day.hook}</p>
@@ -831,6 +912,7 @@ export function AffiliateWorkflow({
               <p className="mt-2 text-xs font-bold uppercase tracking-wide text-muted">Caption</p>
               <p className="mt-1 text-sm leading-6 text-muted">{day.caption}</p>
               <p className="mt-2 text-xs font-semibold text-ink">{day.cta}</p>
+              <p className="mt-2 text-xs leading-5 text-muted">{day.hashtagGroup.join(" ")}</p>
               <p className="mt-2 text-xs leading-5 text-muted">{day.postingNote}</p>
             </article>
           ))}
