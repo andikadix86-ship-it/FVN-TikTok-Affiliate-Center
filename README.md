@@ -109,6 +109,27 @@ TikTok Web Login requires an HTTPS redirect URI. Use your Vercel deployment URL 
 
 For MVP, TikTok Shop product data is still not automatic. TikTok account connection is different from TikTok Shop product API. Product Hunter can use DEMO DATA, MANUAL DATA, or CSV IMPORT until a real TikTok Shop API integration is approved and connected.
 
+## Real Product Data Intake
+
+Produk Affiliate now supports real user-provided product data without scraping:
+
+1. Add products manually with product URL, price, commission, audience, problem solved, main benefit, and demo idea.
+2. Paste a TikTok Shop product link and fill the product fields yourself. The app saves this as `MANUAL DATA`, not `REAL API DATA`.
+3. Import CSV using the sample file from Pengaturan. Valid rows are saved as `CSV IMPORT`.
+4. Demo seed products always stay `DEMO DATA - Bukan dari TikTok Shop`.
+5. `REAL API DATA` is reserved only for future official TikTok Shop API results.
+
+TikTok Shop API placeholders are available through:
+
+```env
+TIKTOK_SHOP_APP_KEY=""
+TIKTOK_SHOP_APP_SECRET=""
+TIKTOK_SHOP_ACCESS_TOKEN=""
+TIKTOK_SHOP_REGION="ID"
+```
+
+Current status: `TikTok Shop API belum terhubung`. The adapter does not scrape and does not fake product data.
+
 ## Panduan Penggunaan untuk Pemula
 
 1. Tambah produk lewat Produk Affiliate dengan input manual, CSV import, atau link produk.

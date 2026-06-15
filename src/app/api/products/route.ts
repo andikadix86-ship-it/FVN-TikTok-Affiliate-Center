@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sampleProducts } from "@/modules/affiliate/sample-products";
-import { buildProductCreateData, mapDbProduct } from "@/modules/database/product-service";
+import { buildProductCreateData, mapDbProduct, sortProductsBySourcePriority } from "@/modules/database/product-service";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +13,7 @@ export async function GET() {
 
     return NextResponse.json({
       source: "database",
-      products: products.map(mapDbProduct)
+      products: sortProductsBySourcePriority(products.map(mapDbProduct))
     });
   } catch {
     return NextResponse.json({

@@ -25,11 +25,18 @@ async function getProductSource() {
   }
 
   try {
-    const product = await prisma.product.findFirst({
-      orderBy: [{ source: "asc" }, { updatedAt: "desc" }]
-    });
+    const [manual, csv, realApi, demo] = await Promise.all([
+      prisma.product.count({ where: { source: "MANUAL" } }),
+      prisma.product.count({ where: { source: "CSV_IMPORT" } }),
+      prisma.product.count({ where: { source: "REAL_API" } }),
+      prisma.product.count({ where: { source: "DEMO" } })
+    ]);
 
-    return product?.source.toLowerCase() ?? "demo";
+    if (manual > 0) return "manual";
+    if (csv > 0) return "csv";
+    if (realApi > 0) return "real_api";
+    if (demo > 0) return "demo";
+    return "demo";
   } catch {
     return "demo";
   }

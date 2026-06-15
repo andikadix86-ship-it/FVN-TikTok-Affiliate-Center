@@ -5,13 +5,14 @@ import { sampleProducts } from "@/modules/affiliate/sample-products";
 import { SettingsPanel } from "@/components/settings-panel";
 import { env } from "@/lib/env";
 import { prisma } from "@/lib/prisma";
-import { mapDbProduct } from "@/modules/database/product-service";
+import { mapDbProduct, sortProductsBySourcePriority } from "@/modules/database/product-service";
 import { getPromptEngineMode } from "@/modules/prompt-engine/fallback";
 import { getSettingsStatus } from "@/modules/settings/status";
 import { getTikTokAccountView } from "@/modules/tiktok/account-service";
 import { getTikTokEnvStatus } from "@/modules/tiktok/env-status";
 import { TIKTOK_CONNECTED_COOKIE, TIKTOK_OAUTH_ERROR_COOKIE } from "@/modules/tiktok/oauth";
 import { TikTokConnectionPanel } from "@/modules/tiktok/tiktok-connection-panel";
+import { isTikTokShopApiConfigured } from "@/modules/tiktok-shop/tiktok-shop-api";
 
 async function getDatabaseSnapshot() {
   try {
@@ -27,7 +28,7 @@ async function getDatabaseSnapshot() {
 
     return {
       databaseConnected: true,
-      products: products.length > 0 ? products.map(mapDbProduct) : sampleProducts,
+      products: products.length > 0 ? sortProductsBySourcePriority(products.map(mapDbProduct)) : sampleProducts,
       counts: {
         totalProducts,
         demoProducts,
@@ -64,15 +65,18 @@ export default async function Home() {
     nodeEnv: process.env.NODE_ENV
   });
   const hasDisplayedDemoProducts = database.products.some((product) => product.source === "DEMO");
-  const hasDisplayedUserProducts = database.products.some((product) => product.source === "MANUAL" || product.source === "CSV_IMPORT" || product.source === "REAL_API");
+  const hasManualProducts = database.products.some((product) => product.source === "MANUAL");
+  const hasCsvProducts = database.products.some((product) => product.source === "CSV_IMPORT");
+  const hasRealApiProducts = database.products.some((product) => product.source === "REAL_API");
   const settingsStatus = getSettingsStatus({
     appUrl: env.NEXT_PUBLIC_APP_URL,
     databaseUrl: database.databaseConnected ? env.DATABASE_URL : "",
     tiktokOAuthConfigured: tiktokEnvStatus.oauth === "Configured",
     tiktokConnected,
     promptEngineMode,
-    productSource: hasDisplayedDemoProducts && !hasDisplayedUserProducts ? "DEMO" : "MANUAL"
+    productSource: hasManualProducts ? "MANUAL" : hasCsvProducts ? "CSV_IMPORT" : hasRealApiProducts ? "REAL_API" : hasDisplayedDemoProducts ? "DEMO" : "MANUAL"
   });
+  const tiktokShopApiStatus = isTikTokShopApiConfigured();
 
   return (
     <AppShell>
@@ -100,6 +104,8 @@ export default async function Home() {
             tiktokRedirectUri={env.TIKTOK_REDIRECT_URI}
             tiktokOAuthErrors={tiktokEnvStatus.errors}
             lastOAuthError={lastOAuthError}
+            tiktokLoginConnected={tiktokConnected || accountView.connected}
+            tiktokShopApiStatus={tiktokShopApiStatus}
           />
         </div>
       </section>

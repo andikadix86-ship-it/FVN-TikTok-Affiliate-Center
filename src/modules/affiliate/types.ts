@@ -18,6 +18,10 @@ export type AffiliateProduct = {
   competitionLevel: CompetitionLevel;
   productUrl: string;
   imageUrl: string;
+  targetAudience: string;
+  problemSolved: string;
+  mainBenefit: string;
+  demoIdea: string;
   notes: string;
   contentPotential: number;
   beginnerFriendliness: number;

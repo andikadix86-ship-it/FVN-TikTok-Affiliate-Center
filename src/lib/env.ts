@@ -8,6 +8,10 @@ const envSchema = z.object({
   TIKTOK_CLIENT_SECRET: z.string().optional(),
   TIKTOK_REDIRECT_URI: z.string().default("https://your-vercel-domain.vercel.app/api/auth/tiktok/callback"),
   TIKTOK_OAUTH_PKCE_ENABLED: z.string().default("false"),
+  TIKTOK_SHOP_APP_KEY: z.string().optional(),
+  TIKTOK_SHOP_APP_SECRET: z.string().optional(),
+  TIKTOK_SHOP_ACCESS_TOKEN: z.string().optional(),
+  TIKTOK_SHOP_REGION: z.string().default("ID"),
   GEMINI_API_KEY: z.string().optional(),
   OPENAI_API_KEY: z.string().optional()
 });

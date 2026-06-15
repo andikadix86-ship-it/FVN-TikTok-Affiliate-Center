@@ -46,20 +46,20 @@ describe("Product Hunter sources", () => {
     expect(html).toContain("MANUAL");
     expect(html).toContain("CSV_IMPORT");
     expect(html).toContain("REAL_API");
-    expect(html).toContain("MANUAL DATA");
-    expect(html).toContain("CSV IMPORT");
-    expect(html).toContain("Data input user");
+    expect(html).toContain("MANUAL DATA - Input user");
+    expect(html).toContain("CSV IMPORT - Dari file user");
+    expect(html).toContain("Input user");
     expect(html).toContain("only after API fetch");
   });
 
   it("returns honest source badge labels", () => {
     expect(getSourceBadgeText("DEMO")).toBe("DEMO DATA - Bukan dari TikTok Shop");
-    expect(getSourceBadgeText("MANUAL")).toBe("MANUAL DATA");
-    expect(getSourceBadgeText("CSV_IMPORT")).toBe("CSV IMPORT");
-    expect(getSourceBadgeText("REAL_API")).toBe("REAL API DATA");
+    expect(getSourceBadgeText("MANUAL")).toBe("MANUAL DATA - Input user");
+    expect(getSourceBadgeText("CSV_IMPORT")).toBe("CSV IMPORT - Dari file user");
+    expect(getSourceBadgeText("REAL_API")).toBe("REAL API DATA - Data API asli");
     expect(getSourceTrustText("DEMO")).toBe("Bukan dari TikTok Shop");
-    expect(getSourceTrustText("MANUAL")).toBe("Data input user");
-    expect(getSourceTrustText("CSV_IMPORT")).toBe("Data dari file user");
+    expect(getSourceTrustText("MANUAL")).toBe("Input user");
+    expect(getSourceTrustText("CSV_IMPORT")).toBe("Dari file user");
     expect(getSourceTrustText("REAL_API")).toBe("Data API asli");
   });
 

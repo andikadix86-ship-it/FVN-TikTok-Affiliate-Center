@@ -33,6 +33,26 @@ describe("settings status helper", () => {
     expect(status.database).toBe("Configured");
     expect(status.tiktokOAuth).toBe("Connected");
     expect(status.aiProvider).toBe("Connected");
-    expect(status.productDataSource).toBe("Configured");
+    expect(status.productDataSource).toBe("Manual");
+  });
+
+  it("returns CSV and real API source modes", () => {
+    expect(getSettingsStatus({
+      appUrl: "https://example.com",
+      databaseUrl: "postgres://example",
+      tiktokOAuthConfigured: true,
+      tiktokConnected: false,
+      promptEngineMode: "TEMPLATE_MODE",
+      productSource: "CSV_IMPORT"
+    }).productDataSource).toBe("CSV");
+
+    expect(getSettingsStatus({
+      appUrl: "https://example.com",
+      databaseUrl: "postgres://example",
+      tiktokOAuthConfigured: true,
+      tiktokConnected: false,
+      promptEngineMode: "TEMPLATE_MODE",
+      productSource: "REAL_API"
+    }).productDataSource).toBe("Real API");
   });
 });

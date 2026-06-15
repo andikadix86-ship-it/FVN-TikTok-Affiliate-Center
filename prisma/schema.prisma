@@ -46,6 +46,10 @@ model Product {
   competitionLevel String
   productUrl       String?
   imageUrl         String?
+  targetAudience   String?
+  problemSolved    String?
+  mainBenefit      String?
+  demoIdea         String?
   source           ProductSource @default(MANUAL)
   notes            String?
   score            Int

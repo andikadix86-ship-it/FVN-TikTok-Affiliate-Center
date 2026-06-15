@@ -5,6 +5,7 @@ import { Download, ExternalLink, Settings, Trash2 } from "lucide-react";
 import { SectionCard } from "@/components/section-card";
 import { SAMPLE_PRODUCT_CSV } from "@/modules/affiliate/csv-import";
 import { SettingsStatus } from "@/modules/settings/status";
+import type { TikTokShopApiStatus } from "@/modules/tiktok-shop/tiktok-shop-api";
 
 export function SettingsPanel({
   status,
@@ -15,7 +16,9 @@ export function SettingsPanel({
   productionUrl,
   tiktokRedirectUri,
   tiktokOAuthErrors,
-  lastOAuthError
+  lastOAuthError,
+  tiktokLoginConnected,
+  tiktokShopApiStatus
 }: {
   status: SettingsStatus;
   databaseConnected: boolean;
@@ -31,6 +34,8 @@ export function SettingsPanel({
   tiktokRedirectUri: string;
   tiktokOAuthErrors: string[];
   lastOAuthError?: string;
+  tiktokLoginConnected: boolean;
+  tiktokShopApiStatus: TikTokShopApiStatus;
 }) {
   const [healthStatus, setHealthStatus] = useState("Checking...");
   const [actionMessage, setActionMessage] = useState("");
@@ -66,9 +71,12 @@ export function SettingsPanel({
     { label: "Status App URL", value: status.appUrl },
     { label: "Database", value: databaseConnected ? "Connected" : "Error / Not Connected" },
     { label: "TikTok OAuth", value: tiktokOAuthConfigured ? "Configured" : "Missing" },
+    { label: "TikTok Login", value: tiktokLoginConnected ? "Connected" : "Not Connected" },
+    { label: "TikTok Display API", value: tiktokLoginConnected ? "Connected" : "Not Connected" },
+    { label: "TikTok Shop API", value: tiktokShopApiStatus.status },
     { label: "Last OAuth error", value: lastOAuthError || "none" },
     { label: "AI Provider", value: aiProviderConfigured ? "Configured" : "Template Mode" },
-    { label: "Product Source", value: status.productDataSource },
+    { label: "Product Source Mode", value: status.productDataSource },
     { label: "Product count from database", value: String(counts.totalProducts) },
     { label: "Demo Data Count", value: String(counts.demoProducts) },
     { label: "Manual product count", value: String(counts.manualProducts) },
@@ -130,6 +138,12 @@ export function SettingsPanel({
               <li key={error}>- {error}</li>
             ))}
           </ul>
+        </div>
+      ) : null}
+      {!tiktokShopApiStatus.configured ? (
+        <div className="mt-4 rounded-2xl border border-yellow-200 bg-yellow-50 p-4">
+          <p className="text-sm font-black text-yellow-900">TikTok Shop API belum aktif.</p>
+          <p className="mt-1 text-sm leading-6 text-yellow-900/80">Gunakan input manual atau CSV import dulu.</p>
         </div>
       ) : null}
       <div className="mt-4 flex flex-wrap gap-2">

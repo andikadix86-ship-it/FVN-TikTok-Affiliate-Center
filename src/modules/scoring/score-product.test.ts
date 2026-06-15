@@ -20,5 +20,30 @@ describe("product scoring", () => {
     expect(score.factors).toHaveProperty("competitionLevel");
     expect(score.factors).toHaveProperty("contentPotential");
     expect(score.factors).toHaveProperty("beginnerFriendliness");
+    expect(score.factors).toHaveProperty("demoClarity");
+    expect(score.factors).toHaveProperty("targetAudienceMatch");
+  });
+
+  it("recalculates score when edit fields improve demo clarity and audience match", () => {
+    const base = scoreProduct({
+      ...sampleProducts[0],
+      demoIdea: "",
+      targetAudience: "",
+      problemSolved: "",
+      mainBenefit: "",
+      contentPotential: 50,
+      beginnerFriendliness: 50
+    });
+    const edited = scoreProduct({
+      ...sampleProducts[0],
+      demoIdea: "Before-after pemakaian produk",
+      targetAudience: "Affiliate pemula",
+      problemSolved: "Sulit membuat konten demo",
+      mainBenefit: "Konten lebih mudah direkam",
+      contentPotential: 50,
+      beginnerFriendliness: 50
+    });
+
+    expect(edited.total).toBeGreaterThan(base.total);
   });
 });

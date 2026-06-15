@@ -1,7 +1,7 @@
 import { ProductSource } from "@/modules/affiliate/types";
 import { PromptEngineMode } from "@/modules/prompt-engine/types";
 
-export type StatusLabel = "Connected" | "Configured" | "Missing" | "Not Connected" | "Demo Mode";
+export type StatusLabel = "Connected" | "Configured" | "Missing" | "Not Connected" | "Demo Mode" | "Manual" | "CSV" | "Real API";
 
 export type SettingsStatus = {
   appUrl: StatusLabel;
@@ -31,6 +31,6 @@ export function getSettingsStatus({
     database: databaseUrl ? "Configured" : "Missing",
     tiktokOAuth: tiktokConnected ? "Connected" : tiktokOAuthConfigured ? "Configured" : "Missing",
     aiProvider: promptEngineMode === "AI_CONNECTED" ? "Connected" : "Not Connected",
-    productDataSource: productSource === "DEMO" ? "Demo Mode" : "Configured"
+    productDataSource: productSource === "DEMO" ? "Demo Mode" : productSource === "CSV_IMPORT" ? "CSV" : productSource === "REAL_API" ? "Real API" : "Manual"
   };
 }

@@ -39,22 +39,30 @@ function getPriceAttractiveness(price: number) {
 }
 
 export function scoreProduct(product: AffiliateProduct) {
+  const demoClarity = product.demoIdea ? 88 : product.imageUrl || product.productUrl ? 72 : 50;
+  const targetAudienceMatch = product.targetAudience && (product.problemSolved || product.mainBenefit) ? 88 : product.targetAudience ? 72 : 55;
+  const contentPotential = Math.max(product.contentPotential, product.mainBenefit || product.problemSolved || product.demoIdea ? 82 : product.contentPotential);
+  const beginnerFriendliness = Math.max(product.beginnerFriendliness, product.problemSolved ? 78 : product.beginnerFriendliness);
   const factors = {
     commissionRate: Math.min(product.commissionRate * 4, 100),
     priceAttractiveness: getPriceAttractiveness(product.price),
     salesPotential: product.salesScore,
     competitionLevel: competitionScore[product.competitionLevel],
-    contentPotential: product.contentPotential,
-    beginnerFriendliness: product.beginnerFriendliness
+    contentPotential,
+    beginnerFriendliness,
+    demoClarity,
+    targetAudienceMatch
   };
 
   const total = Math.round(
-    factors.commissionRate * 0.18 +
-      factors.priceAttractiveness * 0.14 +
-      factors.salesPotential * 0.2 +
-      factors.competitionLevel * 0.14 +
-      factors.contentPotential * 0.2 +
-      factors.beginnerFriendliness * 0.14
+    factors.commissionRate * 0.15 +
+      factors.priceAttractiveness * 0.12 +
+      factors.salesPotential * 0.17 +
+      factors.competitionLevel * 0.12 +
+      factors.contentPotential * 0.16 +
+      factors.beginnerFriendliness * 0.12 +
+      factors.demoClarity * 0.08 +
+      factors.targetAudienceMatch * 0.08
   );
 
   return {

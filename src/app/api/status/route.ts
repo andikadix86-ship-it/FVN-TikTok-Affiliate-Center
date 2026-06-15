@@ -37,13 +37,14 @@ export async function GET() {
     nodeEnv: process.env.NODE_ENV
   });
   const promptEngineMode = getPromptEngineMode(Boolean(env.GEMINI_API_KEY), Boolean(env.OPENAI_API_KEY));
+  const productSource = counts.manualProducts > 0 ? "MANUAL" : counts.csvProducts > 0 ? "CSV_IMPORT" : counts.demoProducts > 0 ? "DEMO" : "MANUAL";
   const settings = getSettingsStatus({
     appUrl: env.NEXT_PUBLIC_APP_URL,
     databaseUrl: databaseConnected ? env.DATABASE_URL : "",
     tiktokOAuthConfigured: tiktok.oauth === "Configured",
     tiktokConnected: false,
     promptEngineMode,
-    productSource: counts.demoProducts > 0 ? "DEMO" : "MANUAL"
+    productSource
   });
 
   return NextResponse.json({

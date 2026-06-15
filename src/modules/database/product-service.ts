@@ -2,6 +2,7 @@ import { z } from "zod";
 import { AffiliateProduct, CompetitionLevel, ProductSource } from "@/modules/affiliate/types";
 import { scoreProduct } from "@/modules/scoring/score-product";
 
+export const PRODUCT_SOURCE_PRIORITY: ProductSource[] = ["MANUAL", "CSV_IMPORT", "REAL_API", "DEMO"];
 export const productSourceSchema = z.enum(["DEMO", "MANUAL", "CSV_IMPORT", "REAL_API"]);
 export const competitionLevelSchema = z.enum(["low", "medium", "high"]);
 
@@ -16,8 +17,12 @@ export const productInputSchema = z.object({
   rating: z.coerce.number().min(0).max(5).optional().nullable(),
   reviewCount: z.coerce.number().int().nonnegative().optional().nullable(),
   competitionLevel: competitionLevelSchema,
-  productUrl: z.string().optional().nullable(),
-  imageUrl: z.string().optional().nullable(),
+  productUrl: z.string().url("productUrl must be a valid URL").or(z.literal("")).optional().nullable(),
+  imageUrl: z.string().url("imageUrl must be a valid URL").or(z.literal("")).optional().nullable(),
+  targetAudience: z.string().optional().nullable(),
+  problemSolved: z.string().optional().nullable(),
+  mainBenefit: z.string().optional().nullable(),
+  demoIdea: z.string().optional().nullable(),
   source: productSourceSchema.default("MANUAL"),
   notes: z.string().optional().nullable(),
   contentPotential: z.coerce.number().int().min(0).max(100).default(70),
@@ -46,6 +51,10 @@ export function normalizeProductInput(input: unknown, source?: ProductSource) {
     competitionLevel: parsed.competitionLevel as CompetitionLevel,
     productUrl: parsed.productUrl ?? "",
     imageUrl: parsed.imageUrl ?? "",
+    targetAudience: parsed.targetAudience ?? "",
+    problemSolved: parsed.problemSolved ?? "",
+    mainBenefit: parsed.mainBenefit ?? "",
+    demoIdea: parsed.demoIdea ?? "",
     source: parsed.source,
     notes: parsed.notes ?? "",
     contentPotential: parsed.contentPotential,
@@ -77,6 +86,10 @@ export function buildProductCreateData(input: unknown, source?: ProductSource) {
     competitionLevel: parsed.competitionLevel,
     productUrl: parsed.productUrl ?? undefined,
     imageUrl: parsed.imageUrl ?? undefined,
+    targetAudience: parsed.targetAudience ?? undefined,
+    problemSolved: parsed.problemSolved ?? undefined,
+    mainBenefit: parsed.mainBenefit ?? undefined,
+    demoIdea: parsed.demoIdea ?? undefined,
     source: parsed.source,
     notes: parsed.notes ?? undefined,
     score: score.total,
@@ -98,6 +111,10 @@ export function mapDbProduct(product: {
   competitionLevel: string;
   productUrl: string | null;
   imageUrl: string | null;
+  targetAudience?: string | null;
+  problemSolved?: string | null;
+  mainBenefit?: string | null;
+  demoIdea?: string | null;
   source: ProductSource;
   notes: string | null;
   score: number;
@@ -119,6 +136,10 @@ export function mapDbProduct(product: {
     competitionLevel: product.competitionLevel as CompetitionLevel,
     productUrl: product.productUrl ?? "",
     imageUrl: product.imageUrl ?? "",
+    targetAudience: product.targetAudience ?? "",
+    problemSolved: product.problemSolved ?? "",
+    mainBenefit: product.mainBenefit ?? "",
+    demoIdea: product.demoIdea ?? "",
     source: product.source,
     notes: product.notes ?? "",
     contentPotential: 70,
@@ -132,4 +153,22 @@ export function mapDbProduct(product: {
 
 export function filterNonDemoProducts<T extends { source: ProductSource }>(products: T[]) {
   return products.filter((product) => product.source !== "DEMO");
+}
+
+export function sortProductsBySourcePriority<T extends { source: ProductSource; score?: number; createdAt?: string }>(products: T[]) {
+  return [...products].sort((a, b) => {
+    const sourceDelta = PRODUCT_SOURCE_PRIORITY.indexOf(a.source) - PRODUCT_SOURCE_PRIORITY.indexOf(b.source);
+
+    if (sourceDelta !== 0) {
+      return sourceDelta;
+    }
+
+    const scoreDelta = (b.score ?? 0) - (a.score ?? 0);
+
+    if (scoreDelta !== 0) {
+      return scoreDelta;
+    }
+
+    return (b.createdAt ?? "").localeCompare(a.createdAt ?? "");
+  });
 }

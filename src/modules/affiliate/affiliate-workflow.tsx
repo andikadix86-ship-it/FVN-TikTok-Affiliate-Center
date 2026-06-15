@@ -1,6 +1,6 @@
 "use client";
 
-import { ButtonHTMLAttributes, ChangeEvent, useMemo, useState } from "react";
+import { ButtonHTMLAttributes, ChangeEvent, useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
   CalendarDays,
@@ -59,6 +59,10 @@ const initialForm = {
   competitionLevel: "medium" as CompetitionLevel,
   productUrl: "",
   imageUrl: "",
+  targetAudience: "",
+  problemSolved: "",
+  mainBenefit: "",
+  demoIdea: "",
   notes: "",
   contentPotential: "70",
   beginnerFriendliness: "75"
@@ -69,7 +73,7 @@ function sourceBadge(source: ProductSource) {
 }
 
 type SaveTone = "info" | "success" | "error";
-type LoadingAction = "manual" | "csv" | "url" | "hooks" | "script" | "caption" | "full" | "campaign" | "performance" | null;
+type LoadingAction = "manual" | "csv" | "url" | "edit" | "delete" | "hooks" | "script" | "caption" | "full" | "campaign" | "performance" | null;
 type ProductFilter = "all" | "manual" | "csv" | "demo" | "highScore" | "lowCompetition";
 
 function productFromForm(source: ProductSource, form: typeof initialForm): AffiliateProduct {
@@ -89,6 +93,10 @@ function productFromForm(source: ProductSource, form: typeof initialForm): Affil
     competitionLevel: form.competitionLevel,
     productUrl: form.productUrl,
     imageUrl: form.imageUrl,
+    targetAudience: form.targetAudience,
+    problemSolved: form.problemSolved,
+    mainBenefit: form.mainBenefit,
+    demoIdea: form.demoIdea,
     notes: form.notes || "No notes yet.",
     contentPotential: Number(form.contentPotential) || 0,
     beginnerFriendliness: Number(form.beginnerFriendliness) || 0,
@@ -115,6 +123,8 @@ export function AffiliateWorkflow({
   const [products, setProducts] = useState<AffiliateProduct[]>(initialProducts.length > 0 ? initialProducts : sampleProducts);
   const [selectedId, setSelectedId] = useState((initialProducts[0] ?? sampleProducts[0])?.id ?? "");
   const [form, setForm] = useState(initialForm);
+  const [urlForm, setUrlForm] = useState(initialForm);
+  const [editForm, setEditForm] = useState(initialForm);
   const [csv, setCsv] = useState(SAMPLE_PRODUCT_CSV);
   const [csvErrors, setCsvErrors] = useState<string[]>([]);
   const [urlInput, setUrlInput] = useState("");
@@ -162,7 +172,7 @@ export function AffiliateWorkflow({
       return true;
     });
   }, [productFilter, sortedProducts]);
-  const selectedProduct = sortedProducts.find((product) => product.id === selectedId) ?? sortedProducts[0];
+  const selectedProduct = sortedProducts.find((product) => product.id === selectedId) ?? sortedProducts[0] ?? sampleProducts[0];
   const selectedScore = scoreProduct(selectedProduct);
   const selectedRecommendation = getRecommendationLabel(selectedScore.recommendation);
   const promptOptions = {
@@ -189,6 +199,32 @@ export function AffiliateWorkflow({
   );
   const activeCampaigns = campaignStatus === "Active" ? 1 : 0;
 
+  useEffect(() => {
+    if (!selectedProduct) {
+      return;
+    }
+
+    setEditForm({
+      productName: selectedProduct.productName,
+      category: selectedProduct.category,
+      price: String(selectedProduct.price),
+      commissionRate: String(selectedProduct.commissionRate),
+      salesScore: String(selectedProduct.salesScore),
+      rating: String(selectedProduct.rating),
+      reviewCount: String(selectedProduct.reviewCount),
+      competitionLevel: selectedProduct.competitionLevel,
+      productUrl: selectedProduct.productUrl,
+      imageUrl: selectedProduct.imageUrl,
+      targetAudience: selectedProduct.targetAudience,
+      problemSolved: selectedProduct.problemSolved,
+      mainBenefit: selectedProduct.mainBenefit,
+      demoIdea: selectedProduct.demoIdea,
+      notes: selectedProduct.notes,
+      contentPotential: String(selectedProduct.contentPotential),
+      beginnerFriendliness: String(selectedProduct.beginnerFriendliness)
+    });
+  }, [selectedProduct]);
+
   function showStatus(message: string, tone: SaveTone = "info") {
     setSaveStatus(message);
     setSaveTone(tone);
@@ -198,9 +234,17 @@ export function AffiliateWorkflow({
     setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
   }
 
+  function updateUrlForm(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
+    setUrlForm((current) => ({ ...current, [event.target.name]: event.target.value }));
+  }
+
+  function updateEditForm(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
+    setEditForm((current) => ({ ...current, [event.target.name]: event.target.value }));
+  }
+
   async function addManualProduct() {
-    if (!form.productName.trim() || !form.category.trim()) {
-      showStatus("Isi nama produk dan kategori dulu sebelum menyimpan.", "error");
+    if (!form.productName.trim() || !form.category.trim() || !form.productUrl.trim() || !form.price.trim() || !form.commissionRate.trim()) {
+      showStatus("Isi nama produk, kategori, harga, komisi, tingkat kompetisi, dan link produk dulu.", "error");
       return;
     }
 
@@ -272,19 +316,17 @@ export function AffiliateWorkflow({
   }
 
   async function addUrlProduct() {
-    if (!urlInput.trim()) {
-      showStatus("Tempel URL produk dulu sebelum menyimpan.", "error");
+    if (!urlInput.trim() || !urlForm.productName.trim() || !urlForm.category.trim() || !urlForm.price.trim() || !urlForm.commissionRate.trim()) {
+      showStatus("Isi link produk, nama produk, kategori, harga, komisi, dan tingkat kompetisi dulu.", "error");
       return;
     }
 
     setLoadingAction("url");
     const product: AffiliateProduct = {
       ...productFromForm("MANUAL", {
-        ...initialForm,
-        productName: "Product URL Research",
-        category: "Manual research",
+        ...urlForm,
         productUrl: urlInput,
-        notes: "URL saved for manual product research. This is not fetched from TikTok Shop API."
+        notes: urlForm.notes || "Link produk disimpan. Data harga/komisi tetap dari input user sampai TikTok Shop API aktif."
       }),
       id: `url-${Date.now()}`
     };
@@ -292,6 +334,7 @@ export function AffiliateWorkflow({
     setProducts((current) => sortProducts([product, ...current]));
     setSelectedId(product.id);
     setUrlInput("");
+    setUrlForm(initialForm);
 
     try {
       const response = await fetch("/api/products", {
@@ -310,6 +353,64 @@ export function AffiliateWorkflow({
       }
     } catch {
       showStatus("URL produk tersimpan lokal saja.", "error");
+    } finally {
+      setLoadingAction(null);
+    }
+  }
+
+  async function saveProductEdit() {
+    if (!selectedProduct) {
+      return;
+    }
+
+    setLoadingAction("edit");
+    const editedProduct = {
+      ...productFromForm(selectedProduct.source, editForm),
+      id: selectedProduct.id,
+      createdAt: selectedProduct.createdAt,
+      updatedAt: new Date().toISOString()
+    };
+
+    setProducts((current) => sortProducts(current.map((product) => (product.id === selectedProduct.id ? editedProduct : product))));
+
+    try {
+      const response = await fetch(`/api/products/${selectedProduct.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(editedProduct)
+      });
+      const payload = await response.json();
+
+      if (response.ok && payload.product) {
+        setProducts((current) => sortProducts(current.map((product) => (product.id === selectedProduct.id ? payload.product : product))));
+        showStatus("Produk diperbarui dan score dihitung ulang.", "success");
+      } else {
+        showStatus(payload.message ?? "Produk diperbarui lokal saja.", "error");
+      }
+    } catch {
+      showStatus("Produk diperbarui lokal saja.", "error");
+    } finally {
+      setLoadingAction(null);
+    }
+  }
+
+  async function deleteSelectedProduct() {
+    if (!selectedProduct || !window.confirm(`Hapus produk ${selectedProduct.productName}?`)) {
+      return;
+    }
+
+    setLoadingAction("delete");
+    setProducts((current) => {
+      const next = current.filter((product) => product.id !== selectedProduct.id);
+      setSelectedId(next[0]?.id ?? "");
+      return next;
+    });
+
+    try {
+      const response = await fetch(`/api/products/${selectedProduct.id}`, { method: "DELETE" });
+      showStatus(response.ok ? "Produk dihapus." : "Produk dihapus lokal saja.", response.ok ? "success" : "error");
+    } catch {
+      showStatus("Produk dihapus lokal saja.", "error");
     } finally {
       setLoadingAction(null);
     }
@@ -469,7 +570,7 @@ export function AffiliateWorkflow({
           <div className="mt-4 rounded-2xl border border-orange-200 bg-orange-50 p-4">
             <p className="text-sm font-black text-orange-900">DEMO DATA - Bukan dari TikTok Shop</p>
             <p className="mt-1 text-sm leading-6 text-orange-900/80">
-              Produk demo hanya contoh. Tambahkan produk manual atau import CSV agar analisa lebih sesuai kebutuhan kamu.
+              Saat ini hanya ada produk demo. Tambahkan produk manual atau import CSV agar aplikasi bisa dipakai untuk produk kamu.
             </p>
           </div>
         ) : null}
@@ -599,6 +700,10 @@ export function AffiliateWorkflow({
                 ["reviewCount", "Jumlah review"],
                 ["productUrl", "Link produk"],
                 ["imageUrl", "Link gambar"],
+                ["targetAudience", "Target audience"],
+                ["problemSolved", "Problem yang diselesaikan"],
+                ["mainBenefit", "Manfaat utama"],
+                ["demoIdea", "Ide demo"],
                 ["contentPotential", "Potensi konten"],
                 ["beginnerFriendliness", "Cocok pemula"]
               ].map(([name, placeholder]) => (
@@ -620,7 +725,7 @@ export function AffiliateWorkflow({
               <ActionButton loading={loadingAction === "manual"} onClick={addManualProduct}>
                 Simpan Produk Manual
               </ActionButton>
-              <p className="text-xs leading-5 text-muted">Data ini disimpan sebagai MANUAL DATA, bukan data resmi TikTok Shop.</p>
+              <p className="text-xs leading-5 text-muted">Wajib: nama produk, kategori, harga, komisi, tingkat kompetisi, dan link produk. Data ini disimpan sebagai MANUAL DATA, bukan data resmi TikTok Shop.</p>
             </div>
           </div>
 
@@ -660,8 +765,32 @@ export function AffiliateWorkflow({
               <Link className="h-4 w-4" />
               <p className="text-sm font-bold text-ink">Input link produk</p>
             </div>
-            <input value={urlInput} onChange={(event) => setUrlInput(event.target.value)} placeholder="Tempel link produk" className="min-h-11 w-full rounded-xl border border-line px-3 text-sm outline-none focus:border-mint" />
-            <p className="mt-2 text-sm leading-6 text-muted">Link produk disimpan sebagai MANUAL DATA sampai integrasi API asli aktif.</p>
+            <input value={urlInput} onChange={(event) => setUrlInput(event.target.value)} placeholder="Tempel link produk TikTok Shop" className="min-h-11 w-full rounded-xl border border-line px-3 text-sm outline-none focus:border-mint" />
+            <div className="mt-2 grid gap-2">
+              {[
+                ["productName", "Nama produk"],
+                ["category", "Kategori"],
+                ["price", "Harga"],
+                ["commissionRate", "Komisi"],
+                ["salesScore", "Score penjualan"],
+                ["notes", "Catatan"]
+              ].map(([name, placeholder]) => (
+                <input
+                  key={name}
+                  name={name}
+                  value={urlForm[name as keyof typeof urlForm]}
+                  onChange={updateUrlForm}
+                  placeholder={placeholder}
+                  className="min-h-11 rounded-xl border border-line px-3 text-sm outline-none focus:border-mint"
+                />
+              ))}
+              <select name="competitionLevel" value={urlForm.competitionLevel} onChange={updateUrlForm} className="min-h-11 rounded-xl border border-line px-3 text-sm outline-none focus:border-mint">
+                <option value="low">Kompetisi rendah</option>
+                <option value="medium">Kompetisi sedang</option>
+                <option value="high">Kompetisi tinggi</option>
+              </select>
+            </div>
+            <p className="mt-2 text-sm leading-6 text-muted">Link produk disimpan, tetapi data harga/komisi tetap dari input kamu sampai TikTok Shop API aktif.</p>
             <ActionButton loading={loadingAction === "url"} onClick={addUrlProduct} className="mt-3">
               Simpan URL
             </ActionButton>
@@ -725,30 +854,92 @@ export function AffiliateWorkflow({
       </SectionCard>
 
       <SectionCard id="product-detail" title="Detail Produk" description="Cek ringkasan produk sebelum membuat konten." icon={PackageSearch}>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {[
-            ["Produk", selectedProduct.productName],
-            ["Platform", selectedProduct.platform],
-            ["Kategori", selectedProduct.category],
-            ["Sumber", `${getSourceBadgeText(selectedProduct.source)} - ${getSourceTrustText(selectedProduct.source)}`],
-            ["Harga", String(selectedProduct.price)],
-            ["Komisi", `${selectedProduct.commissionRate}%`],
-            ["Terjual/Sales", selectedProduct.soldCount ? String(selectedProduct.soldCount) : `${selectedProduct.salesScore}/100`],
-            ["Rating", `${selectedProduct.rating} (${selectedProduct.reviewCount} reviews)`],
-            ["Kompetisi", selectedProduct.competitionLevel],
-            ["Dibuat", new Date(selectedProduct.createdAt).toLocaleDateString()],
-            ["Diupdate", new Date(selectedProduct.updatedAt).toLocaleDateString()],
-            ["Link produk", selectedProduct.productUrl || "Belum diisi"]
-          ].map(([label, value]) => (
-            <div key={label} className="rounded-2xl border border-line p-4">
-              <p className="text-xs font-bold uppercase tracking-wide text-muted">{label}</p>
-              <p className="mt-2 break-words text-sm font-bold text-ink">{value}</p>
+        <div className="grid gap-4 lg:grid-cols-[0.8fr_1.2fr]">
+          <div className="overflow-hidden rounded-2xl border border-line bg-slate-50">
+            {selectedProduct.imageUrl ? (
+              <div aria-hidden="true" className="aspect-[4/3] bg-cover bg-center" style={{ backgroundImage: `url(${selectedProduct.imageUrl})` }} />
+            ) : (
+              <div className="flex aspect-[4/3] items-center justify-center text-sm font-bold text-muted">Belum ada gambar</div>
+            )}
+            <div className="p-4">
+              <span className={sourceBadge(selectedProduct.source)}>{getSourceBadgeText(selectedProduct.source)}</span>
+              <h2 className="mt-3 text-2xl font-black text-ink">{selectedProduct.productName}</h2>
+              <p className="mt-1 text-sm text-muted">{selectedProduct.category}</p>
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <MetricPill label="Score" value={`${selectedScore.total}/100`} />
+                <MetricPill label="Rekomendasi" value={selectedRecommendation} />
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <a href="#content-factory" className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white">Buat Konten</a>
+                <a href="#campaign-planner" className="rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold text-ink">Buat Campaign 7 Hari</a>
+                <ActionButton loading={loadingAction === "delete"} onClick={deleteSelectedProduct} className="bg-coral">
+                  Delete Product
+                </ActionButton>
+              </div>
             </div>
-          ))}
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {[
+              ["Harga", String(selectedProduct.price)],
+              ["Komisi", `${selectedProduct.commissionRate}%`],
+              ["Terjual/Sales", selectedProduct.soldCount ? String(selectedProduct.soldCount) : `${selectedProduct.salesScore}/100`],
+              ["Rating", `${selectedProduct.rating} (${selectedProduct.reviewCount} reviews)`],
+              ["Kompetisi", selectedProduct.competitionLevel],
+              ["Target audience", selectedProduct.targetAudience || "Belum diisi"],
+              ["Problem solved", selectedProduct.problemSolved || "Belum diisi"],
+              ["Main benefit", selectedProduct.mainBenefit || "Belum diisi"],
+              ["Demo idea", selectedProduct.demoIdea || "Belum diisi"],
+              ["Content packs", draftContentPacks ? `${draftContentPacks} draft dibuat` : "Belum ada konten tersimpan di sesi ini"],
+              ["Campaigns", campaignId ? "1 campaign aktif di sesi ini" : "Belum ada campaign di sesi ini"],
+              ["Link produk", selectedProduct.productUrl || "Belum diisi"]
+            ].map(([label, value]) => (
+              <div key={label} className="rounded-2xl border border-line p-4">
+                <p className="text-xs font-bold uppercase tracking-wide text-muted">{label}</p>
+                <p className="mt-2 break-words text-sm font-bold text-ink">{value}</p>
+              </div>
+            ))}
+          </div>
         </div>
         <div className="mt-3 rounded-2xl border border-line p-4">
           <p className="text-xs font-bold uppercase tracking-wide text-muted">Catatan</p>
           <p className="mt-2 text-sm leading-6 text-muted">{selectedProduct.notes}</p>
+        </div>
+        <div className="mt-4 rounded-2xl border border-line p-4">
+          <p className="text-sm font-black text-ink">Edit Product</p>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {[
+              ["productName", "Nama produk"],
+              ["category", "Kategori"],
+              ["price", "Harga"],
+              ["commissionRate", "Komisi"],
+              ["salesScore", "Score penjualan"],
+              ["productUrl", "Link produk"],
+              ["imageUrl", "Link gambar"],
+              ["targetAudience", "Target audience"],
+              ["problemSolved", "Problem solved"],
+              ["mainBenefit", "Main benefit"],
+              ["demoIdea", "Demo idea"],
+              ["notes", "Notes"]
+            ].map(([name, placeholder]) => (
+              <input
+                key={name}
+                name={name}
+                value={editForm[name as keyof typeof editForm]}
+                onChange={updateEditForm}
+                placeholder={placeholder}
+                className="min-h-11 rounded-xl border border-line px-3 text-sm outline-none focus:border-mint"
+              />
+            ))}
+            <select name="competitionLevel" value={editForm.competitionLevel} onChange={updateEditForm} className="min-h-11 rounded-xl border border-line px-3 text-sm outline-none focus:border-mint">
+              <option value="low">Kompetisi rendah</option>
+              <option value="medium">Kompetisi sedang</option>
+              <option value="high">Kompetisi tinggi</option>
+            </select>
+          </div>
+          <ActionButton loading={loadingAction === "edit"} onClick={saveProductEdit} className="mt-3">
+            Simpan Edit Product
+          </ActionButton>
+          <p className="mt-2 text-xs leading-5 text-muted">Score produk otomatis dihitung ulang setelah edit tersimpan.</p>
         </div>
       </SectionCard>
 

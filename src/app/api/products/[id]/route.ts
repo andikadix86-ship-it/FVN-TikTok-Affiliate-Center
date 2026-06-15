@@ -19,7 +19,16 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const body = await request.json();
-    const data = buildProductCreateData(body, body.source);
+    const existing = await prisma.product.findUnique({
+      where: { id: params.id },
+      select: { source: true }
+    });
+
+    if (!existing) {
+      return NextResponse.json({ message: "Product not found." }, { status: 404 });
+    }
+
+    const data = buildProductCreateData(body, existing.source);
     const product = await prisma.product.update({
       where: { id: params.id },
       data
