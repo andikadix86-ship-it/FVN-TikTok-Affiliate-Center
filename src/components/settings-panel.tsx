@@ -74,6 +74,9 @@ export function SettingsPanel({
     { label: "TikTok Login", value: tiktokLoginConnected ? "Connected" : "Not Connected" },
     { label: "TikTok Display API", value: tiktokLoginConnected ? "Connected" : "Not Connected" },
     { label: "TikTok Shop API", value: tiktokShopApiStatus.status },
+    { label: "TikTok Auto Posting", value: "Not Enabled" },
+    { label: "Publishing Mode", value: "Manual" },
+    { label: "TikTok Performance Data", value: "Manual Input" },
     { label: "Last OAuth error", value: lastOAuthError || "none" },
     { label: "AI Provider", value: aiProviderConfigured ? "Configured" : "Template Mode" },
     { label: "Product Source Mode", value: status.productDataSource },
@@ -146,6 +149,10 @@ export function SettingsPanel({
           <p className="mt-1 text-sm leading-6 text-yellow-900/80">Gunakan input manual atau CSV import dulu.</p>
         </div>
       ) : null}
+      <div className="mt-4 rounded-2xl border border-blue-200 bg-blue-50 p-4">
+        <p className="text-sm font-black text-blue-900">Publishing Mode: Manual</p>
+        <p className="mt-1 text-sm leading-6 text-blue-900/80">Mode manual lebih aman untuk MVP. Auto-posting TikTok bisa ditambahkan nanti jika API dan scope sudah approved.</p>
+      </div>
       <div className="mt-4 flex flex-wrap gap-2">
         <button onClick={clearDemoData} className="inline-flex items-center gap-2 rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold text-ink">
           <Trash2 className="h-4 w-4" />

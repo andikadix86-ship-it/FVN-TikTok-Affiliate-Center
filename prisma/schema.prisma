@@ -63,6 +63,7 @@ model Product {
   recommendation   String
   contentPacks     ContentPack[]
   campaigns        Campaign[]
+  postedContents   PostedContent[]
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
 
@@ -103,6 +104,7 @@ model ContentPack {
   status             ContentStatus @default(DRAFT)
   providerMode       ProviderMode @default(TEMPLATE)
   campaigns          Campaign[]
+  postedContents     PostedContent[]
   createdAt          DateTime     @default(now())
   updatedAt          DateTime     @updatedAt
 
@@ -123,6 +125,7 @@ model Campaign {
   status      CampaignStatus        @default(DRAFT)
   dailyPlan   Json
   performance CampaignPerformance[]
+  postedContents PostedContent[]
   createdAt   DateTime              @default(now())
   updatedAt   DateTime              @updatedAt
 
@@ -150,6 +153,40 @@ model CampaignPerformance {
   @@index([campaignId])
 }
 
+model PostedContent {
+  id              String       @id @default(cuid())
+  contentPackId   String
+  contentPack     ContentPack  @relation(fields: [contentPackId], references: [id], onDelete: Cascade)
+  campaignId      String?
+  campaign        Campaign?    @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  campaignDayNumber Int?
+  productId       String
+  product         Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  tiktokAccountId String?
+  tiktokAccount   TikTokAccount? @relation(fields: [tiktokAccountId], references: [id], onDelete: SetNull)
+  tiktokVideoUrl  String
+  postedAt        DateTime
+  accountUsed     String?
+  notes           String?      @db.Text
+  views           Int          @default(0)
+  likes           Int          @default(0)
+  comments        Int          @default(0)
+  shares          Int          @default(0)
+  saves           Int          @default(0)
+  clicks          Int          @default(0)
+  orders          Int          @default(0)
+  revenue         Decimal      @default(0) @db.Decimal(10, 2)
+  archived        Boolean      @default(false)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@index([contentPackId])
+  @@index([campaignId])
+  @@index([productId])
+  @@index([postedAt])
+  @@index([archived])
+}
+
 model TikTokAccount {
   id                    String   @id @default(cuid())
   openId                String   @unique
@@ -163,6 +200,7 @@ model TikTokAccount {
   tokenStatus           String   @default("not_stored")
   scopeStatus           String   @default("unknown")
   lastSyncStatus        String   @default("not_synced")
+  postedContents        PostedContent[]
   connectedAt           DateTime @default(now())
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt

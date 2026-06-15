@@ -89,12 +89,58 @@ async function getContentStats() {
   }
 }
 
+async function getPostedStats() {
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const [postedToday, latestPosted, bestByViews, bestByOrders] = await Promise.all([
+      prisma.postedContent.count({ where: { postedAt: { gte: today }, archived: false } }),
+      prisma.postedContent.findMany({
+        where: { archived: false },
+        orderBy: { postedAt: "desc" },
+        take: 5,
+        include: { product: true }
+      }),
+      prisma.postedContent.findFirst({
+        where: { archived: false },
+        orderBy: { views: "desc" },
+        include: { product: true }
+      }),
+      prisma.postedContent.findFirst({
+        where: { archived: false },
+        orderBy: { orders: "desc" },
+        include: { product: true }
+      })
+    ]);
+
+    return {
+      postedToday,
+      bestByViews: bestByViews ? `${bestByViews.product.productName} (${bestByViews.views})` : "",
+      bestByOrders: bestByOrders ? `${bestByOrders.product.productName} (${bestByOrders.orders})` : "",
+      latestPosted: latestPosted.map((item) => ({
+        id: item.id,
+        productName: item.product.productName,
+        url: item.tiktokVideoUrl,
+        postedAt: item.postedAt.toISOString()
+      }))
+    };
+  } catch {
+    return {
+      postedToday: 0,
+      bestByViews: "",
+      bestByOrders: "",
+      latestPosted: []
+    };
+  }
+}
+
 export default async function Home() {
   const cookieStore = cookies();
   const tiktokConnected = cookieStore.get(TIKTOK_CONNECTED_COOKIE)?.value === "true";
   const lastOAuthError = cookieStore.get(TIKTOK_OAUTH_ERROR_COOKIE)?.value;
   const database = await getDatabaseSnapshot();
   const contentStats = await getContentStats();
+  const postedStats = await getPostedStats();
   const accountView = await getTikTokAccountView();
   const promptEngineMode = getPromptEngineMode(Boolean(env.GEMINI_API_KEY), Boolean(env.OPENAI_API_KEY));
   const tiktokEnvStatus = getTikTokEnvStatus({
@@ -128,6 +174,7 @@ export default async function Home() {
             initialProducts={database.products}
             databaseConnected={database.databaseConnected}
             contentStats={contentStats}
+            postedStats={postedStats}
           />
           <TikTokConnectionPanel
             envStatus={tiktokEnvStatus}

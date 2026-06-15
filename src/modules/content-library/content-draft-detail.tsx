@@ -12,11 +12,20 @@ import {
 } from "@/modules/database/content-service";
 import { getRecommendationLabel } from "@/modules/scoring/recommendation-label";
 import { getSourceBadgeText, getSourceClassName } from "@/modules/affiliate/source-badge";
+import { getPostingChecklistStatus, postingChecklistItems } from "@/modules/posting/posting-checklist";
 
 export function ContentDraftDetail({ draft }: { draft: ContentDraft }) {
   const router = useRouter();
   const [current, setCurrent] = useState(draft);
   const [message, setMessage] = useState("");
+  const [checkedItems, setCheckedItems] = useState<boolean[]>(() => postingChecklistItems.map(() => false));
+  const [showPostedForm, setShowPostedForm] = useState(false);
+  const [postedForm, setPostedForm] = useState({
+    tiktokVideoUrl: "",
+    postedAt: new Date().toISOString().slice(0, 10),
+    accountUsed: "",
+    notes: ""
+  });
   const [form, setForm] = useState({
     selectedHook: draft.selectedHook,
     script15s: draft.script15s,
@@ -97,6 +106,46 @@ export function ContentDraftDetail({ draft }: { draft: ContentDraft }) {
     setMessage(response.ok ? "Campaign dari draft berhasil dibuat." : "Campaign belum bisa dibuat.");
   }
 
+  async function markReady() {
+    const response = await fetch(`/api/content-packs/${current.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "READY" })
+    });
+    const payload = await response.json();
+
+    if (response.ok && payload.contentPack) {
+      setCurrent(payload.contentPack);
+      setForm((active) => ({ ...active, status: "READY" }));
+      setMessage("Draft ditandai Siap Posting.");
+      return;
+    }
+
+    setMessage("Draft belum bisa ditandai Siap Posting.");
+  }
+
+  async function submitPostedContent() {
+    const response = await fetch(`/api/content-packs/${current.id}/posted-content`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(postedForm)
+    });
+    const payload = await response.json();
+
+    if (response.ok) {
+      setCurrent((active) => ({ ...active, status: "POSTED" }));
+      setForm((active) => ({ ...active, status: "POSTED" }));
+      setShowPostedForm(false);
+      setMessage("Konten ditandai sebagai sudah posting. Data performa bisa diisi di Konten Terposting.");
+      return;
+    }
+
+    setMessage(payload.message ?? "Konten belum bisa ditandai sudah posting.");
+  }
+
+  const checkedCount = checkedItems.filter(Boolean).length;
+  const checklistStatus = getPostingChecklistStatus(checkedCount);
+
   return (
     <div className="grid gap-4">
       {message ? <div className="rounded-2xl border border-line bg-slate-50 p-4 text-sm font-bold text-ink">{message}</div> : null}
@@ -118,7 +167,12 @@ export function ContentDraftDetail({ draft }: { draft: ContentDraft }) {
               <Meta label="Tone" value={current.tone} />
             </div>
             <div className="mt-4 flex flex-wrap gap-2">
+              <button onClick={() => copy("Caption", current.captionShort || current.caption)} className="icon-btn"><Copy className="h-4 w-4" />Salin Caption</button>
+              <button onClick={() => copy("Hashtag", current.hashtags.join(" "))} className="icon-btn"><Copy className="h-4 w-4" />Salin Hashtag</button>
+              <button onClick={() => copy("CTA", current.ctaKeranjangKuning || current.cta)} className="icon-btn"><Copy className="h-4 w-4" />Salin CTA</button>
               <button onClick={() => copy("Semua", getContentDraftFullText(current))} className="icon-btn"><Copy className="h-4 w-4" />Salin Semua</button>
+              <button onClick={markReady} className="icon-btn">Tandai Siap Posting</button>
+              <button onClick={() => setShowPostedForm((active) => !active)} className="icon-btn">Tandai Sudah Posting</button>
               <button onClick={createCampaign} className="icon-btn"><FilePlus2 className="h-4 w-4" />Buat Campaign dari Draft Ini</button>
               <button onClick={() => action("duplicate")} className="icon-btn">Duplikat Draft</button>
               <button onClick={() => action("archive")} className="icon-btn"><Archive className="h-4 w-4" />Arsipkan</button>
@@ -126,6 +180,58 @@ export function ContentDraftDetail({ draft }: { draft: ContentDraft }) {
             </div>
           </div>
         </div>
+      </section>
+
+      <section className="rounded-[2rem] border border-line bg-white p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-lg font-black text-ink">Checklist Posting</p>
+            <p className="mt-1 text-sm leading-6 text-muted">Untuk MVP ini, aplikasi belum melakukan auto-post ke TikTok. Upload video tetap dilakukan manual oleh user.</p>
+          </div>
+          <span className="rounded-full bg-slate-100 px-4 py-2 text-sm font-black text-ink">{checklistStatus}</span>
+        </div>
+        <div className="mt-4 grid gap-2 sm:grid-cols-2">
+          {postingChecklistItems.map((item, index) => (
+            <label key={item} className="flex items-center gap-3 rounded-xl border border-line px-3 py-2 text-sm font-semibold text-ink">
+              <input
+                type="checkbox"
+                checked={checkedItems[index]}
+                onChange={(event) => setCheckedItems((currentItems) => currentItems.map((checked, itemIndex) => (itemIndex === index ? event.target.checked : checked)))}
+                className="h-4 w-4"
+              />
+              {item}
+            </label>
+          ))}
+        </div>
+        <p className="mt-3 text-xs font-bold text-muted">{checkedCount}/10 checklist selesai.</p>
+        {current.status === "POSTED" ? (
+          <div className="mt-4 rounded-2xl border border-teal-200 bg-teal-50 p-4 text-sm font-bold text-teal-900">
+            Konten ini sudah ditandai sebagai sudah posting.
+          </div>
+        ) : null}
+        {showPostedForm ? (
+          <div className="mt-4 grid gap-3 rounded-2xl border border-line bg-slate-50 p-4 sm:grid-cols-2">
+            <label className="grid gap-1">
+              <span className="text-xs font-bold uppercase tracking-wide text-muted">Link Video TikTok</span>
+              <input value={postedForm.tiktokVideoUrl} onChange={(event) => setPostedForm((active) => ({ ...active, tiktokVideoUrl: event.target.value }))} placeholder="https://www.tiktok.com/@user/video/..." className="min-h-11 rounded-xl border border-line px-3 text-sm" />
+            </label>
+            <label className="grid gap-1">
+              <span className="text-xs font-bold uppercase tracking-wide text-muted">Tanggal posting</span>
+              <input type="date" value={postedForm.postedAt} onChange={(event) => setPostedForm((active) => ({ ...active, postedAt: event.target.value }))} className="min-h-11 rounded-xl border border-line px-3 text-sm" />
+            </label>
+            <label className="grid gap-1">
+              <span className="text-xs font-bold uppercase tracking-wide text-muted">Akun TikTok yang dipakai</span>
+              <input value={postedForm.accountUsed} onChange={(event) => setPostedForm((active) => ({ ...active, accountUsed: event.target.value }))} className="min-h-11 rounded-xl border border-line px-3 text-sm" />
+            </label>
+            <label className="grid gap-1">
+              <span className="text-xs font-bold uppercase tracking-wide text-muted">Catatan</span>
+              <input value={postedForm.notes} onChange={(event) => setPostedForm((active) => ({ ...active, notes: event.target.value }))} className="min-h-11 rounded-xl border border-line px-3 text-sm" />
+            </label>
+            <button onClick={submitPostedContent} className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white sm:col-span-2">
+              Simpan Konten Terposting
+            </button>
+          </div>
+        ) : null}
       </section>
 
       <section className="grid gap-3 lg:grid-cols-2">

@@ -119,6 +119,12 @@ export function AffiliateWorkflow({
     readyDrafts: 0,
     postedDrafts: 0,
     latestDrafts: []
+  },
+  postedStats = {
+    postedToday: 0,
+    bestByViews: "",
+    bestByOrders: "",
+    latestPosted: []
   }
 }: {
   tiktokConnected: boolean;
@@ -130,6 +136,12 @@ export function AffiliateWorkflow({
     readyDrafts: number;
     postedDrafts: number;
     latestDrafts: Array<{ id: string; productName: string; status: string; hook: string }>;
+  };
+  postedStats?: {
+    postedToday: number;
+    bestByViews: string;
+    bestByOrders: string;
+    latestPosted: Array<{ id: string; productName: string; url: string; postedAt: string }>;
   };
 }) {
   const [products, setProducts] = useState<AffiliateProduct[]>(initialProducts.length > 0 ? initialProducts : sampleProducts);
@@ -598,6 +610,7 @@ export function AffiliateWorkflow({
           <MetricPill label="Draft konten" value={String(contentStats.totalDrafts + draftContentPacks)} />
           <MetricPill label="Siap posting" value={String(contentStats.readyDrafts)} />
           <MetricPill label="Sudah posting" value={String(contentStats.postedDrafts)} />
+          <MetricPill label="Terposting hari ini" value={String(postedStats.postedToday)} />
         </div>
         <p className="mt-4 text-sm font-black text-ink">Mulai dari sini</p>
         <div className="mt-2 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -606,6 +619,7 @@ export function AffiliateWorkflow({
             ["Import CSV", "#product-hunter", "Masukkan banyak produk dari file CSV."],
             ["Buat Konten", "#content-factory", "Generate hook, script, caption, dan CTA."],
             ["Lihat Draft Konten", "/content-library", "Cari dan pakai ulang draft konten."],
+            ["Lihat Konten Terposting", "/posted-content", "Input performa video yang sudah upload."],
             ["Buat Rencana Posting", "#campaign-planner", "Susun campaign 7 atau 14 hari."]
           ].map(([title, href, detail]) => (
             <a key={title} href={href} className="rounded-2xl border border-line bg-white p-4 transition hover:border-mint hover:bg-teal-50">
@@ -627,6 +641,28 @@ export function AffiliateWorkflow({
                 <a key={draft.id} href={`/content-library/${draft.id}`} className="rounded-xl bg-slate-50 px-3 py-2">
                   <p className="text-sm font-bold text-ink">{draft.productName}</p>
                   <p className="mt-1 line-clamp-1 text-xs text-muted">{draft.status} - {draft.hook}</p>
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
+        <div className="mt-4 rounded-2xl border border-line bg-white p-4">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm font-black text-ink">Konten terposting terbaru</p>
+            <a href="/posted-content" className="rounded-full border border-line px-3 py-1 text-xs font-bold text-ink">Lihat Konten Terposting</a>
+          </div>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            <MetricPill label="Best views" value={postedStats.bestByViews || "Belum ada"} />
+            <MetricPill label="Best orders" value={postedStats.bestByOrders || "Belum ada"} />
+          </div>
+          {postedStats.latestPosted.length === 0 ? (
+            <p className="mt-3 text-sm leading-6 text-muted">Belum ada konten terposting.</p>
+          ) : (
+            <div className="mt-3 grid gap-2">
+              {postedStats.latestPosted.map((item) => (
+                <a key={item.id} href={item.url} target="_blank" className="rounded-xl bg-slate-50 px-3 py-2">
+                  <p className="text-sm font-bold text-ink">{item.productName}</p>
+                  <p className="mt-1 text-xs text-muted">{new Date(item.postedAt).toLocaleDateString()}</p>
                 </a>
               ))}
             </div>
