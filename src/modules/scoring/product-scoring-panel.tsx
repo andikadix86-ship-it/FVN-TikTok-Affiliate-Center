@@ -19,7 +19,7 @@ export function ProductScoringPanel() {
         <div className="rounded-2xl bg-ink p-5 text-white">
           <p className="text-sm font-semibold text-white/70">Best candidate</p>
           <p className="mt-2 text-2xl font-bold">{bestProduct.product.name}</p>
-          <p className="mt-2 text-sm leading-6 text-white/75">{bestProduct.product.hook}</p>
+          <p className="mt-2 text-sm leading-6 text-white/75">{bestProduct.product.notes}</p>
           <div className="mt-5 flex items-end gap-2">
             <span className="text-5xl font-black">{bestProduct.score.total}</span>
             <span className="pb-2 text-sm font-semibold text-white/60">affiliate score</span>
@@ -29,7 +29,7 @@ export function ProductScoringPanel() {
           {Object.entries(bestProduct.score.factors).map(([label, value]) => (
             <div key={label} className="flex items-center justify-between gap-4 rounded-2xl border border-line px-4 py-3">
               <span className="text-sm font-semibold capitalize text-ink">{label}</span>
-              <span className="text-sm font-bold text-muted">{String(value)}</span>
+              <span className="text-sm font-bold text-muted">{String(Math.round(value))}</span>
             </div>
           ))}
         </div>

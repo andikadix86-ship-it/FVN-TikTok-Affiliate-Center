@@ -29,7 +29,7 @@ export function ProductHunter({ tiktokConnected = false }: { tiktokConnected?: b
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="text-sm font-bold text-ink">{product.name}</p>
-                  <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-muted">{product.niche}</p>
+                  <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-muted">{product.category}</p>
                 </div>
                 <div className="flex flex-col items-end gap-2">
                   <span className="rounded-full bg-ink px-3 py-1 text-xs font-bold text-white">{score.total}</span>
@@ -38,12 +38,12 @@ export function ProductHunter({ tiktokConnected = false }: { tiktokConnected?: b
                   </span>
                 </div>
               </div>
-              <p className="mt-3 text-sm leading-6 text-muted">{product.hook}</p>
+              <p className="mt-3 text-sm leading-6 text-muted">{product.notes}</p>
               <div className="mt-4 grid grid-cols-2 gap-2">
                 <MetricPill label="Price" value={`$${product.price}`} />
                 <MetricPill label="Commission" value={`${product.commissionRate}%`} tone="good" />
-                <MetricPill label="Sales" value={`${product.salesVelocity}/100`} />
-                <MetricPill label="Competition" value={product.competition} tone={product.competition === "low" ? "good" : "warn"} />
+                <MetricPill label="Sales" value={`${product.salesScore}/100`} />
+                <MetricPill label="Competition" value={product.competitionLevel} tone={product.competitionLevel === "low" ? "good" : "warn"} />
               </div>
             </article>
           );

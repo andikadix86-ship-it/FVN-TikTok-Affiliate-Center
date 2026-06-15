@@ -2,6 +2,7 @@ import React from "react";
 import { describe, expect, it } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { sampleProducts } from "./sample-products";
+import { AffiliateWorkflow } from "./affiliate-workflow";
 import { ProductHunter } from "./product-hunter";
 import { selectProductsByPriority } from "./product-source";
 
@@ -28,5 +29,15 @@ describe("Product Hunter sources", () => {
 
     expect(html).toContain("DEMO DATA - Not from TikTok Shop");
     expect(html).toContain("These products are sample data until TikTok Shop API or manual/CSV product data is connected.");
+  });
+
+  it("shows workflow source modes without presenting demo products as real API", () => {
+    const html = renderToStaticMarkup(<AffiliateWorkflow tiktokConnected={false} />);
+
+    expect(html).toContain("DEMO DATA - Not from TikTok Shop");
+    expect(html).toContain("MANUAL");
+    expect(html).toContain("CSV_IMPORT");
+    expect(html).toContain("REAL_API");
+    expect(html).toContain("only after API fetch");
   });
 });

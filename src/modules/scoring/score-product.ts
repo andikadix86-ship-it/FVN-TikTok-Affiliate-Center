@@ -1,26 +1,65 @@
-import { AffiliateProduct } from "@/modules/affiliate/types";
+import { AffiliateProduct, ProductRecommendation } from "@/modules/affiliate/types";
 
-const competitionPenalty = {
-  low: 0,
-  medium: 7,
-  high: 14
+const competitionScore = {
+  low: 92,
+  medium: 68,
+  high: 38
 };
 
+export function getRecommendation(total: number): ProductRecommendation {
+  if (total >= 75) {
+    return "Promote";
+  }
+
+  if (total >= 55) {
+    return "Test First";
+  }
+
+  return "Avoid";
+}
+
+function getPriceAttractiveness(price: number) {
+  if (price <= 0) {
+    return 40;
+  }
+
+  if (price <= 15) {
+    return 92;
+  }
+
+  if (price <= 35) {
+    return 82;
+  }
+
+  if (price <= 75) {
+    return 62;
+  }
+
+  return 42;
+}
+
 export function scoreProduct(product: AffiliateProduct) {
-  const commission = Math.min(product.commissionRate * 3, 100);
-  const rating = product.rating * 20;
-  const content = product.contentFit;
-  const sales = product.salesVelocity;
-  const total = Math.round((commission * 0.2 + rating * 0.2 + content * 0.35 + sales * 0.25) - competitionPenalty[product.competition]);
+  const factors = {
+    commissionRate: Math.min(product.commissionRate * 4, 100),
+    priceAttractiveness: getPriceAttractiveness(product.price),
+    salesPotential: product.salesScore,
+    competitionLevel: competitionScore[product.competitionLevel],
+    contentPotential: product.contentPotential,
+    beginnerFriendliness: product.beginnerFriendliness
+  };
+
+  const total = Math.round(
+    factors.commissionRate * 0.18 +
+      factors.priceAttractiveness * 0.14 +
+      factors.salesPotential * 0.2 +
+      factors.competitionLevel * 0.14 +
+      factors.contentPotential * 0.2 +
+      factors.beginnerFriendliness * 0.14
+  );
 
   return {
     total: Math.max(0, Math.min(100, total)),
-    factors: {
-      commission: Math.round(commission),
-      rating: Math.round(rating),
-      content,
-      sales,
-      competition: product.competition
-    }
+    recommendation: getRecommendation(total),
+    factors
   };
 }

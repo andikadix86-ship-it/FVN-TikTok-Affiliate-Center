@@ -4,8 +4,8 @@ import { SectionCard } from "@/components/section-card";
 export function TikTokConnectionPanel() {
   return (
     <SectionCard
-      id="tiktok"
-      title="TikTok Account Connection"
+      id="tiktok-accounts"
+      title="TikTok Accounts"
       description="OAuth/Login Kit is wired as a placeholder route for real TikTok app credentials."
       icon={Link2}
     >
