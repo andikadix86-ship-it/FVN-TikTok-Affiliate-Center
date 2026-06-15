@@ -14,34 +14,24 @@ import {
 } from "lucide-react";
 import { MetricPill } from "@/components/metric-pill";
 import { SectionCard } from "@/components/section-card";
-import { buildSevenDayCampaign } from "@/modules/prompt-engine/campaign.prompt";
+import {
+  calculatePerformanceSummary,
+  CampaignDuration,
+  CampaignGoal,
+  CampaignPerformanceDay,
+  CampaignStatus,
+  emptyCampaignPerformanceDay,
+  getImprovementSuggestions,
+  isPoorCampaignPerformance
+} from "@/modules/campaign/performance";
+import { buildCampaignPlan } from "@/modules/prompt-engine/campaign.prompt";
 import { buildTemplateContentPack } from "@/modules/prompt-engine/fallback";
 import { ContentPack, PromptEngineMode } from "@/modules/prompt-engine/types";
 import { scoreProduct } from "@/modules/scoring/score-product";
-import { validateAndParseCsv } from "./csv-import";
+import { SAMPLE_PRODUCT_CSV, validateAndParseCsv } from "./csv-import";
 import { sampleProducts } from "./sample-products";
 import { getSourceBadgeText, getSourceClassName } from "./source-badge";
 import { AffiliateProduct, CompetitionLevel, ProductSource } from "./types";
-
-type PerformanceInput = {
-  views: number;
-  likes: number;
-  comments: number;
-  shares: number;
-  clicks: number;
-  orders: number;
-  revenue: number;
-};
-
-const emptyPerformance: PerformanceInput = {
-  views: 0,
-  likes: 0,
-  comments: 0,
-  shares: 0,
-  clicks: 0,
-  orders: 0,
-  revenue: 0
-};
 
 const sourcePriority: ProductSource[] = ["MANUAL", "CSV_IMPORT", "REAL_API", "DEMO"];
 
@@ -60,8 +50,6 @@ const initialForm = {
   contentPotential: "70",
   beginnerFriendliness: "75"
 };
-
-const sampleCsv = "productName,category,price,commissionRate,salesScore,competitionLevel,productUrl,imageUrl\nDesk Lamp,Home Office,12.5,18,72,low,https://example.com/product,https://example.com/image.jpg";
 
 function sourceBadge(source: ProductSource) {
   return `rounded-full px-3 py-1 text-[10px] font-black ${getSourceClassName(source)}`;
@@ -96,30 +84,6 @@ function sortProducts(products: AffiliateProduct[]) {
   return [...products].sort((a, b) => sourcePriority.indexOf(a.source) - sourcePriority.indexOf(b.source));
 }
 
-function improvementSuggestions(performance: PerformanceInput[]) {
-  const firstFive = performance.slice(0, 5);
-  const totals = firstFive.reduce(
-    (sum, day) => ({
-      views: sum.views + day.views,
-      clicks: sum.clicks + day.clicks,
-      orders: sum.orders + day.orders
-    }),
-    { views: 0, clicks: 0, orders: 0 }
-  );
-
-  if (firstFive.length < 5 || totals.views >= 1500 || totals.clicks >= 30 || totals.orders > 0) {
-    return [];
-  }
-
-  return [
-    "Change hook.",
-    "Change angle.",
-    "Change first 3 seconds.",
-    "Change CTA.",
-    "Test another product."
-  ];
-}
-
 export function AffiliateWorkflow({
   tiktokConnected,
   promptEngineMode
@@ -130,20 +94,35 @@ export function AffiliateWorkflow({
   const [products, setProducts] = useState<AffiliateProduct[]>(sampleProducts);
   const [selectedId, setSelectedId] = useState(sampleProducts[0]?.id ?? "");
   const [form, setForm] = useState(initialForm);
-  const [csv, setCsv] = useState(sampleCsv);
+  const [csv, setCsv] = useState(SAMPLE_PRODUCT_CSV);
   const [csvErrors, setCsvErrors] = useState<string[]>([]);
   const [urlInput, setUrlInput] = useState("");
   const [generatedPack, setGeneratedPack] = useState<ContentPack | null>(null);
-  const [performance, setPerformance] = useState<PerformanceInput[]>(Array.from({ length: 7 }, () => ({ ...emptyPerformance })));
+  const [draftContentPacks, setDraftContentPacks] = useState(0);
+  const [campaignDuration, setCampaignDuration] = useState<CampaignDuration>(7);
+  const [campaignGoal, setCampaignGoal] = useState<CampaignGoal>("testing product");
+  const [campaignStatus, setCampaignStatus] = useState<CampaignStatus>("Draft");
+  const [performance, setPerformance] = useState<CampaignPerformanceDay[]>(Array.from({ length: 14 }, () => ({ ...emptyCampaignPerformanceDay })));
 
   const sortedProducts = useMemo(() => sortProducts(products), [products]);
   const selectedProduct = sortedProducts.find((product) => product.id === selectedId) ?? sortedProducts[0];
   const selectedScore = scoreProduct(selectedProduct);
   const promptInput = { product: selectedProduct, mode: promptEngineMode };
   const promptAssets = generatedPack ?? buildTemplateContentPack(promptInput);
-  const campaign = buildSevenDayCampaign(promptInput);
-  const suggestions = improvementSuggestions(performance);
+  const campaign = buildCampaignPlan(promptInput, campaignDuration, campaignGoal);
+  const visiblePerformance = performance.slice(0, campaignDuration);
+  const performanceSummary = calculatePerformanceSummary(visiblePerformance);
+  const suggestions = isPoorCampaignPerformance(visiblePerformance) ? getImprovementSuggestions(promptEngineMode === "AI_CONNECTED") : [];
   const isDemoOnly = products.every((product) => product.source === "DEMO");
+  const topProducts = sortedProducts
+    .map((product) => ({ product, score: scoreProduct(product) }))
+    .sort((a, b) => b.score.total - a.score.total)
+    .slice(0, 5);
+  const sourceCounts = products.reduce(
+    (counts, product) => ({ ...counts, [product.source]: counts[product.source] + 1 }),
+    { DEMO: 0, MANUAL: 0, CSV_IMPORT: 0, REAL_API: 0 } as Record<ProductSource, number>
+  );
+  const activeCampaigns = campaignStatus === "Active" ? 1 : 0;
 
   function updateForm(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) {
     setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
@@ -189,7 +168,7 @@ export function AffiliateWorkflow({
     setUrlInput("");
   }
 
-  function updatePerformance(dayIndex: number, field: keyof PerformanceInput, value: string) {
+  function updatePerformance(dayIndex: number, field: keyof CampaignPerformanceDay, value: string) {
     setPerformance((current) =>
       current.map((day, index) => (index === dayIndex ? { ...day, [field]: Number(value) || 0 } : day))
     );
@@ -197,6 +176,7 @@ export function AffiliateWorkflow({
 
   function generatePack(part: "hooks" | "script" | "caption" | "full") {
     const pack = buildTemplateContentPack(promptInput);
+    setDraftContentPacks((current) => current + 1);
 
     if (part === "hooks") {
       setGeneratedPack({ ...promptAssets, hooks: pack.hooks });
@@ -223,11 +203,48 @@ export function AffiliateWorkflow({
         <h1 className="mt-2 max-w-3xl text-3xl font-bold leading-tight text-ink sm:text-5xl">
           TikTok affiliate workflow for product, content, and campaign decisions.
         </h1>
-        <div className="mt-4 grid gap-3 sm:grid-cols-4">
-          <MetricPill label="Products" value={String(products.length)} />
-          <MetricPill label="Selected Score" value={`${selectedScore.total}/100`} tone={selectedScore.total >= 80 ? "good" : "warn"} />
-          <MetricPill label="Recommendation" value={selectedScore.recommendation} tone={selectedScore.recommendation === "Promote" ? "good" : "warn"} />
-          <MetricPill label="TikTok Login" value={tiktokConnected ? "Connected" : "Not Connected"} tone={tiktokConnected ? "good" : "warn"} />
+        {isDemoOnly ? (
+          <div className="mt-4 rounded-2xl border border-orange-200 bg-orange-50 p-4">
+            <p className="text-sm font-black text-orange-900">DEMO DATA - Not from TikTok Shop</p>
+            <p className="mt-1 text-sm leading-6 text-orange-900/80">Connect TikTok Shop API later, or use manual/CSV products now.</p>
+          </div>
+        ) : null}
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
+          <MetricPill label="Total products" value={String(products.length)} />
+          <MetricPill label="Manual" value={String(sourceCounts.MANUAL)} />
+          <MetricPill label="CSV imported" value={String(sourceCounts.CSV_IMPORT)} />
+          <MetricPill label="Demo" value={String(sourceCounts.DEMO)} tone={sourceCounts.DEMO > 0 ? "warn" : "neutral"} />
+          <MetricPill label="Active campaigns" value={String(activeCampaigns)} />
+          <MetricPill label="Draft packs" value={String(draftContentPacks)} />
+        </div>
+        <div className="mt-4 grid gap-3 lg:grid-cols-3">
+          {[
+            ["Product Hunter Status", `${products.length} products ready`],
+            ["Best Product Today", `${topProducts[0]?.product.productName ?? "No product"} (${topProducts[0]?.score.total ?? 0}/100)`],
+            ["Campaign Progress", `${campaignStatus} / ${campaignDuration} days / ${campaignGoal}`],
+            ["TikTok Account", tiktokConnected ? "Connected" : "Not Connected"],
+            ["AI Prompt Engine", promptEngineMode === "AI_CONNECTED" ? "Connected" : "Template Mode"],
+            ["Data Source", isDemoOnly ? "Demo Mode" : "User Provided Data"]
+          ].map(([title, value]) => (
+            <div key={title} className="rounded-2xl border border-line bg-white p-4">
+              <p className="text-xs font-bold uppercase tracking-wide text-muted">{title}</p>
+              <p className="mt-2 text-sm font-bold text-ink">{value}</p>
+            </div>
+          ))}
+        </div>
+        <div className="mt-4 rounded-2xl border border-line bg-white p-4">
+          <p className="text-sm font-black text-ink">Top 5 recommended products by score</p>
+          <div className="mt-3 grid gap-2">
+            {topProducts.map(({ product, score }) => (
+              <div key={product.id} className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-3 py-2">
+                <div>
+                  <p className="text-sm font-bold text-ink">{product.productName}</p>
+                  <p className="text-xs text-muted">{getSourceBadgeText(product.source)}</p>
+                </div>
+                <span className="rounded-full bg-ink px-3 py-1 text-xs font-bold text-white">{score.total}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -306,7 +323,7 @@ export function AffiliateWorkflow({
             <div className="mt-3 flex flex-wrap gap-2">
               <button onClick={importCsv} className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white">Import CSV Products</button>
               <a
-                href={`data:text/csv;charset=utf-8,${encodeURIComponent(sampleCsv)}`}
+                href={`data:text/csv;charset=utf-8,${encodeURIComponent(SAMPLE_PRODUCT_CSV)}`}
                 download="tiktok-affiliate-products-sample.csv"
                 className="rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold text-ink"
               >
@@ -453,7 +470,38 @@ export function AffiliateWorkflow({
         </div>
       </SectionCard>
 
-      <SectionCard id="campaign-planner" title="Campaign Planner" description="Create a 7-day campaign and enter simple performance data by day." icon={CalendarDays}>
+      <SectionCard id="campaign-planner" title="Campaign Planner" description="Create a campaign from the selected product and enter simple performance data by day." icon={CalendarDays}>
+        <div className="mb-4 grid gap-3 sm:grid-cols-3">
+          <label className="rounded-2xl border border-line p-4">
+            <span className="text-xs font-bold uppercase tracking-wide text-muted">Campaign duration</span>
+            <select value={campaignDuration} onChange={(event) => setCampaignDuration(Number(event.target.value) as CampaignDuration)} className="mt-2 min-h-11 w-full rounded-xl border border-line px-3 text-sm outline-none focus:border-mint">
+              <option value={7}>7 days</option>
+              <option value={14}>14 days</option>
+            </select>
+          </label>
+          <label className="rounded-2xl border border-line p-4">
+            <span className="text-xs font-bold uppercase tracking-wide text-muted">Campaign goal</span>
+            <select value={campaignGoal} onChange={(event) => setCampaignGoal(event.target.value as CampaignGoal)} className="mt-2 min-h-11 w-full rounded-xl border border-line px-3 text-sm outline-none focus:border-mint">
+              <option value="awareness">awareness</option>
+              <option value="clicks">clicks</option>
+              <option value="orders">orders</option>
+              <option value="testing product">testing product</option>
+            </select>
+          </label>
+          <label className="rounded-2xl border border-line p-4">
+            <span className="text-xs font-bold uppercase tracking-wide text-muted">Campaign status</span>
+            <select value={campaignStatus} onChange={(event) => setCampaignStatus(event.target.value as CampaignStatus)} className="mt-2 min-h-11 w-full rounded-xl border border-line px-3 text-sm outline-none focus:border-mint">
+              <option value="Draft">Draft</option>
+              <option value="Active">Active</option>
+              <option value="Paused">Paused</option>
+              <option value="Completed">Completed</option>
+            </select>
+          </label>
+        </div>
+        <div className="mb-4 rounded-2xl border border-line bg-slate-50 p-4">
+          <p className="text-sm font-black text-ink">Campaign from selected product</p>
+          <p className="mt-1 text-sm text-muted">{selectedProduct.productName}</p>
+        </div>
         <div className="grid gap-3 lg:grid-cols-7">
           {campaign.map((day) => (
             <article key={day.day} className="rounded-2xl border border-line p-4">
@@ -477,7 +525,7 @@ export function AffiliateWorkflow({
               <div key={dayIndex} className="rounded-xl bg-slate-50 p-3">
                 <p className="mb-2 text-xs font-black uppercase tracking-wide text-muted">Day {dayIndex + 1}</p>
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
-                  {(Object.keys(day) as Array<keyof PerformanceInput>).map((field) => (
+                  {(Object.keys(day) as Array<keyof CampaignPerformanceDay>).map((field) => (
                     <input
                       key={field}
                       value={day[field]}
@@ -491,9 +539,17 @@ export function AffiliateWorkflow({
               </div>
             ))}
           </div>
+          <div className="mt-4 grid gap-2 sm:grid-cols-3 lg:grid-cols-6">
+            <MetricPill label="Total views" value={String(performanceSummary.totalViews)} />
+            <MetricPill label="Total clicks" value={String(performanceSummary.totalClicks)} />
+            <MetricPill label="Total orders" value={String(performanceSummary.totalOrders)} />
+            <MetricPill label="Revenue" value={`$${performanceSummary.estimatedRevenue.toFixed(2)}`} />
+            <MetricPill label="CTR" value={`${performanceSummary.ctr.toFixed(2)}%`} />
+            <MetricPill label="Conversion" value={`${performanceSummary.conversionRate.toFixed(2)}%`} />
+          </div>
           {suggestions.length > 0 ? (
             <div className="mt-4 rounded-2xl border border-orange-200 bg-orange-50 p-4">
-              <p className="text-sm font-black text-orange-900">Improvement suggestions after 5 days</p>
+              <p className="text-sm font-black text-orange-900">AI improvement suggestions after 5 days</p>
               <ul className="mt-2 space-y-2 text-sm leading-6 text-orange-900/80">
                 {suggestions.map((suggestion) => (
                   <li key={suggestion}>- {suggestion}</li>

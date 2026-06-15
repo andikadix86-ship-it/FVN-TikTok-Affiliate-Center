@@ -11,6 +11,9 @@ export const requiredCsvColumns = [
   "imageUrl"
 ] as const;
 
+export const SAMPLE_PRODUCT_CSV =
+  "productName,category,price,commissionRate,salesScore,competitionLevel,productUrl,imageUrl\nDesk Lamp,Home Office,12.5,18,72,low,https://example.com/product,https://example.com/image.jpg";
+
 export type CsvImportResult = {
   products: AffiliateProduct[];
   errors: string[];
