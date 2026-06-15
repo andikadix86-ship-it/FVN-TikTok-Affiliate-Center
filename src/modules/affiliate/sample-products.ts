@@ -3,6 +3,7 @@ import { AffiliateProduct } from "./types";
 export const sampleProducts: AffiliateProduct[] = [
   {
     id: "mini-wireless-mic",
+    source: "DEMO",
     name: "Mini Wireless Microphone",
     niche: "Creator tools",
     price: 18,
@@ -15,6 +16,7 @@ export const sampleProducts: AffiliateProduct[] = [
   },
   {
     id: "portable-blender",
+    source: "DEMO",
     name: "Portable Smoothie Blender",
     niche: "Healthy lifestyle",
     price: 24,
@@ -27,6 +29,7 @@ export const sampleProducts: AffiliateProduct[] = [
   },
   {
     id: "desk-cable-kit",
+    source: "DEMO",
     name: "Desk Cable Organizer Kit",
     niche: "Home office",
     price: 11,

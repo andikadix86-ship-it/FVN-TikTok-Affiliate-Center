@@ -1,12 +1,16 @@
+import { cookies } from "next/headers";
 import { AppShell } from "@/components/app-shell";
 import { CampaignPlanner } from "@/modules/campaign/campaign-planner";
 import { ContentFactory } from "@/modules/prompt-engine/content-factory";
 import { ProductHunter } from "@/modules/affiliate/product-hunter";
 import { ProductScoringPanel } from "@/modules/scoring/product-scoring-panel";
 import { SettingsPanel } from "@/components/settings-panel";
+import { TIKTOK_CONNECTED_COOKIE } from "@/modules/tiktok/oauth";
 import { TikTokConnectionPanel } from "@/modules/tiktok/tiktok-connection-panel";
 
 export default function Home() {
+  const tiktokConnected = cookies().get(TIKTOK_CONNECTED_COOKIE)?.value === "true";
+
   return (
     <AppShell>
       <section className="px-4 pb-5 pt-5 sm:px-6 lg:px-8">
@@ -20,7 +24,7 @@ export default function Home() {
               A beginner-friendly MVP that keeps the workflow simple: pick a product, validate the angle, generate a content prompt, connect TikTok, and schedule the next campaign.
             </p>
           </div>
-          <ProductHunter />
+          <ProductHunter tiktokConnected={tiktokConnected} />
           <ProductScoringPanel />
           <ContentFactory />
           <TikTokConnectionPanel />
