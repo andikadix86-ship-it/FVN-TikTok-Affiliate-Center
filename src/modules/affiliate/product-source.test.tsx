@@ -28,7 +28,7 @@ describe("Product Hunter sources", () => {
     const html = renderToStaticMarkup(<ProductHunter />);
 
     expect(html).toContain("DEMO DATA - Not from TikTok Shop");
-    expect(html).toContain("These products are sample data until TikTok Shop API or manual/CSV product data is connected.");
+    expect(html).toContain("These products are sample data only. Connect TikTok Shop API, import CSV, or add products manually to use real data.");
   });
 
   it("shows workflow source modes without presenting demo products as real API", () => {

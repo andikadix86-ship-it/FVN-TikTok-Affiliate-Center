@@ -292,7 +292,7 @@ export function AffiliateWorkflow({ tiktokConnected }: { tiktokConnected: boolea
               <div>
                 <p className="text-sm font-black text-orange-900">DEMO DATA - Not from TikTok Shop</p>
                 <p className="mt-1 text-sm leading-6 text-orange-900/80">
-                  These products are sample data until TikTok Shop API or manual/CSV product data is connected.
+                  These products are sample data only. Connect TikTok Shop API, import CSV, or add products manually to use real data.
                 </p>
               </div>
             </div>

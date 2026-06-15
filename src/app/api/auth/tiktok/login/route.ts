@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
-import { buildTikTokLoginUrl, createOAuthState, TIKTOK_STATE_COOKIE } from "@/modules/tiktok/oauth";
+import {
+  buildTikTokLoginUrl,
+  createOAuthState,
+  TIKTOK_OAUTH_ERROR_COOKIE,
+  TIKTOK_STATE_COOKIE
+} from "@/modules/tiktok/oauth";
 
 export async function GET() {
   const state = createOAuthState();
@@ -12,6 +17,7 @@ export async function GET() {
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production"
   });
+  response.cookies.delete(TIKTOK_OAUTH_ERROR_COOKIE);
 
   return response;
 }
