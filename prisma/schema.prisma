@@ -27,6 +27,11 @@ enum ProviderMode {
   TEMPLATE
 }
 
+enum TikTokOAuthLogStatus {
+  SUCCESS
+  ERROR
+}
+
 model Product {
   id               String        @id @default(cuid())
   productName      String
@@ -117,9 +122,26 @@ model TikTokAccount {
   profileDeepLink       String?
   accessTokenEncrypted  String?
   refreshTokenEncrypted String?
+  tokenExpiresAt        DateTime?
+  refreshExpiresAt      DateTime?
+  tokenStatus           String   @default("not_stored")
+  scopeStatus           String   @default("unknown")
+  lastSyncStatus        String   @default("not_synced")
   connectedAt           DateTime @default(now())
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
+}
+
+model TikTokOAuthLog {
+  id          String              @id @default(cuid())
+  status      TikTokOAuthLogStatus
+  errorCode   String?
+  message     String
+  safeDetails Json?
+  createdAt   DateTime            @default(now())
+
+  @@index([status])
+  @@index([createdAt])
 }
 
 model AppSetting {

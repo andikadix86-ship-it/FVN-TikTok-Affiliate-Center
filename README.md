@@ -96,6 +96,19 @@ Vercel runs `npm install`, then `postinstall` runs `prisma generate`. The build 
 
 TikTok Web Login requires an HTTPS redirect URI. Use your Vercel deployment URL or an ngrok HTTPS URL for local testing, then set the same value in TikTok Developer settings and `TIKTOK_REDIRECT_URI`.
 
+## Troubleshooting TikTok Login
+
+- `code_challenge` error: Web Login Kit does not need PKCE by default. Keep `TIKTOK_OAUTH_PKCE_ENABLED="false"` unless you intentionally implement PKCE end to end.
+- `redirect_uri` mismatch: `TIKTOK_REDIRECT_URI` must exactly match the callback URL registered in TikTok Developer Portal.
+- Missing `client_key`: add `TIKTOK_CLIENT_KEY` in Vercel env and redeploy.
+- Missing `client_secret`: add `TIKTOK_CLIENT_SECRET` in Vercel env and redeploy. The app never shows the full secret in UI.
+- State mismatch: restart the connection from the app. This usually means the OAuth cookie expired or the callback came from a different browser/session.
+- Localhost/http problem: TikTok Web Login requires HTTPS redirect URI. Use Vercel preview/deploy URL or ngrok HTTPS.
+- App not approved or scope not approved: Login Kit and optional profile/video scopes must be enabled in TikTok Developer Portal.
+- `video.list` scope not approved: this MVP does not request `video.list` by default. Do not enable it unless TikTok approves the feature.
+
+For MVP, TikTok Shop product data is still not automatic. TikTok account connection is different from TikTok Shop product API. Product Hunter can use DEMO DATA, MANUAL DATA, or CSV IMPORT until a real TikTok Shop API integration is approved and connected.
+
 ## Panduan Penggunaan untuk Pemula
 
 1. Tambah produk lewat Produk Affiliate dengan input manual, CSV import, atau link produk.

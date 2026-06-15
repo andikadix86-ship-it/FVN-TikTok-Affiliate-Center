@@ -8,6 +8,7 @@ import { prisma } from "@/lib/prisma";
 import { mapDbProduct } from "@/modules/database/product-service";
 import { getPromptEngineMode } from "@/modules/prompt-engine/fallback";
 import { getSettingsStatus } from "@/modules/settings/status";
+import { getTikTokAccountView } from "@/modules/tiktok/account-service";
 import { getTikTokEnvStatus } from "@/modules/tiktok/env-status";
 import { TIKTOK_CONNECTED_COOKIE, TIKTOK_OAUTH_ERROR_COOKIE } from "@/modules/tiktok/oauth";
 import { TikTokConnectionPanel } from "@/modules/tiktok/tiktok-connection-panel";
@@ -53,6 +54,7 @@ export default async function Home() {
   const tiktokConnected = cookieStore.get(TIKTOK_CONNECTED_COOKIE)?.value === "true";
   const lastOAuthError = cookieStore.get(TIKTOK_OAUTH_ERROR_COOKIE)?.value;
   const database = await getDatabaseSnapshot();
+  const accountView = await getTikTokAccountView();
   const promptEngineMode = getPromptEngineMode(Boolean(env.GEMINI_API_KEY), Boolean(env.OPENAI_API_KEY));
   const tiktokEnvStatus = getTikTokEnvStatus({
     clientKey: env.TIKTOK_CLIENT_KEY,
@@ -84,8 +86,9 @@ export default async function Home() {
           />
           <TikTokConnectionPanel
             envStatus={tiktokEnvStatus}
-            loginConnected={tiktokConnected}
+            loginConnected={tiktokConnected || accountView.connected}
             lastOAuthError={lastOAuthError}
+            account={accountView}
           />
           <SettingsPanel
             status={settingsStatus}
@@ -96,6 +99,7 @@ export default async function Home() {
             productionUrl={env.NEXT_PUBLIC_APP_URL}
             tiktokRedirectUri={env.TIKTOK_REDIRECT_URI}
             tiktokOAuthErrors={tiktokEnvStatus.errors}
+            lastOAuthError={lastOAuthError}
           />
         </div>
       </section>

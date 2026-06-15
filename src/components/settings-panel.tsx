@@ -14,7 +14,8 @@ export function SettingsPanel({
   aiProviderConfigured,
   productionUrl,
   tiktokRedirectUri,
-  tiktokOAuthErrors
+  tiktokOAuthErrors,
+  lastOAuthError
 }: {
   status: SettingsStatus;
   databaseConnected: boolean;
@@ -29,6 +30,7 @@ export function SettingsPanel({
   productionUrl: string;
   tiktokRedirectUri: string;
   tiktokOAuthErrors: string[];
+  lastOAuthError?: string;
 }) {
   const [healthStatus, setHealthStatus] = useState("Checking...");
   const [actionMessage, setActionMessage] = useState("");
@@ -64,6 +66,7 @@ export function SettingsPanel({
     { label: "Status App URL", value: status.appUrl },
     { label: "Database", value: databaseConnected ? "Connected" : "Error / Not Connected" },
     { label: "TikTok OAuth", value: tiktokOAuthConfigured ? "Configured" : "Missing" },
+    { label: "Last OAuth error", value: lastOAuthError || "none" },
     { label: "AI Provider", value: aiProviderConfigured ? "Configured" : "Template Mode" },
     { label: "Product Source", value: status.productDataSource },
     { label: "Product count from database", value: String(counts.totalProducts) },
@@ -143,6 +146,22 @@ export function SettingsPanel({
           Download Sample CSV
         </a>
         <a
+          href="/tiktok/oauth-test"
+          className="inline-flex items-center gap-2 rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold text-ink"
+        >
+          <ExternalLink className="h-4 w-4" />
+          Open TikTok OAuth Test Page
+        </a>
+        <button
+          onClick={() => {
+            navigator.clipboard.writeText(tiktokRedirectUri);
+            setActionMessage("Redirect URI copied.");
+          }}
+          className="inline-flex items-center gap-2 rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold text-ink"
+        >
+          Copy Redirect URI
+        </button>
+        <a
           href="/api/health"
           target="_blank"
           className="inline-flex items-center gap-2 rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold text-ink"
@@ -150,6 +169,16 @@ export function SettingsPanel({
           <ExternalLink className="h-4 w-4" />
           Health Check
         </a>
+      </div>
+      <div className="mt-4 rounded-2xl border border-line bg-slate-50 p-4">
+        <p className="text-sm font-black text-ink">Production checklist</p>
+        <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm leading-6 text-muted">
+          <li>Deployed to Vercel</li>
+          <li>Env added in Vercel</li>
+          <li>Redirect URI added in TikTok Developer Portal</li>
+          <li>App has Login Kit product</li>
+          <li>Test Connect TikTok</li>
+        </ol>
       </div>
       {actionMessage ? (
         <div className="mt-4 rounded-2xl border border-line bg-slate-50 p-4">
