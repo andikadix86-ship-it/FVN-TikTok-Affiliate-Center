@@ -239,6 +239,8 @@ export function ContentDraftDetail({ draft }: { draft: ContentDraft }) {
         ) : null}
       </section>
 
+      <DraftEditorPreview draft={current} />
+
       <section className="grid gap-3 lg:grid-cols-2">
         <CopyBlock title="Product insight" value={current.productInsight} onCopy={copy} />
         <CopyBlock title="Main selling point" value={current.mainSellingPoint} onCopy={copy} />
@@ -310,6 +312,194 @@ function CopyBlock({ title, value, onCopy }: { title: string; value: string; onC
       </div>
       <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-muted">{value || "Belum diisi."}</p>
     </article>
+  );
+}
+
+type DraftMediaAsset = {
+  id: string;
+  fileName: string;
+  fileType: "image" | "video" | "audio";
+  url: string;
+  thumbnailUrl?: string;
+};
+
+type DraftStoryboardScene = {
+  sceneNumber: number;
+  title: string;
+  duration: string;
+  visualDescription: string;
+  voiceOver: string;
+  subtitleText: string;
+  onScreenText: string;
+  cameraAngle: string;
+  cameraMovement: string;
+  transition: string;
+  nanoBananaImagePrompt: string;
+  veo3ScenePrompt: string;
+  previewImagePlaceholder: string;
+};
+
+type DraftSceneAssignment = {
+  sceneNumber: number;
+  assetIds: string[];
+  primaryAssetId?: string;
+};
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function asRecord(value: unknown) {
+  return isRecord(value) ? value : {};
+}
+
+function asDraftMediaAssets(value: unknown): DraftMediaAsset[] {
+  if (!Array.isArray(value)) return [];
+
+  return value.filter(isRecord).map((item) => {
+    const fileType: DraftMediaAsset["fileType"] = item.fileType === "video" || item.fileType === "audio" ? item.fileType : "image";
+
+    return {
+      id: String(item.id ?? ""),
+      fileName: String(item.fileName ?? "Media"),
+      fileType,
+      url: String(item.url ?? ""),
+      thumbnailUrl: item.thumbnailUrl ? String(item.thumbnailUrl) : undefined
+    };
+  }).filter((asset) => asset.id);
+}
+
+function asDraftAssignments(value: unknown): DraftSceneAssignment[] {
+  if (!Array.isArray(value)) return [];
+
+  return value.filter(isRecord).map((item) => ({
+    sceneNumber: Number(item.sceneNumber ?? 0),
+    assetIds: Array.isArray(item.assetIds) ? item.assetIds.map(String) : [],
+    primaryAssetId: item.primaryAssetId ? String(item.primaryAssetId) : undefined
+  })).filter((assignment) => assignment.sceneNumber > 0);
+}
+
+function asStoryboardScenes(value: unknown): DraftStoryboardScene[] {
+  const storyboard = asRecord(value);
+  const scenes = Array.isArray(storyboard.scenes) ? storyboard.scenes : [];
+
+  return scenes.filter(isRecord).map((scene) => ({
+    sceneNumber: Number(scene.sceneNumber ?? 0),
+    title: String(scene.title ?? "Scene"),
+    duration: String(scene.duration ?? "2s"),
+    visualDescription: String(scene.visualDescription ?? ""),
+    voiceOver: String(scene.voiceOver ?? ""),
+    subtitleText: String(scene.subtitleText ?? ""),
+    onScreenText: String(scene.onScreenText ?? ""),
+    cameraAngle: String(scene.cameraAngle ?? ""),
+    cameraMovement: String(scene.cameraMovement ?? ""),
+    transition: String(scene.transition ?? ""),
+    nanoBananaImagePrompt: String(scene.nanoBananaImagePrompt ?? ""),
+    veo3ScenePrompt: String(scene.veo3ScenePrompt ?? ""),
+    previewImagePlaceholder: String(scene.previewImagePlaceholder ?? "Preview scene")
+  })).filter((scene) => scene.sceneNumber > 0);
+}
+
+function DraftEditorPreview({ draft }: { draft: ContentDraft }) {
+  const scenes = asStoryboardScenes(draft.storyboard);
+  const mediaAssets = asDraftMediaAssets(draft.uploadedMediaAssets);
+  const assignments = asDraftAssignments(draft.sceneMediaAssignments);
+  const subtitleSettings = asRecord(draft.subtitleSettings);
+  const fontSettings = asRecord(draft.fontSettings);
+  const musicSettings = asRecord(draft.musicSettings);
+  const voiceOverSettings = asRecord(draft.voiceOverSettings);
+
+  return (
+    <section className="rounded-[2rem] border border-line bg-white p-5">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-lg font-black text-ink">Preview Draft Editor</p>
+          <p className="mt-1 text-sm leading-6 text-muted">Preview draft, storyboard, media, caption/font, music, dan voice over. Ini bukan render final AI video dan bukan auto-posting.</p>
+        </div>
+        <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-black text-ink">User approval required</span>
+      </div>
+
+      <div className="mt-4 grid gap-3 lg:grid-cols-2">
+        <div className="rounded-2xl border border-line bg-slate-50 p-4">
+          <p className="text-sm font-black text-ink">Media Thumbnails</p>
+          {mediaAssets.length === 0 ? (
+            <p className="mt-2 text-sm leading-6 text-muted">Belum ada media tersimpan di draft ini.</p>
+          ) : (
+            <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {mediaAssets.map((asset) => (
+                <div key={asset.id} className="overflow-hidden rounded-2xl border border-line bg-white">
+                  <div className="aspect-[9/12] bg-slate-200">
+                    <DraftMediaPreview asset={asset} />
+                  </div>
+                  <p className="truncate p-2 text-xs font-semibold text-muted" title={asset.fileName}>{asset.fileName}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="rounded-2xl border border-line bg-slate-50 p-4">
+          <p className="text-sm font-black text-ink">Caption / Font / Music / Voice Over</p>
+          <div className="mt-3 grid gap-2 text-sm leading-6 text-muted">
+            <p><strong className="text-ink">Subtitle settings:</strong> {formatJson(subtitleSettings)}</p>
+            <p><strong className="text-ink">Font settings:</strong> {formatJson(fontSettings)}</p>
+            <p><strong className="text-ink">Music settings:</strong> {formatJson(musicSettings)}</p>
+            <p><strong className="text-ink">Voice over settings:</strong> {formatJson(voiceOverSettings)}</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-4 rounded-2xl border border-line bg-slate-50 p-4">
+        <p className="text-sm font-black text-ink">Storyboard Cards</p>
+        {scenes.length === 0 ? (
+          <p className="mt-2 text-sm leading-6 text-muted">Storyboard belum tersedia.</p>
+        ) : (
+          <div className="mt-3 grid gap-3 md:grid-cols-2">
+            {scenes.map((scene) => {
+              const assignment = assignments.find((item) => item.sceneNumber === scene.sceneNumber);
+              const assignedMedia = mediaAssets.find((asset) => asset.id === assignment?.primaryAssetId) ?? mediaAssets.find((asset) => assignment?.assetIds.includes(asset.id));
+
+              return (
+                <article key={scene.sceneNumber} className="rounded-2xl border border-line bg-white p-4">
+                  <div className="grid gap-3 sm:grid-cols-[120px_1fr]">
+                    <div className="overflow-hidden rounded-2xl border border-line bg-slate-100">
+                      <div className="aspect-[9/16]">
+                        {assignedMedia ? <DraftMediaPreview asset={assignedMedia} /> : <div className="flex h-full items-center justify-center p-3 text-center text-xs font-bold text-muted">{scene.previewImagePlaceholder}</div>}
+                      </div>
+                    </div>
+                    <div className="text-sm leading-6 text-muted">
+                      <p className="text-xs font-black uppercase tracking-wide text-coral">Scene {scene.sceneNumber} - {scene.duration}</p>
+                      <h3 className="mt-1 text-base font-black text-ink">{scene.title}</h3>
+                      <p><strong className="text-ink">Visual:</strong> {scene.visualDescription}</p>
+                      <p><strong className="text-ink">Subtitle:</strong> {scene.subtitleText}</p>
+                      <p><strong className="text-ink">Text overlay:</strong> {scene.onScreenText}</p>
+                      <p><strong className="text-ink">Voice over:</strong> {scene.voiceOver}</p>
+                      <p><strong className="text-ink">Camera:</strong> {scene.cameraAngle}, {scene.cameraMovement}</p>
+                      <p><strong className="text-ink">Transition:</strong> {scene.transition}</p>
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function DraftMediaPreview({ asset }: { asset: DraftMediaAsset }) {
+  if (asset.fileType === "video") {
+    return <video src={asset.url} className="h-full w-full object-cover" muted playsInline controls={false} />;
+  }
+
+  if (asset.fileType === "audio") {
+    return <div className="flex h-full items-center justify-center bg-slate-900 p-3 text-center text-xs font-black text-white">Audio<br />{asset.fileName}</div>;
+  }
+
+  return (
+    // eslint-disable-next-line @next/next/no-img-element -- Draft preview may use stored browser data URLs before storage exists.
+    <img src={asset.thumbnailUrl || asset.url} alt={asset.fileName} className="h-full w-full object-cover" />
   );
 }
 

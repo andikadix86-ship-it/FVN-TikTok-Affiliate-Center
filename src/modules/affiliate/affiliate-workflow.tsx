@@ -90,6 +90,8 @@ function formatPromptJson(value: unknown) {
 
 const acceptedImageTypes = ["image/jpeg", "image/png", "image/webp"];
 const acceptedVideoTypes = ["video/mp4", "video/quicktime", "video/webm"];
+const acceptedAudioTypes = ["audio/mpeg", "audio/mp3", "audio/wav", "audio/x-wav", "audio/mp4", "audio/aac", "audio/webm", "audio/ogg"];
+const acceptedMediaTypes = [...acceptedImageTypes, ...acceptedVideoTypes, ...acceptedAudioTypes];
 
 const defaultSubtitleSettings: SubtitleSettings = {
   fontFamily: "Sans",
@@ -133,6 +135,33 @@ function readFileAsDataUrl(file: File) {
     reader.onerror = () => reject(reader.error);
     reader.readAsDataURL(file);
   });
+}
+
+function getFileAssetType(file: File): UploadedMediaAsset["fileType"] {
+  if (file.type.startsWith("video/")) return "video";
+  if (file.type.startsWith("audio/")) return "audio";
+  return "image";
+}
+
+async function createUploadedMediaAsset(file: File, index: number): Promise<UploadedMediaAsset> {
+  const dataUrl = await readFileAsDataUrl(file);
+  const fileType = getFileAssetType(file);
+
+  return {
+    id: `media-${Date.now()}-${index}-${file.name.replace(/[^a-z0-9]/gi, "-").toLowerCase()}`,
+    fileName: file.name,
+    fileType,
+    mimeType: file.type,
+    url: dataUrl,
+    thumbnailUrl: fileType === "image" ? dataUrl : "",
+    size: file.size,
+    createdAt: new Date().toISOString()
+  };
+}
+
+function parseSceneDurationMs(duration: string) {
+  const seconds = Number(duration.match(/[\d.]+/)?.[0] ?? 2);
+  return Math.max(800, seconds * 1000);
 }
 
 function mergeEditorStateIntoPack(
@@ -291,10 +320,10 @@ export function AffiliateWorkflow({
   const [duration, setDuration] = useState<"15s" | "30s">(defaultPromptOptions.duration);
   const [uploadedMediaAssets, setUploadedMediaAssets] = useState<UploadedMediaAsset[]>([]);
   const [sceneMediaAssignments, setSceneMediaAssignments] = useState<SceneMediaAssignment[]>([]);
-  const [subtitleSettings] = useState<SubtitleSettings>(defaultSubtitleSettings);
-  const [fontSettings] = useState<FontSettings>(defaultFontSettings);
-  const [musicSettings] = useState<MusicSettings>(defaultMusicSettings);
-  const [voiceOverSettings] = useState<VoiceOverSettings>(defaultVoiceOverSettings);
+  const [subtitleSettings, setSubtitleSettings] = useState<SubtitleSettings>(defaultSubtitleSettings);
+  const [fontSettings, setFontSettings] = useState<FontSettings>(defaultFontSettings);
+  const [musicSettings, setMusicSettings] = useState<MusicSettings>(defaultMusicSettings);
+  const [voiceOverSettings, setVoiceOverSettings] = useState<VoiceOverSettings>(defaultVoiceOverSettings);
 
   const sortedProducts = useMemo(() => sortProducts(products), [products]);
   const filteredProducts = useMemo(() => {
@@ -594,7 +623,7 @@ export function AffiliateWorkflow({
 
   async function handleMediaUpload(event: ChangeEvent<HTMLInputElement>) {
     const files = Array.from(event.target.files ?? []);
-    const supportedFiles = files.filter((file) => [...acceptedImageTypes, ...acceptedVideoTypes].includes(file.type));
+    const supportedFiles = files.filter((file) => acceptedMediaTypes.includes(file.type));
 
     if (supportedFiles.length !== files.length) {
       showStatus("Beberapa file dilewati. Gunakan JPG, PNG, WEBP, MP4, MOV, atau WEBM.", "error");
@@ -607,27 +636,57 @@ export function AffiliateWorkflow({
 
     try {
       const assets = await Promise.all(
-        supportedFiles.map(async (file, index) => {
-          const dataUrl = await readFileAsDataUrl(file);
-          const fileType: UploadedMediaAsset["fileType"] = file.type.startsWith("video/") ? "video" : "image";
-
-          return {
-            id: `media-${Date.now()}-${index}-${file.name.replace(/[^a-z0-9]/gi, "-").toLowerCase()}`,
-            fileName: file.name,
-            fileType,
-            mimeType: file.type,
-            url: dataUrl,
-            thumbnailUrl: fileType === "image" ? dataUrl : "",
-            size: file.size,
-            createdAt: new Date().toISOString()
-          } satisfies UploadedMediaAsset;
-        })
+        supportedFiles.map((file, index) => createUploadedMediaAsset(file, index))
       );
 
       setUploadedMediaAssets((current) => [...current, ...assets]);
       showStatus(`${assets.length} media ditambahkan ke gallery. Assign ke scene yang sesuai.`, "success");
     } catch {
       showStatus("Media belum bisa dibaca dari browser. Coba upload file lain.", "error");
+    } finally {
+      event.target.value = "";
+    }
+  }
+
+  async function handleMusicUpload(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!acceptedAudioTypes.includes(file.type)) {
+      showStatus("Gunakan file audio MP3, WAV, AAC, WEBM, atau OGG.", "error");
+      event.target.value = "";
+      return;
+    }
+
+    try {
+      const asset = await createUploadedMediaAsset(file, 0);
+      setUploadedMediaAssets((current) => [...current, asset]);
+      setMusicSettings((current) => ({ ...current, sourceType: "uploaded", assetId: asset.id, muted: false }));
+      showStatus("Background music ditambahkan ke draft.", "success");
+    } catch {
+      showStatus("Audio belum bisa dibaca dari browser.", "error");
+    } finally {
+      event.target.value = "";
+    }
+  }
+
+  async function handleVoiceOverUpload(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!acceptedAudioTypes.includes(file.type)) {
+      showStatus("Gunakan file voice over MP3, WAV, AAC, WEBM, atau OGG.", "error");
+      event.target.value = "";
+      return;
+    }
+
+    try {
+      const asset = await createUploadedMediaAsset(file, 0);
+      setUploadedMediaAssets((current) => [...current, asset]);
+      setVoiceOverSettings((current) => ({ ...current, sourceType: "manual_upload", assetId: asset.id, provider: "none" }));
+      showStatus("Voice over manual ditambahkan ke draft.", "success");
+    } catch {
+      showStatus("Voice over belum bisa dibaca dari browser.", "error");
     } finally {
       event.target.value = "";
     }
@@ -1420,6 +1479,10 @@ export function AffiliateWorkflow({
           <PromptBlock title="Scene Plan" items={editorPack.scenePlan} />
           <PromptBlock title="Scene Plan Detail" text={formatPromptJson(editorPack.structuredScenePlan)} copyLabel="Copy Scene Plan" onCopy={() => copyOutput("Scene Plan", formatPromptJson(editorPack.structuredScenePlan))} />
           <MediaGalleryPanel assets={uploadedMediaAssets} onUpload={handleMediaUpload} onRemove={removeMediaAsset} />
+          <CaptionOverlayTools subtitleSettings={subtitleSettings} onSubtitleChange={setSubtitleSettings} />
+          <FontTools fontSettings={fontSettings} onChange={setFontSettings} />
+          <MusicTools settings={musicSettings} assets={uploadedMediaAssets} onChange={setMusicSettings} onUpload={handleMusicUpload} />
+          <VoiceOverTools settings={voiceOverSettings} assets={uploadedMediaAssets} onChange={setVoiceOverSettings} onUpload={handleVoiceOverUpload} script={duration === "15s" ? editorPack.script15 : editorPack.script30} providerConnected={promptEngineMode === "AI_CONNECTED"} />
           <StoryboardTimeline
             storyboard={editorPack.storyboard}
             mediaAssets={uploadedMediaAssets}
@@ -1433,6 +1496,9 @@ export function AffiliateWorkflow({
             previewMeta={editorPack.previewVideoMeta}
             mediaAssets={uploadedMediaAssets}
             sceneMediaAssignments={sceneMediaAssignments}
+            subtitleSettings={subtitleSettings}
+            musicSettings={musicSettings}
+            voiceOverSettings={voiceOverSettings}
             aiProviderConnected={promptEngineMode === "AI_CONNECTED"}
           />
           <PromptBlock title="Voice Over" text={editorPack.voiceOverDraft} />
@@ -1620,9 +1686,204 @@ function MediaPreview({ asset, className = "" }: { asset: UploadedMediaAsset; cl
     );
   }
 
+  if (asset.fileType === "audio") {
+    return (
+      <div className={`flex h-full w-full flex-col items-center justify-center bg-slate-900 p-3 text-center text-white ${className}`}>
+        <p className="text-xs font-black uppercase tracking-wide">Audio</p>
+        <p className="mt-2 break-all text-xs text-white/70">{asset.fileName}</p>
+      </div>
+    );
+  }
+
   return (
     // eslint-disable-next-line @next/next/no-img-element -- Local browser preview uses uploaded data URLs before storage exists.
     <img src={asset.url} alt={asset.fileName} className={`h-full w-full object-cover ${className}`} />
+  );
+}
+
+function CaptionOverlayTools({
+  subtitleSettings,
+  onSubtitleChange
+}: {
+  subtitleSettings: SubtitleSettings;
+  onSubtitleChange: (settings: SubtitleSettings) => void;
+}) {
+  const update = <K extends keyof SubtitleSettings>(key: K, value: SubtitleSettings[K]) => {
+    onSubtitleChange({ ...subtitleSettings, [key]: value });
+  };
+
+  return (
+    <div className="rounded-2xl border border-line bg-white p-4 lg:col-span-2">
+      <p className="text-sm font-bold text-ink">Caption dan Text Overlay Tools</p>
+      <p className="mt-1 text-xs leading-5 text-muted">Atur subtitle overlay dengan safe-area agar teks tidak menutup produk dan tetap nyaman dibaca di layar TikTok.</p>
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <SelectControl label="Position" value={subtitleSettings.position} onChange={(value) => update("position", value as SubtitleSettings["position"])} options={["top", "center", "bottom"]} />
+        <SelectControl label="Alignment" value={subtitleSettings.alignment} onChange={(value) => update("alignment", value as SubtitleSettings["alignment"])} options={["left", "center", "right"]} />
+        <SelectControl label="Size" value={subtitleSettings.fontSize} onChange={(value) => update("fontSize", value as SubtitleSettings["fontSize"])} options={["small", "medium", "large"]} />
+        <SelectControl label="Style" value={subtitleSettings.fontWeight} onChange={(value) => update("fontWeight", value as SubtitleSettings["fontWeight"])} options={["normal", "semi-bold", "bold"]} />
+        <SelectControl label="Background" value={subtitleSettings.backgroundStyle} onChange={(value) => update("backgroundStyle", value as SubtitleSettings["backgroundStyle"])} options={["none", "solid", "translucent"]} />
+        <label className="rounded-2xl border border-line p-3">
+          <span className="text-xs font-black uppercase tracking-wide text-muted">Text color</span>
+          <input type="color" value={subtitleSettings.textColor} onChange={(event) => update("textColor", event.target.value)} className="mt-2 h-10 w-full rounded-xl border border-line" />
+        </label>
+        <div className="rounded-2xl border border-line bg-slate-50 p-3 sm:col-span-2">
+          <p className="text-xs font-black uppercase tracking-wide text-muted">Safe-area positioning</p>
+          <p className="mt-2 text-sm leading-6 text-muted">Subtitle memakai area aman 9:16 dengan jarak dari tepi atas/bawah. User approval required sebelum upload manual ke TikTok.</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FontTools({
+  fontSettings,
+  onChange
+}: {
+  fontSettings: FontSettings;
+  onChange: (settings: FontSettings) => void;
+}) {
+  const fontOptions: SubtitleSettings["fontFamily"][] = ["Sans", "Rounded", "Clean Modern", "Bold Headline", "Subtitle style"];
+  const updateFont = (key: keyof FontSettings, fontFamily: SubtitleSettings["fontFamily"]) => {
+    onChange({ ...fontSettings, [key]: { ...fontSettings[key], fontFamily } });
+  };
+
+  return (
+    <div className="rounded-2xl border border-line bg-white p-4 lg:col-span-2">
+      <p className="text-sm font-bold text-ink">Font Tools</p>
+      <p className="mt-1 text-xs leading-5 text-muted">Pilih font aman untuk subtitle, hook, CTA, dan text overlay. Ini hanya preview draft, bukan render final AI video.</p>
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <SelectControl label="Subtitle" value={fontSettings.subtitle.fontFamily} onChange={(value) => updateFont("subtitle", value as SubtitleSettings["fontFamily"])} options={fontOptions} />
+        <SelectControl label="Hook text" value={fontSettings.hookText.fontFamily} onChange={(value) => updateFont("hookText", value as SubtitleSettings["fontFamily"])} options={fontOptions} />
+        <SelectControl label="CTA text" value={fontSettings.ctaText.fontFamily} onChange={(value) => updateFont("ctaText", value as SubtitleSettings["fontFamily"])} options={fontOptions} />
+        <SelectControl label="Text overlay" value={fontSettings.textOverlay.fontFamily} onChange={(value) => updateFont("textOverlay", value as SubtitleSettings["fontFamily"])} options={fontOptions} />
+      </div>
+    </div>
+  );
+}
+
+function MusicTools({
+  settings,
+  assets,
+  onChange,
+  onUpload
+}: {
+  settings: MusicSettings;
+  assets: UploadedMediaAsset[];
+  onChange: (settings: MusicSettings) => void;
+  onUpload: (event: ChangeEvent<HTMLInputElement>) => void;
+}) {
+  const audioAssets = assets.filter((asset) => asset.fileType === "audio");
+
+  return (
+    <div className="rounded-2xl border border-line bg-white p-4 lg:col-span-2">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-sm font-bold text-ink">Music / Audio Panel</p>
+          <p className="mt-1 text-xs leading-5 text-muted">Upload background music atau pakai placeholder default. Audio diterapkan ke seluruh video draft.</p>
+        </div>
+        <label className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white">
+          Upload Audio
+          <input type="file" accept="audio/mpeg,audio/mp3,audio/wav,audio/x-wav,audio/mp4,audio/aac,audio/webm,audio/ogg,.mp3,.wav,.aac,.m4a,.webm,.ogg" className="sr-only" onChange={onUpload} />
+        </label>
+      </div>
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <SelectControl label="Music source" value={settings.sourceType} onChange={(value) => onChange({ ...settings, sourceType: value as MusicSettings["sourceType"] })} options={["none", "default", "uploaded"]} />
+        <SelectControl label="Uploaded audio" value={settings.assetId ?? ""} onChange={(value) => onChange({ ...settings, sourceType: value ? "uploaded" : settings.sourceType, assetId: value || undefined })} options={["", ...audioAssets.map((asset) => asset.id)]} labels={{ "": "Tidak ada", ...Object.fromEntries(audioAssets.map((asset) => [asset.id, asset.fileName])) }} />
+        <label className="rounded-2xl border border-line p-3">
+          <span className="text-xs font-black uppercase tracking-wide text-muted">Volume {settings.volume}%</span>
+          <input type="range" min={0} max={100} value={settings.volume} onChange={(event) => onChange({ ...settings, volume: Number(event.target.value) })} className="mt-3 w-full" />
+        </label>
+        <label className="rounded-2xl border border-line p-3">
+          <span className="text-xs font-black uppercase tracking-wide text-muted">Trim start</span>
+          <input type="number" min={0} value={settings.trimStart} onChange={(event) => onChange({ ...settings, trimStart: Number(event.target.value) || 0 })} className="mt-2 min-h-10 w-full rounded-xl border border-line px-3 text-sm" />
+        </label>
+        <label className="flex items-center gap-2 rounded-2xl border border-line p-3 text-sm font-semibold text-ink">
+          <input type="checkbox" checked={settings.muted} onChange={(event) => onChange({ ...settings, muted: event.target.checked })} />
+          Mute music
+        </label>
+        <label className="flex items-center gap-2 rounded-2xl border border-line p-3 text-sm font-semibold text-ink">
+          <input type="checkbox" checked={settings.loop} onChange={(event) => onChange({ ...settings, loop: event.target.checked })} />
+          Loop audio
+        </label>
+      </div>
+    </div>
+  );
+}
+
+function VoiceOverTools({
+  settings,
+  assets,
+  onChange,
+  onUpload,
+  script,
+  providerConnected
+}: {
+  settings: VoiceOverSettings;
+  assets: UploadedMediaAsset[];
+  onChange: (settings: VoiceOverSettings) => void;
+  onUpload: (event: ChangeEvent<HTMLInputElement>) => void;
+  script: string;
+  providerConnected: boolean;
+}) {
+  const audioAssets = assets.filter((asset) => asset.fileType === "audio");
+
+  return (
+    <div className="rounded-2xl border border-line bg-white p-4 lg:col-span-2">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-sm font-bold text-ink">Voice Over Tools</p>
+          <p className="mt-1 text-xs leading-5 text-muted">{providerConnected ? "Manual Voice Over Available. AI provider connected untuk prompt voice style." : "Voice Over Provider Not Connected. Manual Voice Over Available."}</p>
+        </div>
+        <label className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white">
+          Upload Voice Over
+          <input type="file" accept="audio/mpeg,audio/mp3,audio/wav,audio/x-wav,audio/mp4,audio/aac,audio/webm,audio/ogg,.mp3,.wav,.aac,.m4a,.webm,.ogg" className="sr-only" onChange={onUpload} />
+        </label>
+      </div>
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <SelectControl label="Voice option" value={settings.selectedVoice} onChange={(value) => onChange({ ...settings, selectedVoice: value as VoiceOverSettings["selectedVoice"] })} options={["Female Casual ID", "Male Casual ID", "Friendly Seller ID", "UGC Creator ID"]} />
+        <SelectControl label="Scene mode" value={settings.sceneMode} onChange={(value) => onChange({ ...settings, sceneMode: value as VoiceOverSettings["sceneMode"] })} options={["full_video", "per_scene"]} />
+        <SelectControl label="Manual audio" value={settings.assetId ?? ""} onChange={(value) => onChange({ ...settings, sourceType: value ? "manual_upload" : settings.sourceType, assetId: value || undefined })} options={["", ...audioAssets.map((asset) => asset.id)]} labels={{ "": "Tidak ada", ...Object.fromEntries(audioAssets.map((asset) => [asset.id, asset.fileName])) }} />
+        <label className="rounded-2xl border border-line p-3">
+          <span className="text-xs font-black uppercase tracking-wide text-muted">Speed {settings.speed.toFixed(1)}x</span>
+          <input type="range" min={0.7} max={1.3} step={0.1} value={settings.speed} onChange={(event) => onChange({ ...settings, speed: Number(event.target.value) })} className="mt-3 w-full" />
+        </label>
+        <label className="rounded-2xl border border-line p-3 sm:col-span-2">
+          <span className="text-xs font-black uppercase tracking-wide text-muted">Style</span>
+          <input value={settings.style} onChange={(event) => onChange({ ...settings, style: event.target.value })} className="mt-2 min-h-10 w-full rounded-xl border border-line px-3 text-sm" />
+        </label>
+        <div className="rounded-2xl border border-line bg-slate-50 p-3 sm:col-span-2">
+          <p className="text-xs font-black uppercase tracking-wide text-muted">Use selected script</p>
+          <p className="mt-2 line-clamp-4 text-sm leading-6 text-muted">{script}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SelectControl({
+  label,
+  value,
+  options,
+  labels,
+  onChange
+}: {
+  label: string;
+  value: string;
+  options: string[];
+  labels?: Record<string, string>;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <label className="rounded-2xl border border-line p-3">
+      <span className="text-xs font-black uppercase tracking-wide text-muted">{label}</span>
+      <select value={value} onChange={(event) => onChange(event.target.value)} className="mt-2 min-h-10 w-full rounded-xl border border-line px-3 text-sm outline-none focus:border-mint">
+        {options.map((option) => (
+          <option key={option || "empty"} value={option}>
+            {labels?.[option] ?? option}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }
 
@@ -1811,15 +2072,21 @@ function StoryboardPreview({
   previewMeta,
   mediaAssets,
   sceneMediaAssignments,
+  subtitleSettings,
+  musicSettings,
+  voiceOverSettings,
   aiProviderConnected
 }: {
   storyboard?: StoryboardSet;
   previewMeta?: ContentPack["previewVideoMeta"];
   mediaAssets: UploadedMediaAsset[];
   sceneMediaAssignments: SceneMediaAssignment[];
+  subtitleSettings: SubtitleSettings;
+  musicSettings: MusicSettings;
+  voiceOverSettings: VoiceOverSettings;
   aiProviderConnected: boolean;
 }) {
-  const scenes = storyboard?.scenes ?? [];
+  const scenes = useMemo(() => storyboard?.scenes ?? [], [storyboard]);
   const [currentScene, setCurrentScene] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const activeScene = scenes[currentScene];
@@ -1828,11 +2095,18 @@ function StoryboardPreview({
     if (!isPlaying || scenes.length === 0) return undefined;
 
     const timer = window.setTimeout(() => {
-      setCurrentScene((current) => (current + 1) % scenes.length);
-    }, 1800);
+      setCurrentScene((current) => {
+        if (current >= scenes.length - 1) {
+          setIsPlaying(false);
+          return current;
+        }
+
+        return current + 1;
+      });
+    }, parseSceneDurationMs(scenes[currentScene]?.duration ?? "2s"));
 
     return () => window.clearTimeout(timer);
-  }, [currentScene, isPlaying, scenes.length]);
+  }, [currentScene, isPlaying, scenes]);
 
   if (!storyboard || !activeScene) {
     return (
@@ -1846,12 +2120,23 @@ function StoryboardPreview({
   const progress = `${currentScene + 1}/${scenes.length}`;
   const activeAssignment = sceneMediaAssignments.find((assignment) => assignment.sceneNumber === activeScene.sceneNumber);
   const activeMedia = mediaAssets.find((asset) => asset.id === activeAssignment?.primaryAssetId) ?? mediaAssets.find((asset) => activeAssignment?.assetIds.includes(asset.id));
+  const textAlignClass = subtitleSettings.alignment === "left" ? "text-left" : subtitleSettings.alignment === "right" ? "text-right" : "text-center";
+  const subtitlePositionClass = subtitleSettings.position === "top" ? "justify-start pt-16" : subtitleSettings.position === "center" ? "justify-center" : "justify-end pb-16";
+  const subtitleSizeClass = subtitleSettings.fontSize === "small" ? "text-xs" : subtitleSettings.fontSize === "large" ? "text-base" : "text-sm";
+  const subtitleWeightClass = subtitleSettings.fontWeight === "normal" ? "font-normal" : subtitleSettings.fontWeight === "bold" ? "font-black" : "font-bold";
+  const subtitleBackgroundClass = subtitleSettings.backgroundStyle === "none" ? "bg-transparent" : subtitleSettings.backgroundStyle === "solid" ? "bg-black" : "bg-black/55";
+  const activeMusic = mediaAssets.find((asset) => asset.id === musicSettings.assetId);
+  const activeVoiceOver = mediaAssets.find((asset) => asset.id === voiceOverSettings.assetId);
+  const replay = () => {
+    setCurrentScene(0);
+    setIsPlaying(true);
+  };
 
   return (
     <div className="rounded-2xl border border-line bg-white p-4 lg:col-span-2">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-sm font-bold text-ink">Preview Video</p>
+          <p className="text-sm font-bold text-ink">Storyboard Preview / Animatic Preview</p>
           <p className="mt-1 text-xs font-semibold text-muted">{previewMeta?.label ?? "Storyboard Preview / Animatic Preview"} - {storyboard.aspectRatio}</p>
         </div>
         <button
@@ -1863,38 +2148,43 @@ function StoryboardPreview({
       </div>
       <div className="mt-4 grid gap-4 lg:grid-cols-[260px_1fr]">
         <div className="mx-auto aspect-[9/16] w-full max-w-[260px] overflow-hidden rounded-[2rem] border-8 border-ink bg-ink text-white shadow-soft">
-          <div className="flex h-full flex-col justify-between bg-gradient-to-b from-slate-800 to-slate-950 p-4">
-            <div className="rounded-2xl bg-white/10 p-3 text-xs font-bold uppercase tracking-wide">
+          <div className="relative h-full overflow-hidden bg-gradient-to-b from-slate-800 to-slate-950">
+            <div className="absolute left-4 right-4 top-4 z-20 rounded-2xl bg-white/10 p-3 text-xs font-bold uppercase tracking-wide">
               Scene {activeScene.sceneNumber} - {progress}
             </div>
-            <div className="overflow-hidden rounded-2xl border border-white/20 bg-white/10 text-center">
+            <div className="absolute inset-0">
               {activeMedia ? (
-                <div className="aspect-[9/11]">
-                  <MediaPreview asset={activeMedia} />
-                </div>
+                <MediaPreview asset={activeMedia} />
               ) : (
-                <div className="p-4">
+                <div className="flex h-full flex-col items-center justify-center p-5 text-center">
                   <p className="text-sm font-black">{activeScene.previewImagePlaceholder}</p>
                   <p className="mt-3 text-xs leading-5 text-white/70">{activeScene.visualDescription}</p>
                 </div>
               )}
             </div>
-            <div className="rounded-2xl bg-black/45 p-3">
-              <p className="text-sm font-bold">{activeScene.subtitleText}</p>
-              <p className="mt-2 text-xs text-white/70">{activeScene.onScreenText}</p>
+            <div className={`absolute inset-x-4 top-20 z-20 ${textAlignClass}`}>
+              <p className="inline-block rounded-2xl bg-white/85 px-3 py-2 text-xs font-black text-ink">{activeScene.onScreenText}</p>
+            </div>
+            <div className={`absolute inset-0 z-20 flex px-4 ${subtitlePositionClass}`}>
+              <div className={`w-full rounded-2xl px-3 py-2 ${subtitleBackgroundClass} ${textAlignClass}`}>
+                <p className={`${subtitleSizeClass} ${subtitleWeightClass}`} style={{ color: subtitleSettings.textColor }}>{activeScene.subtitleText}</p>
+              </div>
             </div>
           </div>
         </div>
         <div className="rounded-2xl bg-slate-50 p-4">
           <div className="flex flex-wrap gap-2">
             <button onClick={() => setCurrentScene((current) => Math.max(0, current - 1))} className="rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold text-ink">
-              Prev
+              Previous scene
             </button>
             <button onClick={() => setIsPlaying((playing) => !playing)} className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white">
               {isPlaying ? "Pause" : "Play"}
             </button>
+            <button onClick={replay} className="rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold text-ink">
+              Replay
+            </button>
             <button onClick={() => setCurrentScene((current) => Math.min(scenes.length - 1, current + 1))} className="rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold text-ink">
-              Next
+              Next scene
             </button>
           </div>
           <div className="mt-4 h-2 overflow-hidden rounded-full bg-white">
@@ -1903,7 +2193,10 @@ function StoryboardPreview({
           <div className="mt-4 grid gap-2 text-sm leading-6 text-muted">
             <p><strong className="text-ink">Duration:</strong> {activeScene.duration}</p>
             <p><strong className="text-ink">Voice over:</strong> {activeScene.voiceOver}</p>
+            <p><strong className="text-ink">On-screen text:</strong> {activeScene.onScreenText}</p>
             <p><strong className="text-ink">Transition:</strong> {activeScene.transition}</p>
+            <p><strong className="text-ink">Music:</strong> {musicSettings.muted ? "Muted" : activeMusic?.fileName ?? musicSettings.sourceType}</p>
+            <p><strong className="text-ink">Voice option:</strong> {activeVoiceOver?.fileName ?? voiceOverSettings.selectedVoice} ({voiceOverSettings.sceneMode})</p>
             <p><strong className="text-ink">Mode:</strong> {previewMeta?.mode ?? "Animatic Preview"}</p>
           </div>
         </div>
