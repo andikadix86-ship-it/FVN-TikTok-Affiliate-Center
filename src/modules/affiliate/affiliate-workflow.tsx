@@ -1157,7 +1157,7 @@ export function AffiliateWorkflow({
         </div>
 
         <div className="mt-4 grid gap-2 rounded-2xl border border-line bg-slate-50 p-3 text-xs font-black text-ink sm:grid-cols-4 lg:grid-cols-8">
-          {["Brief", "Hook", "Script", "Scene Plan", "Nano Banana", "Veo 3", "Caption & Hashtag", "Compliance"].map((item) => (
+          {["Brief", "Hook", "Script", "Scene Plan", "Nano Banana", "Veo 3", "Caption & Hashtag", "Compliance", "Save to Draft"].map((item) => (
             <span key={item} className="rounded-full bg-white px-3 py-2 text-center">{item}</span>
           ))}
         </div>

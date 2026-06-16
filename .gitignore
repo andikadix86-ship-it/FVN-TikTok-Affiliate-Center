@@ -8,5 +8,6 @@ node_modules
 dist
 coverage
 *.log
+tsconfig.tsbuildinfo
 prisma/dev.db
 cd d DFVNTIKTOK.bat

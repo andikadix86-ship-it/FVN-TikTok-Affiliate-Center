@@ -14,7 +14,7 @@ export type ContentMode =
   | "Unboxing"
   | "Comparison"
   | "Testimonial Style"
-  | "Islamic Friendly / family-safe style"
+  | "Family Safe"
   | "Tutorial"
   | "Daily Use"
   | "Budget Find"
@@ -244,7 +244,7 @@ export const contentModes: ContentMode[] = [
   "Unboxing",
   "Comparison",
   "Testimonial Style",
-  "Islamic Friendly / family-safe style",
+  "Family Safe",
   "Tutorial",
   "Daily Use",
   "Budget Find",
