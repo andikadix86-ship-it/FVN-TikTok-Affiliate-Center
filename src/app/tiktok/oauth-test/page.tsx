@@ -2,8 +2,6 @@ import { cookies } from "next/headers";
 import { AppShell } from "@/components/app-shell";
 import { env } from "@/lib/env";
 import {
-  buildTikTokLoginUrl,
-  generateTikTokState,
   TIKTOK_AUTH_URL,
   TIKTOK_OAUTH_ERROR_COOKIE,
   TIKTOK_OAUTH_SUCCESS_COOKIE,
@@ -19,7 +17,6 @@ function statusText(value: boolean, valid = "valid", invalid = "invalid") {
 export default function TikTokOAuthTestPage() {
   const cookieStore = cookies();
   const validation = validateTikTokEnv();
-  const loginUrl = buildTikTokLoginUrl(generateTikTokState()).toString();
   const rows = [
     ["TikTok Client Key", validation.clientKey],
     ["TikTok Client Secret", validation.clientSecret],
@@ -66,7 +63,11 @@ export default function TikTokOAuthTestPage() {
           ) : null}
 
           <div className="mt-5">
-            <OAuthTestPanel redirectUri={env.TIKTOK_REDIRECT_URI} loginUrl={loginUrl} />
+            <OAuthTestPanel
+              redirectUri={env.TIKTOK_REDIRECT_URI}
+              clientKey={env.TIKTOK_CLIENT_KEY ?? ""}
+              pkceEnabled={validation.pkceEnabled}
+            />
           </div>
 
           <div className="mt-5 grid gap-3 sm:grid-cols-2">

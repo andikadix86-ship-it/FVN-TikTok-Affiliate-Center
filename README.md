@@ -114,11 +114,32 @@ npm test
 
 ## Supabase Setup
 
-1. Create a Supabase project.
-2. Copy the pooled PostgreSQL connection string into `DATABASE_URL`.
-3. Copy the direct PostgreSQL connection string into `DIRECT_URL`.
-4. Run Prisma migration from a trusted local or CI environment.
-5. Keep database credentials out of Git.
+Use a separate Supabase project/database for FVN TikTok Affiliate Center. Do not reuse the old AI Clipper database unless you are intentionally doing an isolated test and understand that table names, data shape, and migrations are different.
+
+1. Open Supabase and create a new project for `FVN TikTok Affiliate Center`.
+2. Wait until the new database is ready.
+3. In Supabase Project Settings, open Database connection settings.
+4. Copy the pooled PostgreSQL connection string into `DATABASE_URL`.
+5. Copy the direct PostgreSQL connection string into `DIRECT_URL`.
+6. Add both values to your local `.env` and Vercel environment variables.
+7. Run Prisma migration from a trusted local or CI environment.
+8. Keep database credentials out of Git.
+
+Prisma setup commands:
+
+```bash
+npx prisma generate
+npx prisma migrate dev
+npm run build
+```
+
+Optional demo seed:
+
+```bash
+npm run prisma:seed
+```
+
+The seed script only creates demo products with `source=DEMO`.
 
 ## Vercel Deploy Guide
 

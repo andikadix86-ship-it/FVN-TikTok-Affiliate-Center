@@ -6,6 +6,7 @@ describe("settings status helper", () => {
     const status = getSettingsStatus({
       appUrl: "",
       databaseUrl: "",
+      directUrl: "",
       tiktokOAuthConfigured: false,
       tiktokConnected: false,
       promptEngineMode: "TEMPLATE_MODE",
@@ -23,6 +24,7 @@ describe("settings status helper", () => {
     const status = getSettingsStatus({
       appUrl: "https://example.com",
       databaseUrl: "postgres://example",
+      directUrl: "postgres://direct",
       tiktokOAuthConfigured: true,
       tiktokConnected: true,
       promptEngineMode: "AI_CONNECTED",
@@ -40,6 +42,7 @@ describe("settings status helper", () => {
     expect(getSettingsStatus({
       appUrl: "https://example.com",
       databaseUrl: "postgres://example",
+      directUrl: "postgres://direct",
       tiktokOAuthConfigured: true,
       tiktokConnected: false,
       promptEngineMode: "TEMPLATE_MODE",
@@ -49,10 +52,25 @@ describe("settings status helper", () => {
     expect(getSettingsStatus({
       appUrl: "https://example.com",
       databaseUrl: "postgres://example",
+      directUrl: "postgres://direct",
       tiktokOAuthConfigured: true,
       tiktokConnected: false,
       promptEngineMode: "TEMPLATE_MODE",
       productSource: "REAL_API"
     }).productDataSource).toBe("Real API");
+  });
+
+  it("requires both Prisma database URLs", () => {
+    const status = getSettingsStatus({
+      appUrl: "https://example.com",
+      databaseUrl: "postgres://pooled",
+      directUrl: "",
+      tiktokOAuthConfigured: true,
+      tiktokConnected: false,
+      promptEngineMode: "TEMPLATE_MODE",
+      productSource: "MANUAL"
+    });
+
+    expect(status.database).toBe("Missing");
   });
 });

@@ -19,7 +19,7 @@ export async function writeTikTokOAuthLog(
   details?: unknown,
   errorCode?: string
 ) {
-  if (!env.DATABASE_URL) {
+  if (!env.DATABASE_URL || !env.DIRECT_URL) {
     return;
   }
 
@@ -52,7 +52,7 @@ export function buildDisconnectedAccountView(): TikTokAccountView {
 }
 
 export async function getTikTokAccountView(): Promise<TikTokAccountView> {
-  if (!env.DATABASE_URL) {
+  if (!env.DATABASE_URL || !env.DIRECT_URL) {
     return buildDisconnectedAccountView();
   }
 
@@ -81,7 +81,7 @@ export async function getTikTokAccountView(): Promise<TikTokAccountView> {
 }
 
 export async function getLastTikTokOAuthLog() {
-  if (!env.DATABASE_URL) {
+  if (!env.DATABASE_URL || !env.DIRECT_URL) {
     return null;
   }
 
@@ -111,7 +111,7 @@ export async function saveTikTokAccountConnection({
   refreshToken?: string;
   expiresIn?: number;
 }) {
-  if (!env.DATABASE_URL) {
+  if (!env.DATABASE_URL || !env.DIRECT_URL) {
     return null;
   }
 

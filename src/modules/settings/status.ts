@@ -14,6 +14,7 @@ export type SettingsStatus = {
 export function getSettingsStatus({
   appUrl,
   databaseUrl,
+  directUrl,
   tiktokOAuthConfigured,
   tiktokConnected,
   promptEngineMode,
@@ -21,6 +22,7 @@ export function getSettingsStatus({
 }: {
   appUrl?: string;
   databaseUrl?: string;
+  directUrl?: string;
   tiktokOAuthConfigured: boolean;
   tiktokConnected: boolean;
   promptEngineMode: PromptEngineMode;
@@ -28,7 +30,7 @@ export function getSettingsStatus({
 }): SettingsStatus {
   return {
     appUrl: appUrl ? "Configured" : "Missing",
-    database: databaseUrl ? "Configured" : "Missing",
+    database: databaseUrl && directUrl ? "Configured" : "Missing",
     tiktokOAuth: tiktokConnected ? "Connected" : tiktokOAuthConfigured ? "Configured" : "Missing",
     aiProvider: promptEngineMode === "AI_CONNECTED" ? "Connected" : "Not Connected",
     productDataSource: productSource === "DEMO" ? "Demo Mode" : productSource === "CSV_IMPORT" ? "CSV" : productSource === "REAL_API" ? "Real API" : "Manual"

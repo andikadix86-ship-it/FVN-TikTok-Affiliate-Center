@@ -7,31 +7,45 @@ import { isTikTokShopApiConfigured } from "@/modules/tiktok-shop/tiktok-shop-api
 
 export const dynamic = "force-dynamic";
 
+function withTimeout<T>(operation: Promise<T>, fallback: T, timeoutMs = 1500) {
+  return Promise.race([
+    operation,
+    new Promise<T>((resolve) => {
+      setTimeout(() => resolve(fallback), timeoutMs);
+    })
+  ]);
+}
+
 async function getDatabaseStatus() {
-  if (!env.DATABASE_URL) {
+  if (!env.DATABASE_URL || !env.DIRECT_URL) {
     return "error" as const;
   }
 
   try {
-    await prisma.$queryRaw`SELECT 1`;
-    return "connected" as const;
+    return await withTimeout(
+      prisma.$queryRaw`SELECT 1`.then(() => "connected" as const).catch(() => "error" as const),
+      "error" as const
+    );
   } catch {
     return "error" as const;
   }
 }
 
 async function getProductSource() {
-  if (!env.DATABASE_URL) {
+  if (!env.DATABASE_URL || !env.DIRECT_URL) {
     return "demo";
   }
 
   try {
-    const [manual, csv, realApi, demo] = await Promise.all([
-      prisma.product.count({ where: { source: "MANUAL" } }),
-      prisma.product.count({ where: { source: "CSV_IMPORT" } }),
-      prisma.product.count({ where: { source: "REAL_API" } }),
-      prisma.product.count({ where: { source: "DEMO" } })
-    ]);
+    const [manual, csv, realApi, demo] = await withTimeout(
+      Promise.all([
+        prisma.product.count({ where: { source: "MANUAL" } }),
+        prisma.product.count({ where: { source: "CSV_IMPORT" } }),
+        prisma.product.count({ where: { source: "REAL_API" } }),
+        prisma.product.count({ where: { source: "DEMO" } })
+      ]),
+      [0, 0, 0, 0]
+    );
 
     if (manual > 0) return "manual";
     if (csv > 0) return "csv";

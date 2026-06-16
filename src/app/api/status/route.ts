@@ -41,6 +41,7 @@ export async function GET() {
   const settings = getSettingsStatus({
     appUrl: env.NEXT_PUBLIC_APP_URL,
     databaseUrl: databaseConnected ? env.DATABASE_URL : "",
+    directUrl: databaseConnected ? env.DIRECT_URL : "",
     tiktokOAuthConfigured: tiktok.oauth === "Configured",
     tiktokConnected: false,
     promptEngineMode,

@@ -4,10 +4,12 @@ import { useState } from "react";
 
 export function OAuthTestPanel({
   redirectUri,
-  loginUrl
+  clientKey,
+  pkceEnabled
 }: {
   redirectUri: string;
-  loginUrl: string;
+  clientKey: string;
+  pkceEnabled: boolean;
 }) {
   const [message, setMessage] = useState("");
   const [generatedUrl, setGeneratedUrl] = useState("");
@@ -39,8 +41,20 @@ export function OAuthTestPanel({
     setLoadingAction("url");
     setMessage("Membuat Login URL...");
     window.setTimeout(() => {
-      setGeneratedUrl(loginUrl);
-      setMessage("Login URL berhasil dibuat. Tidak ada code_challenge saat PKCE nonaktif.");
+      const state = window.crypto?.randomUUID?.() ?? String(Date.now());
+      const url = new URL("https://www.tiktok.com/v2/auth/authorize/");
+      url.searchParams.set("client_key", clientKey);
+      url.searchParams.set("response_type", "code");
+      url.searchParams.set("scope", "user.info.basic");
+      url.searchParams.set("redirect_uri", redirectUri);
+      url.searchParams.set("state", state);
+
+      setGeneratedUrl(url.toString());
+      setMessage(
+        pkceEnabled
+          ? "Login URL dasar berhasil dibuat. PKCE lengkap dibuat oleh route login server."
+          : "Login URL berhasil dibuat. Tidak ada code_challenge saat PKCE nonaktif."
+      );
       setLoadingAction(null);
     }, 200);
   }
