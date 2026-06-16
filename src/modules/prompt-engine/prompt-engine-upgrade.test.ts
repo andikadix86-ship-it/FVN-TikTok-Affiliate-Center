@@ -66,6 +66,17 @@ describe("upgraded TikTok affiliate prompt engine", () => {
     expect(pack.complianceChecklist?.userApprovalRequiredBeforePosting).toBe(true);
   });
 
+  it("generates storyboard scenes and animatic preview metadata", () => {
+    const pack = buildTemplateContentPack(input);
+
+    expect(pack.storyboard?.aspectRatio).toBe("9:16");
+    expect(pack.storyboard?.scenes.length).toBeGreaterThan(0);
+    expect(pack.storyboard?.scenes[0].nanoBananaImagePrompt).toContain("Subject:");
+    expect(pack.storyboard?.scenes[0].veo3ScenePrompt).toContain("Camera movement:");
+    expect(pack.previewVideoMeta?.label).toContain("Preview");
+    expect(pack.previewVideoMeta?.scenes[0].subtitleText).toBeTruthy();
+  });
+
   it("detects risky or revision-needed compliance issues", () => {
     const result = checkCompliance("Produk ini dijamin menyembuhkan penyakit dan stok tinggal hari ini.");
 

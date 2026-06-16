@@ -147,6 +147,62 @@ export type Veo3PromptSet = {
   closingCtaShotPrompt: Veo3Prompt;
 };
 
+export type StoryboardItem = {
+  sceneNumber: number;
+  title: string;
+  duration: string;
+  objective: string;
+  visualDescription: string;
+  voiceOver: string;
+  onScreenText: string;
+  subtitleText: string;
+  cameraAngle: string;
+  cameraMovement: string;
+  composition: string;
+  lighting: string;
+  mood: string;
+  transition: string;
+  productPlacement: string;
+  nanoBananaImagePrompt: string;
+  veo3ScenePrompt: string;
+  previewImageUrl?: string;
+  previewImagePlaceholder: string;
+  notes: string;
+};
+
+export type StoryboardSet = {
+  totalDuration: string;
+  scenes: StoryboardItem[];
+  style: ContentMode;
+  aspectRatio: "9:16";
+  generatedFromScript: string;
+  generatedAt: string;
+};
+
+export type PreviewVideoMeta = {
+  mode: "Animatic Preview" | "AI Video Preview";
+  label: string;
+  totalDuration: string;
+  aspectRatio: "9:16";
+  providerMode: "AI" | "TEMPLATE";
+  scenes: Array<{
+    sceneNumber: number;
+    duration: string;
+    subtitleText: string;
+    previewImagePlaceholder: string;
+    transition: string;
+  }>;
+};
+
+export type PreviewVideoState = {
+  mode: "Animatic Preview" | "AI Video Preview";
+  currentScene: number;
+  isPlaying: boolean;
+  totalDuration: string;
+  currentTime: number;
+  scenes: StoryboardItem[];
+};
+
 export type ComplianceChecklist = {
   noFalseGuarantee: boolean;
   noMedicalHealthOverclaim: boolean;
@@ -185,6 +241,8 @@ export type ContentPack = {
   script60?: string;
   scenePlan: string[];
   structuredScenePlan?: ScenePlanItem[];
+  storyboard?: StoryboardSet;
+  previewVideoMeta?: PreviewVideoMeta;
   voiceOverDraft?: string;
   caption: string;
   captionShort?: string;
@@ -216,6 +274,8 @@ export type ContentDraft = {
   hook: string;
   script: string;
   scenePlan: ScenePlanItem[];
+  storyboard: StoryboardSet;
+  previewVideoMeta: PreviewVideoMeta;
   nanoBananaPrompts: NanoBananaPromptSet;
   veo3Prompts: Veo3PromptSet;
   caption: string;

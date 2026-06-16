@@ -30,6 +30,8 @@ export const contentPackInputSchema = z.object({
   script60: z.string().optional(),
   scenePlan: z.array(z.string()),
   structuredScenePlan: z.unknown().optional(),
+  storyboard: z.unknown().optional(),
+  previewVideoMeta: z.unknown().optional(),
   voiceOverDraft: z.string().optional(),
   caption: z.string(),
   captionShort: z.string().optional(),
@@ -41,9 +43,9 @@ export const contentPackInputSchema = z.object({
   ctaDirect: z.string().optional(),
   ctaKeranjangKuning: z.string().optional(),
   safeClaimChecklist: z.array(z.string()),
+  complianceChecklist: z.unknown().optional(),
   nanoBananaPrompts: z.unknown().optional(),
   veo3Prompts: z.unknown().optional(),
-  complianceChecklist: z.unknown().optional(),
   editingNotes: z.array(z.string()).optional(),
   postingNotes: z.array(z.string()).optional(),
   talkingPoints: z.array(z.string()).optional(),
@@ -96,6 +98,8 @@ export type ContentDraft = {
   script60s?: string;
   scenePlan: string[];
   structuredScenePlan?: unknown;
+  storyboard?: unknown;
+  previewVideoMeta?: unknown;
   voiceOverDraft: string;
   caption: string;
   captionShort: string;
@@ -107,10 +111,10 @@ export type ContentDraft = {
   ctaDirect: string;
   ctaKeranjangKuning: string;
   safeClaimChecklist: string[];
+  complianceChecklist?: unknown;
   productBrief?: unknown;
   nanoBananaPrompts?: unknown;
   veo3Prompts?: unknown;
-  complianceChecklist?: unknown;
   editingNotes: string[];
   postingNotes: string[];
   talkingPoints: string[];
@@ -185,6 +189,8 @@ export function buildContentPackCreateData(input: ContentPackInput) {
     script30s: input.script30,
     script60s: input.script60,
     scenePlan: (input.structuredScenePlan ?? input.scenePlan) as Prisma.InputJsonValue,
+    storyboard: input.storyboard as Prisma.InputJsonValue | undefined,
+    previewVideoMeta: input.previewVideoMeta as Prisma.InputJsonValue | undefined,
     voiceOverDraft: input.voiceOverDraft,
     caption: input.caption,
     captionShort: input.captionShort,
@@ -196,6 +202,7 @@ export function buildContentPackCreateData(input: ContentPackInput) {
     ctaDirect: input.ctaDirect,
     ctaKeranjangKuning: input.ctaKeranjangKuning,
     safeClaimChecklist: input.safeClaimChecklist as Prisma.InputJsonValue,
+    complianceChecklist: input.complianceChecklist as Prisma.InputJsonValue | undefined,
     nanoBananaPrompts: input.nanoBananaPrompts as Prisma.InputJsonValue | undefined,
     veo3Prompts: input.veo3Prompts as Prisma.InputJsonValue | undefined,
     editingNotes: input.editingNotes as Prisma.InputJsonValue | undefined,
@@ -225,6 +232,8 @@ export function contentPackToInput(productId: string, pack: ContentPack, provide
     script60: pack.script60,
     scenePlan: pack.scenePlan,
     structuredScenePlan: pack.structuredScenePlan,
+    storyboard: pack.storyboard,
+    previewVideoMeta: pack.previewVideoMeta,
     voiceOverDraft: pack.voiceOverDraft,
     caption: pack.caption,
     captionShort: pack.captionShort,
@@ -236,9 +245,9 @@ export function contentPackToInput(productId: string, pack: ContentPack, provide
     ctaDirect: pack.ctaDirect,
     ctaKeranjangKuning: pack.ctaKeranjangKuning,
     safeClaimChecklist: pack.safeClaimChecklist,
+    complianceChecklist: pack.complianceChecklist,
     nanoBananaPrompts: pack.nanoBananaPrompts,
     veo3Prompts: pack.veo3Prompts,
-    complianceChecklist: pack.complianceChecklist,
     editingNotes: pack.editingNotes,
     postingNotes: pack.postingNotes,
     talkingPoints: pack.talkingPoints,
@@ -281,6 +290,8 @@ export function buildDuplicateContentPackData(draft: ContentDraft) {
     script30s: draft.script30s,
     script60s: draft.script60s,
     scenePlan: draft.scenePlan as Prisma.InputJsonValue,
+    storyboard: draft.storyboard as Prisma.InputJsonValue,
+    previewVideoMeta: draft.previewVideoMeta as Prisma.InputJsonValue,
     voiceOverDraft: draft.voiceOverDraft,
     caption: draft.caption,
     captionShort: draft.captionShort,
@@ -292,6 +303,7 @@ export function buildDuplicateContentPackData(draft: ContentDraft) {
     ctaDirect: draft.ctaDirect,
     ctaKeranjangKuning: draft.ctaKeranjangKuning,
     safeClaimChecklist: draft.safeClaimChecklist as Prisma.InputJsonValue,
+    complianceChecklist: draft.complianceChecklist as Prisma.InputJsonValue,
     nanoBananaPrompts: draft.nanoBananaPrompts as Prisma.InputJsonValue,
     veo3Prompts: draft.veo3Prompts as Prisma.InputJsonValue,
     editingNotes: draft.editingNotes as Prisma.InputJsonValue,
@@ -331,6 +343,8 @@ export function mapDbContentDraft(contentPack: {
   script30s: string;
   script60s: string | null;
   scenePlan: unknown;
+  storyboard?: unknown;
+  previewVideoMeta?: unknown;
   voiceOverDraft: string | null;
   caption: string;
   captionShort: string | null;
@@ -342,6 +356,7 @@ export function mapDbContentDraft(contentPack: {
   ctaDirect: string | null;
   ctaKeranjangKuning: string | null;
   safeClaimChecklist: unknown;
+  complianceChecklist?: unknown;
   nanoBananaPrompts: unknown;
   veo3Prompts: unknown;
   editingNotes: unknown;
@@ -384,6 +399,8 @@ export function mapDbContentDraft(contentPack: {
     script60s: contentPack.script60s ?? "",
     scenePlan: asDisplayArray(contentPack.scenePlan),
     structuredScenePlan: contentPack.scenePlan,
+    storyboard: contentPack.storyboard ?? null,
+    previewVideoMeta: contentPack.previewVideoMeta ?? null,
     voiceOverDraft: contentPack.voiceOverDraft ?? "",
     caption: contentPack.caption,
     captionShort: contentPack.captionShort ?? "",
@@ -395,9 +412,9 @@ export function mapDbContentDraft(contentPack: {
     ctaDirect: contentPack.ctaDirect ?? "",
     ctaKeranjangKuning: contentPack.ctaKeranjangKuning ?? "",
     safeClaimChecklist: asStringArray(contentPack.safeClaimChecklist),
+    complianceChecklist: contentPack.complianceChecklist ?? null,
     nanoBananaPrompts: contentPack.nanoBananaPrompts ?? null,
     veo3Prompts: contentPack.veo3Prompts ?? null,
-    complianceChecklist: null,
     editingNotes: asStringArray(contentPack.editingNotes),
     postingNotes: asStringArray(contentPack.postingNotes),
     talkingPoints: asStringArray(contentPack.talkingPoints),
@@ -420,6 +437,8 @@ export function getContentDraftFullText(draft: ContentDraft) {
     `Script 30s:\n${draft.script30s}`,
     `Script 60s:\n${draft.script60s}`,
     `Scene plan:\n${draft.scenePlan.join("\n")}`,
+    `Storyboard:\n${JSON.stringify(draft.storyboard, null, 2)}`,
+    `Preview Video:\n${JSON.stringify(draft.previewVideoMeta, null, 2)}`,
     `Nano Banana image prompts:\n${JSON.stringify(draft.nanoBananaPrompts, null, 2)}`,
     `Veo 3 video prompts:\n${JSON.stringify(draft.veo3Prompts, null, 2)}`,
     `Voice over:\n${draft.voiceOverDraft}`,

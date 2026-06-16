@@ -89,6 +89,8 @@ model ContentPack {
   script30s          String       @db.Text
   script60s          String?      @db.Text
   scenePlan          Json
+  storyboard         Json?
+  previewVideoMeta   Json?
   voiceOverDraft     String?      @db.Text
   caption            String       @db.Text
   captionShort       String?      @db.Text
@@ -100,6 +102,7 @@ model ContentPack {
   ctaDirect          String?      @db.Text
   ctaKeranjangKuning String?      @db.Text
   safeClaimChecklist Json
+  complianceChecklist Json?
   nanoBananaPrompts  Json?
   veo3Prompts        Json?
   editingNotes       Json?

@@ -11,6 +11,7 @@ export * from "./product-analysis.prompt";
 export * from "./provider";
 export * from "./scene-plan.prompt";
 export * from "./script-generator.prompt";
+export * from "./storyboard.prompt";
 export * from "./template-mode";
 export * from "./types";
 export * from "./veo3-video.prompt";

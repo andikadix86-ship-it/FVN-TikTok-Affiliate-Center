@@ -7,6 +7,7 @@ import { buildNanoBananaPromptSet } from "./nano-banana.prompt";
 import { buildMainSellingPoint, buildProductInsight, buildProductTalkingPoints, buildTargetAudienceMatch } from "./product-analysis.prompt";
 import { buildEditingNotes, buildPostingNotes, buildScenePlan } from "./scene-plan.prompt";
 import { buildScript15, buildScript15Variations, buildScript30, buildScript30Variations, buildScript60, buildVoiceOverDraft } from "./script-generator.prompt";
+import { buildPreviewVideoMeta, buildStoryboard } from "./storyboard.prompt";
 import { ContentPack, defaultPromptOptions, PromptInput } from "./types";
 import { buildStructuredScenePlan, buildVeo3PromptSet } from "./veo3-video.prompt";
 
@@ -33,6 +34,9 @@ export function buildTemplateContentPack(input: PromptInput): ContentPack {
   const options = promptInput.options ?? defaultPromptOptions;
   const mainSellingPoint = buildMainSellingPoint(promptInput);
   const structuredScenePlan = buildStructuredScenePlan(promptInput);
+  const storyboard = buildStoryboard(promptInput, structuredScenePlan);
+  const providerMode = input.mode === "AI_CONNECTED" ? "AI" : "TEMPLATE";
+  const previewVideoMeta = buildPreviewVideoMeta(storyboard, providerMode);
   const productBrief = {
     productName: promptInput.product.productName,
     productCategory: promptInput.product.category,
@@ -69,6 +73,8 @@ export function buildTemplateContentPack(input: PromptInput): ContentPack {
     script60: buildScript60(promptInput),
     scenePlan: buildScenePlan(promptInput),
     structuredScenePlan,
+    storyboard,
+    previewVideoMeta,
     voiceOverDraft: buildVoiceOverDraft(promptInput),
     caption,
     captionShort: buildCaptionShort(promptInput),
@@ -87,7 +93,7 @@ export function buildTemplateContentPack(input: PromptInput): ContentPack {
     editingNotes: buildEditingNotes(),
     postingNotes: buildPostingNotes(),
     talkingPoints: buildProductTalkingPoints(promptInput),
-    providerMode: "TEMPLATE",
+    providerMode,
     options: promptInput.options
   };
 }

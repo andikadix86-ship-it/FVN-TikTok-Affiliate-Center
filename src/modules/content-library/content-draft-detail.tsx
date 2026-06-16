@@ -248,6 +248,8 @@ export function ContentDraftDetail({ draft }: { draft: ContentDraft }) {
         <CopyBlock title="Script 30s" value={current.script30s} onCopy={copy} />
         <CopyBlock title="Script 60s" value={current.script60s ?? ""} onCopy={copy} />
         <CopyBlock title="Scene plan" value={current.scenePlan.join("\n")} onCopy={copy} />
+        <CopyBlock title="Storyboard" value={formatJson(current.storyboard)} onCopy={copy} />
+        <CopyBlock title="Preview Video / Animatic Preview" value={formatJson(current.previewVideoMeta)} onCopy={copy} />
         <CopyBlock title="Product Brief" value={formatJson(current.productBrief)} onCopy={copy} />
         <CopyBlock title="Prompt Gambar - Nano Banana" value={formatJson(current.nanoBananaPrompts)} onCopy={copy} />
         <CopyBlock title="Prompt Video - Veo 3" value={formatJson(current.veo3Prompts)} onCopy={copy} />

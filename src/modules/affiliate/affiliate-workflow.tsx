@@ -34,6 +34,7 @@ import {
   ContentPack,
   defaultPromptOptions,
   PromptEngineMode,
+  StoryboardSet,
   targetAudiences,
   TargetAudience,
   toneOptions,
@@ -494,6 +495,8 @@ export function AffiliateWorkflow({
       `Script 30 detik:\n${promptAssets.script30}`,
       `Script 60 detik:\n${promptAssets.script60 ?? ""}`,
       `Scene Plan:\n${promptAssets.scenePlan.join("\n")}`,
+      `Storyboard:\n${formatPromptJson(promptAssets.storyboard)}`,
+      `Preview Video:\n${formatPromptJson(promptAssets.previewVideoMeta)}`,
       `Product Brief:\n${formatPromptJson(promptAssets.productBrief)}`,
       `Prompt Gambar - Nano Banana:\n${formatPromptJson(promptAssets.nanoBananaPrompts)}`,
       `Prompt Video - Veo 3:\n${formatPromptJson(promptAssets.veo3Prompts)}`,
@@ -1157,7 +1160,7 @@ export function AffiliateWorkflow({
         </div>
 
         <div className="mt-4 grid gap-2 rounded-2xl border border-line bg-slate-50 p-3 text-xs font-black text-ink sm:grid-cols-4 lg:grid-cols-8">
-          {["Brief", "Hook", "Script", "Scene Plan", "Nano Banana", "Veo 3", "Caption & Hashtag", "Compliance", "Save to Draft"].map((item) => (
+          {["Brief", "Hook", "Script", "Scene Plan", "Storyboard", "Preview Video", "Nano Banana", "Veo 3", "Caption & Hashtag", "Compliance", "Save to Draft"].map((item) => (
             <span key={item} className="rounded-full bg-white px-3 py-2 text-center">{item}</span>
           ))}
         </div>
@@ -1194,6 +1197,8 @@ export function AffiliateWorkflow({
           <PromptBlock title="Script / Voice Over 60 detik" text={promptAssets.script60} copyLabel="Copy Script" onCopy={() => copyOutput("Script 60s", promptAssets.script60 ?? "")} />
           <PromptBlock title="Scene Plan" items={promptAssets.scenePlan} />
           <PromptBlock title="Scene Plan Detail" text={formatPromptJson(promptAssets.structuredScenePlan)} copyLabel="Copy Scene Plan" onCopy={() => copyOutput("Scene Plan", formatPromptJson(promptAssets.structuredScenePlan))} />
+          <StoryboardTimeline storyboard={promptAssets.storyboard} onCopy={copyOutput} />
+          <StoryboardPreview storyboard={promptAssets.storyboard} previewMeta={promptAssets.previewVideoMeta} aiProviderConnected={promptEngineMode === "AI_CONNECTED"} />
           <PromptBlock title="Voice Over" text={promptAssets.voiceOverDraft} />
           <PromptBlock title="Subtitle" text="Gunakan subtitle Bahasa Indonesia yang pendek, mudah dibaca di layar HP, dan tidak menutup produk." />
           <PromptBlock title="Prompt Gambar - Nano Banana" text={formatPromptJson(promptAssets.nanoBananaPrompts)} copyLabel="Copy Nano Banana" onCopy={() => copyOutput("Nano Banana", formatPromptJson(promptAssets.nanoBananaPrompts))} />
@@ -1362,6 +1367,157 @@ function PromptBlock({
           ))}
         </ul>
       ) : null}
+    </div>
+  );
+}
+
+function StoryboardTimeline({
+  storyboard,
+  onCopy
+}: {
+  storyboard?: StoryboardSet;
+  onCopy: (label: string, value: string) => void;
+}) {
+  if (!storyboard) {
+    return (
+      <div className="rounded-2xl border border-line bg-white p-4">
+        <p className="text-sm font-bold text-ink">Storyboard</p>
+        <p className="mt-2 text-sm leading-6 text-muted">Generate package untuk membuat storyboard dari script dan scene plan.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-2xl border border-line bg-white p-4 lg:col-span-2">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="text-sm font-bold text-ink">Storyboard</p>
+          <p className="mt-1 text-xs font-semibold text-muted">{storyboard.style} - {storyboard.aspectRatio} - {storyboard.totalDuration}</p>
+        </div>
+        <button onClick={() => onCopy("Storyboard", JSON.stringify(storyboard, null, 2))} className="inline-flex items-center gap-1 rounded-full border border-line px-3 py-1 text-xs font-semibold text-ink">
+          <Copy className="h-3.5 w-3.5" />
+          Copy Storyboard
+        </button>
+      </div>
+      <div className="mt-4 grid gap-3 md:grid-cols-2">
+        {storyboard.scenes.map((scene) => (
+          <details key={scene.sceneNumber} className="rounded-2xl border border-line bg-slate-50 p-4" open={scene.sceneNumber === 1}>
+            <summary className="cursor-pointer text-sm font-black text-ink">
+              Scene {scene.sceneNumber}: {scene.title} ({scene.duration})
+            </summary>
+            <div className="mt-3 space-y-2 text-sm leading-6 text-muted">
+              <p><strong className="text-ink">Objective:</strong> {scene.objective}</p>
+              <p><strong className="text-ink">Visual:</strong> {scene.visualDescription}</p>
+              <p><strong className="text-ink">Voice Over:</strong> {scene.voiceOver}</p>
+              <p><strong className="text-ink">Subtitle:</strong> {scene.subtitleText}</p>
+              <p><strong className="text-ink">Camera:</strong> {scene.cameraAngle}, {scene.cameraMovement}</p>
+              <p><strong className="text-ink">Composition:</strong> {scene.composition}</p>
+              <p><strong className="text-ink">Lighting:</strong> {scene.lighting}</p>
+              <p><strong className="text-ink">Transition:</strong> {scene.transition}</p>
+              <div className="flex flex-wrap gap-2 pt-2">
+                <button onClick={() => onCopy(`Nano Banana Scene ${scene.sceneNumber}`, scene.nanoBananaImagePrompt)} className="rounded-full border border-line bg-white px-3 py-1 text-xs font-semibold text-ink">
+                  Copy Nano Banana
+                </button>
+                <button onClick={() => onCopy(`Veo 3 Scene ${scene.sceneNumber}`, scene.veo3ScenePrompt)} className="rounded-full border border-line bg-white px-3 py-1 text-xs font-semibold text-ink">
+                  Copy Veo 3
+                </button>
+              </div>
+            </div>
+          </details>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function StoryboardPreview({
+  storyboard,
+  previewMeta,
+  aiProviderConnected
+}: {
+  storyboard?: StoryboardSet;
+  previewMeta?: ContentPack["previewVideoMeta"];
+  aiProviderConnected: boolean;
+}) {
+  const scenes = storyboard?.scenes ?? [];
+  const [currentScene, setCurrentScene] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const activeScene = scenes[currentScene];
+
+  useEffect(() => {
+    if (!isPlaying || scenes.length === 0) return undefined;
+
+    const timer = window.setTimeout(() => {
+      setCurrentScene((current) => (current + 1) % scenes.length);
+    }, 1800);
+
+    return () => window.clearTimeout(timer);
+  }, [currentScene, isPlaying, scenes.length]);
+
+  if (!storyboard || !activeScene) {
+    return (
+      <div className="rounded-2xl border border-line bg-white p-4">
+        <p className="text-sm font-bold text-ink">Preview Video</p>
+        <p className="mt-2 text-sm leading-6 text-muted">Storyboard Preview / Animatic Preview akan muncul setelah package dibuat.</p>
+      </div>
+    );
+  }
+
+  const progress = `${currentScene + 1}/${scenes.length}`;
+
+  return (
+    <div className="rounded-2xl border border-line bg-white p-4 lg:col-span-2">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="text-sm font-bold text-ink">Preview Video</p>
+          <p className="mt-1 text-xs font-semibold text-muted">{previewMeta?.label ?? "Storyboard Preview / Animatic Preview"} - {storyboard.aspectRatio}</p>
+        </div>
+        <button
+          onClick={() => alert(aiProviderConnected ? "AI video preview bisa memakai prompt Veo 3 saat provider tersedia." : "AI provider belum tersambung. Animatic preview tetap bisa dipakai.")}
+          className="rounded-full border border-line px-3 py-1 text-xs font-semibold text-ink"
+        >
+          Generate AI Video Preview
+        </button>
+      </div>
+      <div className="mt-4 grid gap-4 lg:grid-cols-[260px_1fr]">
+        <div className="mx-auto aspect-[9/16] w-full max-w-[260px] overflow-hidden rounded-[2rem] border-8 border-ink bg-ink text-white shadow-soft">
+          <div className="flex h-full flex-col justify-between bg-gradient-to-b from-slate-800 to-slate-950 p-4">
+            <div className="rounded-2xl bg-white/10 p-3 text-xs font-bold uppercase tracking-wide">
+              Scene {activeScene.sceneNumber} - {progress}
+            </div>
+            <div className="rounded-2xl border border-white/20 bg-white/10 p-4 text-center">
+              <p className="text-sm font-black">{activeScene.previewImagePlaceholder}</p>
+              <p className="mt-3 text-xs leading-5 text-white/70">{activeScene.visualDescription}</p>
+            </div>
+            <div className="rounded-2xl bg-black/45 p-3">
+              <p className="text-sm font-bold">{activeScene.subtitleText}</p>
+              <p className="mt-2 text-xs text-white/70">{activeScene.onScreenText}</p>
+            </div>
+          </div>
+        </div>
+        <div className="rounded-2xl bg-slate-50 p-4">
+          <div className="flex flex-wrap gap-2">
+            <button onClick={() => setCurrentScene((current) => Math.max(0, current - 1))} className="rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold text-ink">
+              Prev
+            </button>
+            <button onClick={() => setIsPlaying((playing) => !playing)} className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white">
+              {isPlaying ? "Pause" : "Play"}
+            </button>
+            <button onClick={() => setCurrentScene((current) => Math.min(scenes.length - 1, current + 1))} className="rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold text-ink">
+              Next
+            </button>
+          </div>
+          <div className="mt-4 h-2 overflow-hidden rounded-full bg-white">
+            <div className="h-full rounded-full bg-mint" style={{ width: `${((currentScene + 1) / scenes.length) * 100}%` }} />
+          </div>
+          <div className="mt-4 grid gap-2 text-sm leading-6 text-muted">
+            <p><strong className="text-ink">Duration:</strong> {activeScene.duration}</p>
+            <p><strong className="text-ink">Voice over:</strong> {activeScene.voiceOver}</p>
+            <p><strong className="text-ink">Transition:</strong> {activeScene.transition}</p>
+            <p><strong className="text-ink">Mode:</strong> {previewMeta?.mode ?? "Animatic Preview"}</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
