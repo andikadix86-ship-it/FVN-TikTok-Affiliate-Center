@@ -33,12 +33,18 @@ import {
   contentModes,
   ContentPack,
   defaultPromptOptions,
+  FontSettings,
+  MusicSettings,
   PromptEngineMode,
+  SceneMediaAssignment,
   StoryboardSet,
+  SubtitleSettings,
   targetAudiences,
   TargetAudience,
   toneOptions,
-  ToneOption
+  ToneOption,
+  UploadedMediaAsset,
+  VoiceOverSettings
 } from "@/modules/prompt-engine/types";
 import { getRecommendationLabel } from "@/modules/scoring/recommendation-label";
 import { scoreProduct } from "@/modules/scoring/score-product";
@@ -80,6 +86,92 @@ type ProductFilter = "all" | "manual" | "csv" | "demo" | "highScore" | "lowCompe
 function formatPromptJson(value: unknown) {
   if (!value) return "";
   return typeof value === "string" ? value : JSON.stringify(value, null, 2);
+}
+
+const acceptedImageTypes = ["image/jpeg", "image/png", "image/webp"];
+const acceptedVideoTypes = ["video/mp4", "video/quicktime", "video/webm"];
+
+const defaultSubtitleSettings: SubtitleSettings = {
+  fontFamily: "Sans",
+  fontSize: "medium",
+  fontWeight: "semi-bold",
+  textColor: "#ffffff",
+  backgroundStyle: "translucent",
+  position: "bottom",
+  alignment: "center"
+};
+
+const defaultFontSettings: FontSettings = {
+  subtitle: defaultSubtitleSettings,
+  textOverlay: { ...defaultSubtitleSettings, position: "center" },
+  hookText: { ...defaultSubtitleSettings, fontFamily: "Bold Headline", fontSize: "large", position: "top" },
+  ctaText: { ...defaultSubtitleSettings, fontFamily: "Rounded", position: "bottom" }
+};
+
+const defaultMusicSettings: MusicSettings = {
+  sourceType: "none",
+  volume: 60,
+  muted: false,
+  trimStart: 0,
+  loop: true
+};
+
+const defaultVoiceOverSettings: VoiceOverSettings = {
+  sourceType: "auto_placeholder",
+  provider: "placeholder",
+  selectedVoice: "Female Casual ID",
+  language: "id-ID",
+  style: "Casual Indonesia natural affiliate UGC",
+  speed: 1,
+  sceneMode: "per_scene"
+};
+
+function readFileAsDataUrl(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result ?? ""));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
+
+function mergeEditorStateIntoPack(
+  pack: ContentPack,
+  uploadedMediaAssets: UploadedMediaAsset[],
+  sceneMediaAssignments: SceneMediaAssignment[],
+  subtitleSettings: SubtitleSettings,
+  fontSettings: FontSettings,
+  musicSettings: MusicSettings,
+  voiceOverSettings: VoiceOverSettings
+): ContentPack {
+  const storyboard = pack.storyboard
+    ? {
+        ...pack.storyboard,
+        scenes: pack.storyboard.scenes.map((scene) => {
+          const assignment = sceneMediaAssignments.find((item) => item.sceneNumber === scene.sceneNumber);
+          const assignedMediaAssets = uploadedMediaAssets.filter((asset) => assignment?.assetIds.includes(asset.id));
+          const primaryAsset = uploadedMediaAssets.find((asset) => asset.id === assignment?.primaryAssetId) ?? assignedMediaAssets[0];
+
+          return {
+            ...scene,
+            mediaSourceType: assignedMediaAssets.length > 0 ? "uploaded" as const : scene.mediaSourceType,
+            assignedMediaAssets,
+            previewImageUrl: primaryAsset?.thumbnailUrl || primaryAsset?.url || scene.previewImageUrl
+          };
+        })
+      }
+    : pack.storyboard;
+
+  return {
+    ...pack,
+    storyboard,
+    uploadedMediaAssets,
+    sceneMediaAssignments,
+    subtitleSettings,
+    fontSettings,
+    musicSettings,
+    voiceOverSettings
+  };
 }
 
 function productFromForm(source: ProductSource, form: typeof initialForm): AffiliateProduct {
@@ -197,6 +289,12 @@ export function AffiliateWorkflow({
   const [targetAudience, setTargetAudience] = useState<TargetAudience>(defaultPromptOptions.targetAudience);
   const [tone, setTone] = useState<ToneOption>(defaultPromptOptions.tone);
   const [duration, setDuration] = useState<"15s" | "30s">(defaultPromptOptions.duration);
+  const [uploadedMediaAssets, setUploadedMediaAssets] = useState<UploadedMediaAsset[]>([]);
+  const [sceneMediaAssignments, setSceneMediaAssignments] = useState<SceneMediaAssignment[]>([]);
+  const [subtitleSettings] = useState<SubtitleSettings>(defaultSubtitleSettings);
+  const [fontSettings] = useState<FontSettings>(defaultFontSettings);
+  const [musicSettings] = useState<MusicSettings>(defaultMusicSettings);
+  const [voiceOverSettings] = useState<VoiceOverSettings>(defaultVoiceOverSettings);
 
   const sortedProducts = useMemo(() => sortProducts(products), [products]);
   const filteredProducts = useMemo(() => {
@@ -238,6 +336,15 @@ export function AffiliateWorkflow({
   };
   const promptInput = { product: selectedProduct, mode: promptEngineMode, options: promptOptions };
   const promptAssets = generatedPack ?? buildTemplateContentPack(promptInput);
+  const editorPack = mergeEditorStateIntoPack(
+    promptAssets,
+    uploadedMediaAssets,
+    sceneMediaAssignments,
+    subtitleSettings,
+    fontSettings,
+    musicSettings,
+    voiceOverSettings
+  );
   const campaign = buildCampaignPlan(promptInput, campaignDuration, campaignGoal);
   const visiblePerformance = performance.slice(0, campaignDuration);
   const performanceSummary = calculatePerformanceSummary(visiblePerformance);
@@ -485,33 +592,147 @@ export function AffiliateWorkflow({
     }
   }
 
+  async function handleMediaUpload(event: ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(event.target.files ?? []);
+    const supportedFiles = files.filter((file) => [...acceptedImageTypes, ...acceptedVideoTypes].includes(file.type));
+
+    if (supportedFiles.length !== files.length) {
+      showStatus("Beberapa file dilewati. Gunakan JPG, PNG, WEBP, MP4, MOV, atau WEBM.", "error");
+    }
+
+    if (supportedFiles.length === 0) {
+      event.target.value = "";
+      return;
+    }
+
+    try {
+      const assets = await Promise.all(
+        supportedFiles.map(async (file, index) => {
+          const dataUrl = await readFileAsDataUrl(file);
+          const fileType: UploadedMediaAsset["fileType"] = file.type.startsWith("video/") ? "video" : "image";
+
+          return {
+            id: `media-${Date.now()}-${index}-${file.name.replace(/[^a-z0-9]/gi, "-").toLowerCase()}`,
+            fileName: file.name,
+            fileType,
+            mimeType: file.type,
+            url: dataUrl,
+            thumbnailUrl: fileType === "image" ? dataUrl : "",
+            size: file.size,
+            createdAt: new Date().toISOString()
+          } satisfies UploadedMediaAsset;
+        })
+      );
+
+      setUploadedMediaAssets((current) => [...current, ...assets]);
+      showStatus(`${assets.length} media ditambahkan ke gallery. Assign ke scene yang sesuai.`, "success");
+    } catch {
+      showStatus("Media belum bisa dibaca dari browser. Coba upload file lain.", "error");
+    } finally {
+      event.target.value = "";
+    }
+  }
+
+  function removeMediaAsset(assetId: string) {
+    setUploadedMediaAssets((current) => current.filter((asset) => asset.id !== assetId));
+    setSceneMediaAssignments((current) =>
+      current
+        .map((assignment) => {
+          const assetIds = assignment.assetIds.filter((id) => id !== assetId);
+          return {
+            ...assignment,
+            assetIds,
+            primaryAssetId: assignment.primaryAssetId === assetId ? assetIds[0] : assignment.primaryAssetId
+          };
+        })
+        .filter((assignment) => assignment.assetIds.length > 0)
+    );
+    showStatus("Media dihapus dari gallery dan assignment scene.", "success");
+  }
+
+  function assignMediaToScene(sceneNumber: number, assetId: string) {
+    if (!assetId) return;
+
+    setSceneMediaAssignments((current) => {
+      const existing = current.find((assignment) => assignment.sceneNumber === sceneNumber);
+
+      if (!existing) {
+        return [
+          ...current,
+          {
+            sceneNumber,
+            assetIds: [assetId],
+            primaryAssetId: assetId,
+            usageType: "scene background"
+          }
+        ];
+      }
+
+      const assetIds = Array.from(new Set([...existing.assetIds, assetId]));
+
+      return current.map((assignment) =>
+        assignment.sceneNumber === sceneNumber
+          ? {
+              ...assignment,
+              assetIds,
+              primaryAssetId: assignment.primaryAssetId ?? assetId
+            }
+          : assignment
+      );
+    });
+    showStatus(`Media ditambahkan ke scene ${sceneNumber}.`, "success");
+  }
+
+  function removeSceneMedia(sceneNumber: number, assetId?: string) {
+    setSceneMediaAssignments((current) =>
+      current
+        .map((assignment) => {
+          if (assignment.sceneNumber !== sceneNumber) {
+            return assignment;
+          }
+
+          const assetIds = assetId ? assignment.assetIds.filter((id) => id !== assetId) : [];
+
+          return {
+            ...assignment,
+            assetIds,
+            primaryAssetId: assignment.primaryAssetId && assetIds.includes(assignment.primaryAssetId) ? assignment.primaryAssetId : assetIds[0]
+          };
+        })
+        .filter((assignment) => assignment.assetIds.length > 0)
+    );
+    showStatus(`Assignment media scene ${sceneNumber} diperbarui.`, "success");
+  }
+
   function fullPackText() {
     return [
-      `Hook:\n${promptAssets.hooks.join("\n")}`,
-      `Product insight:\n${promptAssets.productInsight ?? ""}`,
-      `Main selling point:\n${promptAssets.mainSellingPoint ?? ""}`,
-      `Target audience match:\n${promptAssets.targetAudienceMatch ?? ""}`,
-      `Script 15 detik:\n${promptAssets.script15}`,
-      `Script 30 detik:\n${promptAssets.script30}`,
-      `Script 60 detik:\n${promptAssets.script60 ?? ""}`,
-      `Scene Plan:\n${promptAssets.scenePlan.join("\n")}`,
-      `Storyboard:\n${formatPromptJson(promptAssets.storyboard)}`,
-      `Preview Video:\n${formatPromptJson(promptAssets.previewVideoMeta)}`,
-      `Product Brief:\n${formatPromptJson(promptAssets.productBrief)}`,
-      `Prompt Gambar - Nano Banana:\n${formatPromptJson(promptAssets.nanoBananaPrompts)}`,
-      `Prompt Video - Veo 3:\n${formatPromptJson(promptAssets.veo3Prompts)}`,
-      `Voice over:\n${promptAssets.voiceOverDraft ?? ""}`,
-      `Caption pendek:\n${promptAssets.captionShort ?? promptAssets.caption}`,
-      `Caption medium:\n${promptAssets.captionMedium ?? promptAssets.caption}`,
-      `Caption storytelling:\n${promptAssets.captionStorytelling ?? promptAssets.caption}`,
-      `Hashtag:\n${promptAssets.hashtags.join(" ")}`,
-      `CTA soft:\n${promptAssets.ctaSoft ?? promptAssets.cta}`,
-      `CTA direct:\n${promptAssets.ctaDirect ?? promptAssets.cta}`,
-      `CTA keranjang kuning:\n${promptAssets.ctaKeranjangKuning ?? promptAssets.cta}`,
-      `Checklist Klaim Aman:\n${promptAssets.safeClaimChecklist.join("\n")}`,
-      `Compliance Checklist:\n${formatPromptJson(promptAssets.complianceChecklist)}`,
-      `Editing notes:\n${(promptAssets.editingNotes ?? []).join("\n")}`,
-      `Posting notes:\n${(promptAssets.postingNotes ?? []).join("\n")}`
+      `Hook:\n${editorPack.hooks.join("\n")}`,
+      `Product insight:\n${editorPack.productInsight ?? ""}`,
+      `Main selling point:\n${editorPack.mainSellingPoint ?? ""}`,
+      `Target audience match:\n${editorPack.targetAudienceMatch ?? ""}`,
+      `Script 15 detik:\n${editorPack.script15}`,
+      `Script 30 detik:\n${editorPack.script30}`,
+      `Script 60 detik:\n${editorPack.script60 ?? ""}`,
+      `Scene Plan:\n${editorPack.scenePlan.join("\n")}`,
+      `Storyboard:\n${formatPromptJson(editorPack.storyboard)}`,
+      `Media Uploaded:\n${formatPromptJson(editorPack.uploadedMediaAssets?.map(({ id, fileName, fileType, mimeType, size }) => ({ id, fileName, fileType, mimeType, size })))}`,
+      `Scene Media Assignment:\n${formatPromptJson(editorPack.sceneMediaAssignments)}`,
+      `Preview Video:\n${formatPromptJson(editorPack.previewVideoMeta)}`,
+      `Product Brief:\n${formatPromptJson(editorPack.productBrief)}`,
+      `Prompt Gambar - Nano Banana:\n${formatPromptJson(editorPack.nanoBananaPrompts)}`,
+      `Prompt Video - Veo 3:\n${formatPromptJson(editorPack.veo3Prompts)}`,
+      `Voice over:\n${editorPack.voiceOverDraft ?? ""}`,
+      `Caption pendek:\n${editorPack.captionShort ?? editorPack.caption}`,
+      `Caption medium:\n${editorPack.captionMedium ?? editorPack.caption}`,
+      `Caption storytelling:\n${editorPack.captionStorytelling ?? editorPack.caption}`,
+      `Hashtag:\n${editorPack.hashtags.join(" ")}`,
+      `CTA soft:\n${editorPack.ctaSoft ?? editorPack.cta}`,
+      `CTA direct:\n${editorPack.ctaDirect ?? editorPack.cta}`,
+      `CTA keranjang kuning:\n${editorPack.ctaKeranjangKuning ?? editorPack.cta}`,
+      `Checklist Klaim Aman:\n${editorPack.safeClaimChecklist.join("\n")}`,
+      `Compliance Checklist:\n${formatPromptJson(editorPack.complianceChecklist)}`,
+      `Editing notes:\n${(editorPack.editingNotes ?? []).join("\n")}`,
+      `Posting notes:\n${(editorPack.postingNotes ?? []).join("\n")}`
     ].join("\n\n");
   }
 
@@ -521,33 +742,34 @@ export function AffiliateWorkflow({
     setDraftContentPacks((current) => current + 1);
 
     if (part === "hooks") {
-      setGeneratedPack({ ...promptAssets, hooks: pack.hooks });
+      setGeneratedPack(mergeEditorStateIntoPack({ ...promptAssets, hooks: pack.hooks }, uploadedMediaAssets, sceneMediaAssignments, subtitleSettings, fontSettings, musicSettings, voiceOverSettings));
       showStatus("Hooks berhasil dibuat dalam Template Mode.", "success");
       setLoadingAction(null);
       return;
     }
 
     if (part === "script") {
-      setGeneratedPack({ ...promptAssets, script15: pack.script15, script30: pack.script30, script60: pack.script60, scenePlan: pack.scenePlan, structuredScenePlan: pack.structuredScenePlan, voiceOverDraft: pack.voiceOverDraft });
+      setGeneratedPack(mergeEditorStateIntoPack({ ...promptAssets, script15: pack.script15, script30: pack.script30, script60: pack.script60, scenePlan: pack.scenePlan, structuredScenePlan: pack.structuredScenePlan, storyboard: pack.storyboard, previewVideoMeta: pack.previewVideoMeta, voiceOverDraft: pack.voiceOverDraft }, uploadedMediaAssets, sceneMediaAssignments, subtitleSettings, fontSettings, musicSettings, voiceOverSettings));
       showStatus("Voice over, script 15/30/60 detik, dan scene plan berhasil dibuat.", "success");
       setLoadingAction(null);
       return;
     }
 
     if (part === "caption") {
-      setGeneratedPack({ ...promptAssets, caption: pack.caption, hashtags: pack.hashtags, cta: pack.cta });
+      setGeneratedPack(mergeEditorStateIntoPack({ ...promptAssets, caption: pack.caption, hashtags: pack.hashtags, cta: pack.cta }, uploadedMediaAssets, sceneMediaAssignments, subtitleSettings, fontSettings, musicSettings, voiceOverSettings));
       showStatus("Caption, hashtag, dan CTA berhasil dibuat.", "success");
       setLoadingAction(null);
       return;
     }
 
-    setGeneratedPack(pack);
+    const packWithEditorState = mergeEditorStateIntoPack(pack, uploadedMediaAssets, sceneMediaAssignments, subtitleSettings, fontSettings, musicSettings, voiceOverSettings);
+    setGeneratedPack(packWithEditorState);
     fetch("/api/content-packs/generate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         productId: selectedProduct.id,
-        contentPack: pack,
+        contentPack: packWithEditorState,
         contentMode,
         targetAudience,
         tone,
@@ -1159,8 +1381,8 @@ export function AffiliateWorkflow({
           </div>
         </div>
 
-        <div className="mt-4 grid gap-2 rounded-2xl border border-line bg-slate-50 p-3 text-xs font-black text-ink sm:grid-cols-4 lg:grid-cols-8">
-          {["Brief", "Hook", "Script", "Scene Plan", "Storyboard", "Preview Video", "Nano Banana", "Veo 3", "Caption & Hashtag", "Compliance", "Save to Draft"].map((item) => (
+        <div className="mt-4 grid gap-2 rounded-2xl border border-line bg-slate-50 p-3 text-xs font-black text-ink sm:grid-cols-4 lg:grid-cols-6">
+          {["Brief", "Hook", "Script", "Scene Plan", "Storyboard", "Media", "Preview per Scene", "Prompt Gambar - Nano Banana", "Prompt Video - Veo 3", "Caption & Hashtag", "Compliance", "Save to Draft"].map((item) => (
             <span key={item} className="rounded-full bg-white px-3 py-2 text-center">{item}</span>
           ))}
         </div>
@@ -1187,34 +1409,48 @@ export function AffiliateWorkflow({
         ) : null}
 
         <div className="mt-4 grid gap-3 lg:grid-cols-2">
-          <PromptBlock title="Brief" text={formatPromptJson(promptAssets.productBrief)} copyLabel="Copy Brief" onCopy={() => copyOutput("Brief", formatPromptJson(promptAssets.productBrief))} />
-          <PromptBlock title="Product insight" text={promptAssets.productInsight} />
-          <PromptBlock title="Main selling point" text={promptAssets.mainSellingPoint} />
-          <PromptBlock title="Target audience match" text={promptAssets.targetAudienceMatch} />
-          <PromptBlock title="Hook 3 detik pertama" items={promptAssets.hooks} copyLabel="Copy Hook" onCopy={() => copyOutput("Hook", promptAssets.hooks.join("\n"))} />
-          <PromptBlock title="3 variasi script 15 detik" items={promptAssets.script15Variations ?? [promptAssets.script15]} copyLabel="Copy Script" onCopy={() => copyOutput("Script", (promptAssets.script15Variations ?? [promptAssets.script15]).join("\n\n"))} />
-          <PromptBlock title="3 variasi script 30 detik" items={promptAssets.script30Variations ?? [promptAssets.script30]} copyLabel="Copy Script" onCopy={() => copyOutput("Script", (promptAssets.script30Variations ?? [promptAssets.script30]).join("\n\n"))} />
-          <PromptBlock title="Script / Voice Over 60 detik" text={promptAssets.script60} copyLabel="Copy Script" onCopy={() => copyOutput("Script 60s", promptAssets.script60 ?? "")} />
-          <PromptBlock title="Scene Plan" items={promptAssets.scenePlan} />
-          <PromptBlock title="Scene Plan Detail" text={formatPromptJson(promptAssets.structuredScenePlan)} copyLabel="Copy Scene Plan" onCopy={() => copyOutput("Scene Plan", formatPromptJson(promptAssets.structuredScenePlan))} />
-          <StoryboardTimeline storyboard={promptAssets.storyboard} onCopy={copyOutput} />
-          <StoryboardPreview storyboard={promptAssets.storyboard} previewMeta={promptAssets.previewVideoMeta} aiProviderConnected={promptEngineMode === "AI_CONNECTED"} />
-          <PromptBlock title="Voice Over" text={promptAssets.voiceOverDraft} />
+          <PromptBlock title="Brief" text={formatPromptJson(editorPack.productBrief)} copyLabel="Copy Brief" onCopy={() => copyOutput("Brief", formatPromptJson(editorPack.productBrief))} />
+          <PromptBlock title="Product insight" text={editorPack.productInsight} />
+          <PromptBlock title="Main selling point" text={editorPack.mainSellingPoint} />
+          <PromptBlock title="Target audience match" text={editorPack.targetAudienceMatch} />
+          <PromptBlock title="Hook 3 detik pertama" items={editorPack.hooks} copyLabel="Copy Hook" onCopy={() => copyOutput("Hook", editorPack.hooks.join("\n"))} />
+          <PromptBlock title="3 variasi script 15 detik" items={editorPack.script15Variations ?? [editorPack.script15]} copyLabel="Copy Script" onCopy={() => copyOutput("Script", (editorPack.script15Variations ?? [editorPack.script15]).join("\n\n"))} />
+          <PromptBlock title="3 variasi script 30 detik" items={editorPack.script30Variations ?? [editorPack.script30]} copyLabel="Copy Script" onCopy={() => copyOutput("Script", (editorPack.script30Variations ?? [editorPack.script30]).join("\n\n"))} />
+          <PromptBlock title="Script / Voice Over 60 detik" text={editorPack.script60} copyLabel="Copy Script" onCopy={() => copyOutput("Script 60s", editorPack.script60 ?? "")} />
+          <PromptBlock title="Scene Plan" items={editorPack.scenePlan} />
+          <PromptBlock title="Scene Plan Detail" text={formatPromptJson(editorPack.structuredScenePlan)} copyLabel="Copy Scene Plan" onCopy={() => copyOutput("Scene Plan", formatPromptJson(editorPack.structuredScenePlan))} />
+          <MediaGalleryPanel assets={uploadedMediaAssets} onUpload={handleMediaUpload} onRemove={removeMediaAsset} />
+          <StoryboardTimeline
+            storyboard={editorPack.storyboard}
+            mediaAssets={uploadedMediaAssets}
+            sceneMediaAssignments={sceneMediaAssignments}
+            onAssignMedia={assignMediaToScene}
+            onRemoveSceneMedia={removeSceneMedia}
+            onCopy={copyOutput}
+          />
+          <StoryboardPreview
+            storyboard={editorPack.storyboard}
+            previewMeta={editorPack.previewVideoMeta}
+            mediaAssets={uploadedMediaAssets}
+            sceneMediaAssignments={sceneMediaAssignments}
+            aiProviderConnected={promptEngineMode === "AI_CONNECTED"}
+          />
+          <PromptBlock title="Voice Over" text={editorPack.voiceOverDraft} />
           <PromptBlock title="Subtitle" text="Gunakan subtitle Bahasa Indonesia yang pendek, mudah dibaca di layar HP, dan tidak menutup produk." />
-          <PromptBlock title="Prompt Gambar - Nano Banana" text={formatPromptJson(promptAssets.nanoBananaPrompts)} copyLabel="Copy Nano Banana" onCopy={() => copyOutput("Nano Banana", formatPromptJson(promptAssets.nanoBananaPrompts))} />
-          <PromptBlock title="Prompt Video - Veo 3" text={formatPromptJson(promptAssets.veo3Prompts)} copyLabel="Copy Veo 3" onCopy={() => copyOutput("Veo 3", formatPromptJson(promptAssets.veo3Prompts))} />
-          <PromptBlock title="Caption short" text={promptAssets.captionShort ?? promptAssets.caption} copyLabel="Copy Caption" onCopy={() => copyOutput("Caption", promptAssets.captionShort ?? promptAssets.caption)} />
-          <PromptBlock title="Caption medium" text={promptAssets.captionMedium ?? promptAssets.caption} copyLabel="Copy Caption" onCopy={() => copyOutput("Caption", promptAssets.captionMedium ?? promptAssets.caption)} />
-          <PromptBlock title="Caption storytelling" text={promptAssets.captionStorytelling ?? promptAssets.caption} copyLabel="Copy Caption" onCopy={() => copyOutput("Caption", promptAssets.captionStorytelling ?? promptAssets.caption)} />
-          <PromptBlock title="Hashtag" items={promptAssets.hashtags} copyLabel="Copy Hashtag" onCopy={() => copyOutput("Hashtag", promptAssets.hashtags.join(" "))} />
-          <PromptBlock title="CTA soft" text={promptAssets.ctaSoft ?? promptAssets.cta} copyLabel="Copy CTA" onCopy={() => copyOutput("CTA", promptAssets.ctaSoft ?? promptAssets.cta)} />
-          <PromptBlock title="CTA direct" text={promptAssets.ctaDirect ?? promptAssets.cta} copyLabel="Copy CTA" onCopy={() => copyOutput("CTA", promptAssets.ctaDirect ?? promptAssets.cta)} />
-          <PromptBlock title="CTA keranjang kuning" text={promptAssets.ctaKeranjangKuning ?? promptAssets.cta} copyLabel="Copy CTA" onCopy={() => copyOutput("CTA", promptAssets.ctaKeranjangKuning ?? promptAssets.cta)} />
-          <PromptBlock title="Checklist Klaim Aman" items={promptAssets.safeClaimChecklist} />
-          <PromptBlock title="Compliance Checklist" text={formatPromptJson(promptAssets.complianceChecklist)} copyLabel="Copy Compliance" onCopy={() => copyOutput("Compliance", formatPromptJson(promptAssets.complianceChecklist))} />
-          <PromptBlock title={`Compliance: ${promptAssets.compliance?.status ?? "Safe"}`} items={[...(promptAssets.compliance?.findings ?? []), ...(promptAssets.compliance?.saferRewriteSuggestions ?? [])]} />
-          <PromptBlock title="Editing notes" items={promptAssets.editingNotes} />
-          <PromptBlock title="Posting notes" items={promptAssets.postingNotes} />
+          <PromptBlock title="Prompt Gambar - Nano Banana" text={formatPromptJson(editorPack.nanoBananaPrompts)} copyLabel="Copy Nano Banana" onCopy={() => copyOutput("Nano Banana", formatPromptJson(editorPack.nanoBananaPrompts))} />
+          <PromptBlock title="Prompt Video - Veo 3" text={formatPromptJson(editorPack.veo3Prompts)} copyLabel="Copy Veo 3" onCopy={() => copyOutput("Veo 3", formatPromptJson(editorPack.veo3Prompts))} />
+          <PromptBlock title="Caption short" text={editorPack.captionShort ?? editorPack.caption} copyLabel="Copy Caption" onCopy={() => copyOutput("Caption", editorPack.captionShort ?? editorPack.caption)} />
+          <PromptBlock title="Caption medium" text={editorPack.captionMedium ?? editorPack.caption} copyLabel="Copy Caption" onCopy={() => copyOutput("Caption", editorPack.captionMedium ?? editorPack.caption)} />
+          <PromptBlock title="Caption storytelling" text={editorPack.captionStorytelling ?? editorPack.caption} copyLabel="Copy Caption" onCopy={() => copyOutput("Caption", editorPack.captionStorytelling ?? editorPack.caption)} />
+          <PromptBlock title="Hashtag" items={editorPack.hashtags} copyLabel="Copy Hashtag" onCopy={() => copyOutput("Hashtag", editorPack.hashtags.join(" "))} />
+          <PromptBlock title="CTA soft" text={editorPack.ctaSoft ?? editorPack.cta} copyLabel="Copy CTA" onCopy={() => copyOutput("CTA", editorPack.ctaSoft ?? editorPack.cta)} />
+          <PromptBlock title="CTA direct" text={editorPack.ctaDirect ?? editorPack.cta} copyLabel="Copy CTA" onCopy={() => copyOutput("CTA", editorPack.ctaDirect ?? editorPack.cta)} />
+          <PromptBlock title="CTA keranjang kuning" text={editorPack.ctaKeranjangKuning ?? editorPack.cta} copyLabel="Copy CTA" onCopy={() => copyOutput("CTA", editorPack.ctaKeranjangKuning ?? editorPack.cta)} />
+          <PromptBlock title="Checklist Klaim Aman" items={editorPack.safeClaimChecklist} />
+          <PromptBlock title="Compliance Checklist" text={formatPromptJson(editorPack.complianceChecklist)} copyLabel="Copy Compliance" onCopy={() => copyOutput("Compliance", formatPromptJson(editorPack.complianceChecklist))} />
+          <PromptBlock title={`Compliance: ${editorPack.compliance?.status ?? "Safe"}`} items={[...(editorPack.compliance?.findings ?? []), ...(editorPack.compliance?.saferRewriteSuggestions ?? [])]} />
+          <PromptBlock title="Editing notes" items={editorPack.editingNotes} />
+          <PromptBlock title="Posting notes" items={editorPack.postingNotes} />
         </div>
       </SectionCard>
 
@@ -1371,11 +1607,96 @@ function PromptBlock({
   );
 }
 
+function MediaPreview({ asset, className = "" }: { asset: UploadedMediaAsset; className?: string }) {
+  if (asset.fileType === "video") {
+    return (
+      <video
+        src={asset.url}
+        className={`h-full w-full object-cover ${className}`}
+        muted
+        playsInline
+        controls={false}
+      />
+    );
+  }
+
+  return (
+    // eslint-disable-next-line @next/next/no-img-element -- Local browser preview uses uploaded data URLs before storage exists.
+    <img src={asset.url} alt={asset.fileName} className={`h-full w-full object-cover ${className}`} />
+  );
+}
+
+function MediaGalleryPanel({
+  assets,
+  onUpload,
+  onRemove
+}: {
+  assets: UploadedMediaAsset[];
+  onUpload: (event: ChangeEvent<HTMLInputElement>) => void;
+  onRemove: (assetId: string) => void;
+}) {
+  return (
+    <div className="rounded-2xl border border-line bg-white p-4 lg:col-span-2">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-sm font-bold text-ink">Media</p>
+          <p className="mt-1 text-xs leading-5 text-muted">
+            Upload gambar, foto, atau video pendek lalu assign ke scene storyboard. Jika storage belum aktif, preview disimpan sebagai metadata/browser preview.
+          </p>
+        </div>
+        <label className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white">
+          <FileUp className="h-4 w-4" />
+          Upload Gambar / Foto
+          <input
+            type="file"
+            multiple
+            accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime,video/webm,.jpg,.jpeg,.png,.webp,.mp4,.mov,.webm"
+            className="sr-only"
+            onChange={onUpload}
+          />
+        </label>
+      </div>
+
+      {assets.length === 0 ? (
+        <div className="mt-4 rounded-2xl border border-dashed border-line bg-slate-50 p-4">
+          <p className="text-sm font-black text-ink">Belum ada media.</p>
+          <p className="mt-1 text-sm leading-6 text-muted">Upload foto produk, hasil demo, atau video pendek agar tiap scene lebih mudah diproduksi.</p>
+        </div>
+      ) : (
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {assets.map((asset) => (
+            <article key={asset.id} className="overflow-hidden rounded-2xl border border-line bg-slate-50">
+              <div className="aspect-[9/12] bg-slate-200">
+                <MediaPreview asset={asset} />
+              </div>
+              <div className="p-3">
+                <p className="truncate text-sm font-bold text-ink" title={asset.fileName}>{asset.fileName}</p>
+                <p className="mt-1 text-xs text-muted">{asset.fileType.toUpperCase()} - {(asset.size / 1024).toFixed(0)} KB</p>
+                <button onClick={() => onRemove(asset.id)} className="mt-3 rounded-full border border-line bg-white px-3 py-1 text-xs font-semibold text-ink">
+                  Hapus Media
+                </button>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function StoryboardTimeline({
   storyboard,
+  mediaAssets,
+  sceneMediaAssignments,
+  onAssignMedia,
+  onRemoveSceneMedia,
   onCopy
 }: {
   storyboard?: StoryboardSet;
+  mediaAssets: UploadedMediaAsset[];
+  sceneMediaAssignments: SceneMediaAssignment[];
+  onAssignMedia: (sceneNumber: number, assetId: string) => void;
+  onRemoveSceneMedia: (sceneNumber: number, assetId?: string) => void;
   onCopy: (label: string, value: string) => void;
 }) {
   if (!storyboard) {
@@ -1400,20 +1721,73 @@ function StoryboardTimeline({
         </button>
       </div>
       <div className="mt-4 grid gap-3 md:grid-cols-2">
-        {storyboard.scenes.map((scene) => (
-          <details key={scene.sceneNumber} className="rounded-2xl border border-line bg-slate-50 p-4" open={scene.sceneNumber === 1}>
-            <summary className="cursor-pointer text-sm font-black text-ink">
-              Scene {scene.sceneNumber}: {scene.title} ({scene.duration})
-            </summary>
-            <div className="mt-3 space-y-2 text-sm leading-6 text-muted">
+        {storyboard.scenes.map((scene) => {
+          const assignment = sceneMediaAssignments.find((item) => item.sceneNumber === scene.sceneNumber);
+          const assignedMedia = mediaAssets.filter((asset) => assignment?.assetIds.includes(asset.id));
+          const primaryMedia = mediaAssets.find((asset) => asset.id === assignment?.primaryAssetId) ?? assignedMedia[0];
+
+          return (
+            <details key={scene.sceneNumber} className="rounded-2xl border border-line bg-slate-50 p-4" open={scene.sceneNumber === 1}>
+              <summary className="cursor-pointer text-sm font-black text-ink">
+                Scene {scene.sceneNumber}: {scene.title} ({scene.duration})
+              </summary>
+              <div className="mt-3 grid gap-3 md:grid-cols-[140px_1fr]">
+                <div className="overflow-hidden rounded-2xl border border-line bg-white">
+                  <div className="aspect-[9/16] bg-slate-100">
+                    {primaryMedia ? (
+                      <MediaPreview asset={primaryMedia} />
+                    ) : (
+                      <div className="flex h-full items-center justify-center p-3 text-center text-xs font-bold text-muted">
+                        Placeholder media scene {scene.sceneNumber}
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-2 text-[11px] font-semibold text-muted">
+                    {primaryMedia ? primaryMedia.fileName : "Belum ada media assigned"}
+                  </div>
+                </div>
+                <div className="space-y-2 text-sm leading-6 text-muted">
               <p><strong className="text-ink">Objective:</strong> {scene.objective}</p>
               <p><strong className="text-ink">Visual:</strong> {scene.visualDescription}</p>
               <p><strong className="text-ink">Voice Over:</strong> {scene.voiceOver}</p>
               <p><strong className="text-ink">Subtitle:</strong> {scene.subtitleText}</p>
-              <p><strong className="text-ink">Camera:</strong> {scene.cameraAngle}, {scene.cameraMovement}</p>
+              <p><strong className="text-ink">On-screen text:</strong> {scene.onScreenText}</p>
+              <p><strong className="text-ink">Camera angle:</strong> {scene.cameraAngle}</p>
+              <p><strong className="text-ink">Camera movement:</strong> {scene.cameraMovement}</p>
               <p><strong className="text-ink">Composition:</strong> {scene.composition}</p>
               <p><strong className="text-ink">Lighting:</strong> {scene.lighting}</p>
               <p><strong className="text-ink">Transition:</strong> {scene.transition}</p>
+              <label className="block rounded-2xl border border-line bg-white p-3">
+                <span className="text-xs font-black uppercase tracking-wide text-muted">Assign media ke scene</span>
+                <select
+                  value=""
+                  onChange={(event) => onAssignMedia(scene.sceneNumber, event.target.value)}
+                  className="mt-2 min-h-10 w-full rounded-xl border border-line px-3 text-sm outline-none focus:border-mint"
+                >
+                  <option value="">Pilih media dari gallery</option>
+                  {mediaAssets.map((asset) => (
+                    <option key={asset.id} value={asset.id}>
+                      {asset.fileName}
+                    </option>
+                  ))}
+                </select>
+                {assignedMedia.length > 0 ? (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {assignedMedia.map((asset) => (
+                      <button
+                        key={asset.id}
+                        onClick={() => onRemoveSceneMedia(scene.sceneNumber, asset.id)}
+                        className="rounded-full border border-line bg-slate-50 px-3 py-1 text-xs font-semibold text-ink"
+                      >
+                        Hapus {asset.fileName}
+                      </button>
+                    ))}
+                    <button onClick={() => onRemoveSceneMedia(scene.sceneNumber)} className="rounded-full border border-line bg-slate-50 px-3 py-1 text-xs font-semibold text-ink">
+                      Hapus Semua Media Scene
+                    </button>
+                  </div>
+                ) : null}
+              </label>
               <div className="flex flex-wrap gap-2 pt-2">
                 <button onClick={() => onCopy(`Nano Banana Scene ${scene.sceneNumber}`, scene.nanoBananaImagePrompt)} className="rounded-full border border-line bg-white px-3 py-1 text-xs font-semibold text-ink">
                   Copy Nano Banana
@@ -1422,9 +1796,11 @@ function StoryboardTimeline({
                   Copy Veo 3
                 </button>
               </div>
+                </div>
             </div>
-          </details>
-        ))}
+            </details>
+          );
+        })}
       </div>
     </div>
   );
@@ -1433,10 +1809,14 @@ function StoryboardTimeline({
 function StoryboardPreview({
   storyboard,
   previewMeta,
+  mediaAssets,
+  sceneMediaAssignments,
   aiProviderConnected
 }: {
   storyboard?: StoryboardSet;
   previewMeta?: ContentPack["previewVideoMeta"];
+  mediaAssets: UploadedMediaAsset[];
+  sceneMediaAssignments: SceneMediaAssignment[];
   aiProviderConnected: boolean;
 }) {
   const scenes = storyboard?.scenes ?? [];
@@ -1464,6 +1844,8 @@ function StoryboardPreview({
   }
 
   const progress = `${currentScene + 1}/${scenes.length}`;
+  const activeAssignment = sceneMediaAssignments.find((assignment) => assignment.sceneNumber === activeScene.sceneNumber);
+  const activeMedia = mediaAssets.find((asset) => asset.id === activeAssignment?.primaryAssetId) ?? mediaAssets.find((asset) => activeAssignment?.assetIds.includes(asset.id));
 
   return (
     <div className="rounded-2xl border border-line bg-white p-4 lg:col-span-2">
@@ -1485,9 +1867,17 @@ function StoryboardPreview({
             <div className="rounded-2xl bg-white/10 p-3 text-xs font-bold uppercase tracking-wide">
               Scene {activeScene.sceneNumber} - {progress}
             </div>
-            <div className="rounded-2xl border border-white/20 bg-white/10 p-4 text-center">
-              <p className="text-sm font-black">{activeScene.previewImagePlaceholder}</p>
-              <p className="mt-3 text-xs leading-5 text-white/70">{activeScene.visualDescription}</p>
+            <div className="overflow-hidden rounded-2xl border border-white/20 bg-white/10 text-center">
+              {activeMedia ? (
+                <div className="aspect-[9/11]">
+                  <MediaPreview asset={activeMedia} />
+                </div>
+              ) : (
+                <div className="p-4">
+                  <p className="text-sm font-black">{activeScene.previewImagePlaceholder}</p>
+                  <p className="mt-3 text-xs leading-5 text-white/70">{activeScene.visualDescription}</p>
+                </div>
+              )}
             </div>
             <div className="rounded-2xl bg-black/45 p-3">
               <p className="text-sm font-bold">{activeScene.subtitleText}</p>
