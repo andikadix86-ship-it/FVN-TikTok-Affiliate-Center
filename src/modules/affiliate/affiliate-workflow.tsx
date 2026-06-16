@@ -76,6 +76,11 @@ type SaveTone = "info" | "success" | "error";
 type LoadingAction = "manual" | "csv" | "url" | "edit" | "delete" | "hooks" | "script" | "caption" | "full" | "campaign" | "performance" | null;
 type ProductFilter = "all" | "manual" | "csv" | "demo" | "highScore" | "lowCompetition";
 
+function formatPromptJson(value: unknown) {
+  if (!value) return "";
+  return typeof value === "string" ? value : JSON.stringify(value, null, 2);
+}
+
 function productFromForm(source: ProductSource, form: typeof initialForm): AffiliateProduct {
   const now = new Date().toISOString();
 
@@ -487,7 +492,11 @@ export function AffiliateWorkflow({
       `Target audience match:\n${promptAssets.targetAudienceMatch ?? ""}`,
       `Script 15 detik:\n${promptAssets.script15}`,
       `Script 30 detik:\n${promptAssets.script30}`,
+      `Script 60 detik:\n${promptAssets.script60 ?? ""}`,
       `Scene Plan:\n${promptAssets.scenePlan.join("\n")}`,
+      `Product Brief:\n${formatPromptJson(promptAssets.productBrief)}`,
+      `Prompt Gambar - Nano Banana:\n${formatPromptJson(promptAssets.nanoBananaPrompts)}`,
+      `Prompt Video - Veo 3:\n${formatPromptJson(promptAssets.veo3Prompts)}`,
       `Voice over:\n${promptAssets.voiceOverDraft ?? ""}`,
       `Caption pendek:\n${promptAssets.captionShort ?? promptAssets.caption}`,
       `Caption medium:\n${promptAssets.captionMedium ?? promptAssets.caption}`,
@@ -497,6 +506,7 @@ export function AffiliateWorkflow({
       `CTA direct:\n${promptAssets.ctaDirect ?? promptAssets.cta}`,
       `CTA keranjang kuning:\n${promptAssets.ctaKeranjangKuning ?? promptAssets.cta}`,
       `Checklist Klaim Aman:\n${promptAssets.safeClaimChecklist.join("\n")}`,
+      `Compliance Checklist:\n${formatPromptJson(promptAssets.complianceChecklist)}`,
       `Editing notes:\n${(promptAssets.editingNotes ?? []).join("\n")}`,
       `Posting notes:\n${(promptAssets.postingNotes ?? []).join("\n")}`
     ].join("\n\n");
@@ -515,8 +525,8 @@ export function AffiliateWorkflow({
     }
 
     if (part === "script") {
-      setGeneratedPack({ ...promptAssets, script15: pack.script15, script30: pack.script30, scenePlan: pack.scenePlan });
-      showStatus("Script 15 detik dan 30 detik berhasil dibuat.", "success");
+      setGeneratedPack({ ...promptAssets, script15: pack.script15, script30: pack.script30, script60: pack.script60, scenePlan: pack.scenePlan, structuredScenePlan: pack.structuredScenePlan, voiceOverDraft: pack.voiceOverDraft });
+      showStatus("Voice over, script 15/30/60 detik, dan scene plan berhasil dibuat.", "success");
       setLoadingAction(null);
       return;
     }
@@ -542,7 +552,7 @@ export function AffiliateWorkflow({
       })
     })
       .then((response) => {
-        showStatus(response.ok ? "Content pack tersimpan ke database." : "Content pack dibuat lokal saja.", response.ok ? "success" : "error");
+      showStatus(response.ok ? "Content Production Prompt Package tersimpan ke Draft Konten." : "Package dibuat lokal saja.", response.ok ? "success" : "error");
       })
       .catch(() => showStatus("Content pack dibuat lokal saja.", "error"))
       .finally(() => setLoadingAction(null));
@@ -1070,11 +1080,22 @@ export function AffiliateWorkflow({
         </div>
       </SectionCard>
 
-      <SectionCard id="content-factory" title="Buat Konten" description="Buat hook, script, caption, hashtag, CTA, dan checklist klaim aman untuk produk terpilih." icon={Sparkles}>
+      <SectionCard id="content-factory" title="Buat Konten" description="AI Video Prompt Engineer Engine untuk membuat paket produksi lengkap: brief, hook, voice over, scene plan, prompt gambar Nano Banana, prompt video Veo 3, caption, CTA, dan compliance." icon={Sparkles}>
         {promptEngineMode === "TEMPLATE_MODE" ? (
           <div className="mb-4 rounded-2xl border border-yellow-200 bg-yellow-50 p-4">
-            <p className="text-sm font-black text-yellow-900">AI Provider Not Connected - Template Mode</p>
-            <p className="mt-1 text-sm leading-6 text-yellow-900/80">Tambahkan `GEMINI_API_KEY` atau `OPENAI_API_KEY` untuk mengaktifkan AI Connected nanti.</p>
+            <p className="text-sm font-black text-yellow-900">Manual Prompt Template Mode</p>
+            <p className="mt-1 text-sm leading-6 text-yellow-900/80">AI Provider Not Connected - Template Mode. Package tetap dibuat dari template lokal, bukan data TikTok Shop asli.</p>
+          </div>
+        ) : (
+          <div className="mb-4 rounded-2xl border border-teal-200 bg-teal-50 p-4">
+            <p className="text-sm font-black text-teal-900">AI Provider Connected</p>
+            <p className="mt-1 text-sm leading-6 text-teal-900/80">Provider aktif melalui layer AI yang tersedia. Jika provider gagal, app tetap aman dengan fallback template.</p>
+          </div>
+        )}
+        {selectedProduct.source === "DEMO" ? (
+          <div className="mb-4 rounded-2xl border border-orange-200 bg-orange-50 p-4">
+            <p className="text-sm font-black text-orange-900">Demo Mode</p>
+            <p className="mt-1 text-sm leading-6 text-orange-900/80">Produk ini DEMO DATA - Bukan dari TikTok Shop. Gunakan manual/CSV untuk prompt yang lebih sesuai produk kamu.</p>
           </div>
         ) : null}
         <div className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
@@ -1099,7 +1120,7 @@ export function AffiliateWorkflow({
 
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           <label className="rounded-2xl border border-line p-4">
-            <span className="text-xs font-bold uppercase tracking-wide text-muted">Content mode</span>
+            <span className="text-xs font-bold uppercase tracking-wide text-muted">Generator mode</span>
             <select value={contentMode} onChange={(event) => setContentMode(event.target.value as ContentMode)} className="mt-2 min-h-11 w-full rounded-xl border border-line px-3 text-sm outline-none focus:border-mint">
               {contentModes.map((mode) => (
                 <option key={mode} value={mode}>{mode}</option>
@@ -1135,33 +1156,48 @@ export function AffiliateWorkflow({
           </div>
         </div>
 
+        <div className="mt-4 grid gap-2 rounded-2xl border border-line bg-slate-50 p-3 text-xs font-black text-ink sm:grid-cols-4 lg:grid-cols-8">
+          {["Brief", "Hook", "Script", "Scene Plan", "Nano Banana", "Veo 3", "Caption & Hashtag", "Compliance"].map((item) => (
+            <span key={item} className="rounded-full bg-white px-3 py-2 text-center">{item}</span>
+          ))}
+        </div>
+
         <div className="mt-4 flex flex-wrap gap-2">
           <ActionButton loading={loadingAction === "hooks"} onClick={() => generatePack("hooks")}>Buat Hook</ActionButton>
-          <ActionButton loading={loadingAction === "script"} onClick={() => generatePack("script")}>Buat Script</ActionButton>
+          <ActionButton loading={loadingAction === "script"} onClick={() => generatePack("script")}>Buat Voice Over + Scene</ActionButton>
           <ActionButton loading={loadingAction === "caption"} onClick={() => generatePack("caption")}>Buat Caption</ActionButton>
-          <ActionButton loading={loadingAction === "full"} onClick={() => generatePack("full")} className="bg-mint">Buat Full Pack</ActionButton>
+          <ActionButton loading={loadingAction === "full"} onClick={() => generatePack("full")} className="bg-mint">Generate + Save to Draft Konten</ActionButton>
           <button onClick={() => copyOutput("Full Pack", fullPackText())} className="inline-flex items-center gap-2 rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold text-ink">
             <Copy className="h-4 w-4" />
             Copy Full Pack
           </button>
+          <a href="/content-library" className="inline-flex items-center gap-2 rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold text-ink">
+            Lihat Draft Konten
+          </a>
         </div>
-        <p className="mt-2 text-xs leading-5 text-muted">Gunakan script ini sebagai draft. Sesuaikan dengan gaya bicara kamu sebelum posting.</p>
+        <p className="mt-2 text-xs leading-5 text-muted">Gunakan package ini sebagai draft produksi. Upload ke TikTok tetap manual; aplikasi belum melakukan auto-post.</p>
         {!generatedPack ? (
           <div className="mt-4 rounded-2xl border border-dashed border-line bg-slate-50 p-4">
             <p className="text-sm font-black text-ink">Belum ada konten. Pilih produk lalu buat script konten.</p>
-            <p className="mt-1 text-sm leading-6 text-muted">Mulai dari hook, script 15 detik, caption, atau full pack.</p>
+            <p className="mt-1 text-sm leading-6 text-muted">Package akan berisi brief, hook, voice over, scene plan, prompt Nano Banana, prompt Veo 3, caption, CTA, dan compliance.</p>
           </div>
         ) : null}
 
         <div className="mt-4 grid gap-3 lg:grid-cols-2">
+          <PromptBlock title="Brief" text={formatPromptJson(promptAssets.productBrief)} copyLabel="Copy Brief" onCopy={() => copyOutput("Brief", formatPromptJson(promptAssets.productBrief))} />
           <PromptBlock title="Product insight" text={promptAssets.productInsight} />
           <PromptBlock title="Main selling point" text={promptAssets.mainSellingPoint} />
           <PromptBlock title="Target audience match" text={promptAssets.targetAudienceMatch} />
           <PromptBlock title="Hook 3 detik pertama" items={promptAssets.hooks} copyLabel="Copy Hook" onCopy={() => copyOutput("Hook", promptAssets.hooks.join("\n"))} />
           <PromptBlock title="3 variasi script 15 detik" items={promptAssets.script15Variations ?? [promptAssets.script15]} copyLabel="Copy Script" onCopy={() => copyOutput("Script", (promptAssets.script15Variations ?? [promptAssets.script15]).join("\n\n"))} />
           <PromptBlock title="3 variasi script 30 detik" items={promptAssets.script30Variations ?? [promptAssets.script30]} copyLabel="Copy Script" onCopy={() => copyOutput("Script", (promptAssets.script30Variations ?? [promptAssets.script30]).join("\n\n"))} />
+          <PromptBlock title="Script / Voice Over 60 detik" text={promptAssets.script60} copyLabel="Copy Script" onCopy={() => copyOutput("Script 60s", promptAssets.script60 ?? "")} />
           <PromptBlock title="Scene Plan" items={promptAssets.scenePlan} />
-          <PromptBlock title="Voice over draft" text={promptAssets.voiceOverDraft} />
+          <PromptBlock title="Scene Plan Detail" text={formatPromptJson(promptAssets.structuredScenePlan)} copyLabel="Copy Scene Plan" onCopy={() => copyOutput("Scene Plan", formatPromptJson(promptAssets.structuredScenePlan))} />
+          <PromptBlock title="Voice Over" text={promptAssets.voiceOverDraft} />
+          <PromptBlock title="Subtitle" text="Gunakan subtitle Bahasa Indonesia yang pendek, mudah dibaca di layar HP, dan tidak menutup produk." />
+          <PromptBlock title="Prompt Gambar - Nano Banana" text={formatPromptJson(promptAssets.nanoBananaPrompts)} copyLabel="Copy Nano Banana" onCopy={() => copyOutput("Nano Banana", formatPromptJson(promptAssets.nanoBananaPrompts))} />
+          <PromptBlock title="Prompt Video - Veo 3" text={formatPromptJson(promptAssets.veo3Prompts)} copyLabel="Copy Veo 3" onCopy={() => copyOutput("Veo 3", formatPromptJson(promptAssets.veo3Prompts))} />
           <PromptBlock title="Caption short" text={promptAssets.captionShort ?? promptAssets.caption} copyLabel="Copy Caption" onCopy={() => copyOutput("Caption", promptAssets.captionShort ?? promptAssets.caption)} />
           <PromptBlock title="Caption medium" text={promptAssets.captionMedium ?? promptAssets.caption} copyLabel="Copy Caption" onCopy={() => copyOutput("Caption", promptAssets.captionMedium ?? promptAssets.caption)} />
           <PromptBlock title="Caption storytelling" text={promptAssets.captionStorytelling ?? promptAssets.caption} copyLabel="Copy Caption" onCopy={() => copyOutput("Caption", promptAssets.captionStorytelling ?? promptAssets.caption)} />
@@ -1170,6 +1206,7 @@ export function AffiliateWorkflow({
           <PromptBlock title="CTA direct" text={promptAssets.ctaDirect ?? promptAssets.cta} copyLabel="Copy CTA" onCopy={() => copyOutput("CTA", promptAssets.ctaDirect ?? promptAssets.cta)} />
           <PromptBlock title="CTA keranjang kuning" text={promptAssets.ctaKeranjangKuning ?? promptAssets.cta} copyLabel="Copy CTA" onCopy={() => copyOutput("CTA", promptAssets.ctaKeranjangKuning ?? promptAssets.cta)} />
           <PromptBlock title="Checklist Klaim Aman" items={promptAssets.safeClaimChecklist} />
+          <PromptBlock title="Compliance Checklist" text={formatPromptJson(promptAssets.complianceChecklist)} copyLabel="Copy Compliance" onCopy={() => copyOutput("Compliance", formatPromptJson(promptAssets.complianceChecklist))} />
           <PromptBlock title={`Compliance: ${promptAssets.compliance?.status ?? "Safe"}`} items={[...(promptAssets.compliance?.findings ?? []), ...(promptAssets.compliance?.saferRewriteSuggestions ?? [])]} />
           <PromptBlock title="Editing notes" items={promptAssets.editingNotes} />
           <PromptBlock title="Posting notes" items={promptAssets.postingNotes} />
@@ -1317,7 +1354,7 @@ function PromptBlock({
           </button>
         ) : null}
       </div>
-      {text ? <p className="mt-2 text-sm leading-6 text-muted">{text}</p> : null}
+      {text ? <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-6 text-muted">{text}</p> : null}
       {items ? (
         <ul className="mt-2 space-y-2 text-sm leading-6 text-muted">
           {items.map((item) => (

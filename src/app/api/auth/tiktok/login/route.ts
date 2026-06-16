@@ -12,6 +12,8 @@ import {
 import { env } from "@/lib/env";
 import { writeTikTokOAuthLog } from "@/modules/tiktok/account-service";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const envStatus = validateTikTokEnv();
 

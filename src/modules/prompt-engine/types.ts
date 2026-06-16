@@ -4,12 +4,17 @@ export type PromptEngineMode = "AI_CONNECTED" | "TEMPLATE_MODE";
 export type PromptProvider = "GEMINI" | "OPENAI" | "TEMPLATE";
 
 export type ContentMode =
+  | "UGC Natural"
   | "Product Demo"
   | "Problem Solution"
+  | "Affiliate Story"
+  | "Educational Review"
   | "Before After"
   | "Review Natural"
   | "Unboxing"
   | "Comparison"
+  | "Testimonial Style"
+  | "Islamic Friendly / family-safe style"
   | "Tutorial"
   | "Daily Use"
   | "Budget Find"
@@ -57,6 +62,103 @@ export type ComplianceResult = {
   saferRewriteSuggestions: string[];
 };
 
+export type VideoStyle =
+  | "UGC"
+  | "product demo"
+  | "cinematic"
+  | "educational"
+  | "storytelling"
+  | "comparison"
+  | "testimonial"
+  | "unboxing"
+  | "problem-solution";
+
+export type ProductBrief = {
+  productName: string;
+  productCategory: string;
+  targetAudience: TargetAudience;
+  sellingPoint: string;
+  problemSolved: string;
+  affiliateAngle: string;
+  platform: "TikTok";
+  videoStyle: VideoStyle;
+};
+
+export type ScenePlanItem = {
+  sceneNumber: number;
+  duration: string;
+  visualAction: string;
+  voiceOverLine: string;
+  onScreenText: string;
+  cameraAngle: string;
+  cameraMovement: string;
+  productPlacement: string;
+  transitionSuggestion: string;
+};
+
+export type NanoBananaPrompt = {
+  subject: string;
+  action: string;
+  locationContext: string;
+  composition: string;
+  style: string;
+  lighting: string;
+  cameraAngle: string;
+  productDetail: string;
+  aspectRatio: string;
+  textOverlayInstruction: string;
+  referenceImageInstruction: string;
+  prompt: string;
+};
+
+export type NanoBananaPromptSet = {
+  productHeroImagePrompt: NanoBananaPrompt;
+  lifestyleProductImagePrompt: NanoBananaPrompt;
+  thumbnailPrompt: NanoBananaPrompt;
+  beforeAfterStyleVisualPrompt: NanoBananaPrompt;
+  imageEditingPrompt: NanoBananaPrompt;
+};
+
+export type Veo3Prompt = {
+  mainSubject: string;
+  productAction: string;
+  environmentLocation: string;
+  sceneComposition: string;
+  cameraAngle: string;
+  cameraMovement: string;
+  lensOpticalEffect: string;
+  lighting: string;
+  mood: string;
+  motionDetail: string;
+  audioDirection: string;
+  subtitleOnScreenTextInstruction: string;
+  duration: string;
+  aspectRatio: "9:16";
+  style: string;
+  prompt: string;
+};
+
+export type Veo3PromptSet = {
+  masterVideoPrompt: Veo3Prompt;
+  shortScenePrompts: Veo3Prompt[];
+  productDemoPrompt: Veo3Prompt;
+  lifestyleUsagePrompt: Veo3Prompt;
+  openingHookShotPrompt: Veo3Prompt;
+  closingCtaShotPrompt: Veo3Prompt;
+};
+
+export type ComplianceChecklist = {
+  noFalseGuarantee: boolean;
+  noMedicalHealthOverclaim: boolean;
+  noMisleadingPriceOrDiscountClaim: boolean;
+  noFakeTestimonial: boolean;
+  noUnauthorizedBrandClaim: boolean;
+  noSpammyAutoPostingLanguage: boolean;
+  userApprovalRequiredBeforePosting: boolean;
+  status: ComplianceStatus;
+  notes: string[];
+};
+
 export type CampaignDayPlan = {
   day: number;
   contentMode: ContentMode;
@@ -70,6 +172,8 @@ export type CampaignDayPlan = {
 };
 
 export type ContentPack = {
+  contentTitle?: string;
+  productBrief?: ProductBrief;
   productInsight?: string;
   mainSellingPoint?: string;
   targetAudienceMatch?: string;
@@ -78,7 +182,9 @@ export type ContentPack = {
   script30Variations?: string[];
   script15: string;
   script30: string;
+  script60?: string;
   scenePlan: string[];
+  structuredScenePlan?: ScenePlanItem[];
   voiceOverDraft?: string;
   caption: string;
   captionShort?: string;
@@ -90,6 +196,9 @@ export type ContentPack = {
   ctaDirect?: string;
   ctaKeranjangKuning?: string;
   safeClaimChecklist: string[];
+  nanoBananaPrompts?: NanoBananaPromptSet;
+  veo3Prompts?: Veo3PromptSet;
+  complianceChecklist?: ComplianceChecklist;
   compliance?: ComplianceResult;
   editingNotes?: string[];
   postingNotes?: string[];
@@ -99,6 +208,25 @@ export type ContentPack = {
   options?: PromptGenerationOptions;
 };
 
+export type ContentProductionPackage = ContentPack;
+
+export type ContentDraft = {
+  productId: string;
+  contentTitle: string;
+  hook: string;
+  script: string;
+  scenePlan: ScenePlanItem[];
+  nanoBananaPrompts: NanoBananaPromptSet;
+  veo3Prompts: Veo3PromptSet;
+  caption: string;
+  hashtags: string[];
+  cta: string;
+  complianceChecklist: ComplianceChecklist;
+  status: "draft";
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type PromptInput = {
   product: AffiliateProduct;
   mode: PromptEngineMode;
@@ -106,12 +234,17 @@ export type PromptInput = {
 };
 
 export const contentModes: ContentMode[] = [
+  "UGC Natural",
   "Product Demo",
   "Problem Solution",
+  "Affiliate Story",
+  "Educational Review",
   "Before After",
   "Review Natural",
   "Unboxing",
   "Comparison",
+  "Testimonial Style",
+  "Islamic Friendly / family-safe style",
   "Tutorial",
   "Daily Use",
   "Budget Find",

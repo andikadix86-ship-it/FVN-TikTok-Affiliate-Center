@@ -51,6 +51,21 @@ export function buildScript30(input: PromptInput) {
   return buildScript30Variations(input)[0];
 }
 
+export function buildScript60(input: PromptInput) {
+  const { product, options = defaultPromptOptions } = input;
+  const hook = buildHooks(input)[2];
+  const benefit = buildMainSellingPoint(input);
+
+  return [
+    `Opening hook: ${hook}`,
+    `Problem: Jelaskan situasi harian yang sering dialami ${options.targetAudience} tanpa berlebihan.`,
+    `Product demo: Tampilkan ${product.productName} dari dekat, lalu demo satu cara pakai utama yang mudah direkam.`,
+    `Benefit: ${benefit}`,
+    "Social proof style line: Aku tetap saranin cek detail, ukuran, dan review karena kebutuhan tiap orang beda.",
+    "CTA: Kalau cocok dengan kebutuhan kamu, cek detailnya di keranjang kuning."
+  ].join(" ");
+}
+
 export function buildVoiceOverDraft(input: PromptInput) {
   return `${buildHooks(input)[0]} Aku mau tunjukin ${input.product.productName} secara simpel. Ini problemnya, ini cara pakainya, dan ini hasil yang bisa kamu lihat. Kalau cocok dengan kebutuhan kamu, cek detailnya dulu di keranjang kuning.`;
 }

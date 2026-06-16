@@ -14,6 +14,11 @@ import { getRecommendationLabel } from "@/modules/scoring/recommendation-label";
 import { getSourceBadgeText, getSourceClassName } from "@/modules/affiliate/source-badge";
 import { getPostingChecklistStatus, postingChecklistItems } from "@/modules/posting/posting-checklist";
 
+function formatJson(value: unknown) {
+  if (!value) return "";
+  return typeof value === "string" ? value : JSON.stringify(value, null, 2);
+}
+
 export function ContentDraftDetail({ draft }: { draft: ContentDraft }) {
   const router = useRouter();
   const [current, setCurrent] = useState(draft);
@@ -241,7 +246,11 @@ export function ContentDraftDetail({ draft }: { draft: ContentDraft }) {
         <CopyBlock title="Hooks" value={current.hooks.join("\n")} onCopy={copy} />
         <CopyBlock title="Script 15s" value={current.script15s} onCopy={copy} />
         <CopyBlock title="Script 30s" value={current.script30s} onCopy={copy} />
+        <CopyBlock title="Script 60s" value={current.script60s ?? ""} onCopy={copy} />
         <CopyBlock title="Scene plan" value={current.scenePlan.join("\n")} onCopy={copy} />
+        <CopyBlock title="Product Brief" value={formatJson(current.productBrief)} onCopy={copy} />
+        <CopyBlock title="Prompt Gambar - Nano Banana" value={formatJson(current.nanoBananaPrompts)} onCopy={copy} />
+        <CopyBlock title="Prompt Video - Veo 3" value={formatJson(current.veo3Prompts)} onCopy={copy} />
         <CopyBlock title="Voice over draft" value={current.voiceOverDraft} onCopy={copy} />
         <CopyBlock title="Caption short" value={current.captionShort} onCopy={copy} />
         <CopyBlock title="Caption medium" value={current.captionMedium} onCopy={copy} />

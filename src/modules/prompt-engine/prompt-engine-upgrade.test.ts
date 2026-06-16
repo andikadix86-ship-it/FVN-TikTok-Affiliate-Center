@@ -4,6 +4,7 @@ import { buildCampaignPlan } from "./campaign-generator.prompt";
 import { checkCompliance } from "./compliance-check.prompt";
 import { buildHooks } from "./hook-generator.prompt";
 import { buildImprovementSuggestions } from "./improvement-suggestion.prompt";
+import { buildTemplateContentPack } from "./template-mode";
 import { generateContentPackWithProvider, resolvePromptProvider } from "./provider";
 import { buildScript15 } from "./script-generator.prompt";
 
@@ -49,6 +50,20 @@ describe("upgraded TikTok affiliate prompt engine", () => {
     expect(script).toContain("Benefit");
     expect(script).toContain("Social proof style line");
     expect(script).toContain("CTA");
+  });
+
+  it("generates a content production prompt package for image and video AI tools", () => {
+    const pack = buildTemplateContentPack(input);
+
+    expect(pack.contentTitle).toContain(sampleProducts[0].productName);
+    expect(pack.productBrief?.platform).toBe("TikTok");
+    expect(pack.script60).toContain("Opening hook");
+    expect(pack.structuredScenePlan?.[0].cameraAngle).toBeTruthy();
+    expect(pack.nanoBananaPrompts?.productHeroImagePrompt.prompt).toContain("vertical 9:16");
+    expect(pack.nanoBananaPrompts?.imageEditingPrompt.referenceImageInstruction).toContain("keep product identity");
+    expect(pack.veo3Prompts?.masterVideoPrompt.prompt).toContain("Aspect ratio: 9:16");
+    expect(pack.veo3Prompts?.openingHookShotPrompt.cameraMovement).toContain("push");
+    expect(pack.complianceChecklist?.userApprovalRequiredBeforePosting).toBe(true);
   });
 
   it("detects risky or revision-needed compliance issues", () => {

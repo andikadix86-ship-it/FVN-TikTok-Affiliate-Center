@@ -15,9 +15,11 @@ export const contentStatusLabels: Record<ContentStatus, string> = {
 
 export const contentPackInputSchema = z.object({
   productId: z.string().min(1),
+  contentTitle: z.string().optional(),
   contentMode: z.enum(contentModes as [string, ...string[]]).optional(),
   targetAudience: z.enum(targetAudiences as [string, ...string[]]).optional(),
   tone: z.enum(toneOptions as [string, ...string[]]).optional(),
+  productBrief: z.unknown().optional(),
   productInsight: z.string().optional(),
   mainSellingPoint: z.string().optional(),
   targetAudienceMatch: z.string().optional(),
@@ -25,7 +27,9 @@ export const contentPackInputSchema = z.object({
   selectedHook: z.string().optional(),
   script15: z.string(),
   script30: z.string(),
+  script60: z.string().optional(),
   scenePlan: z.array(z.string()),
+  structuredScenePlan: z.unknown().optional(),
   voiceOverDraft: z.string().optional(),
   caption: z.string(),
   captionShort: z.string().optional(),
@@ -37,6 +41,9 @@ export const contentPackInputSchema = z.object({
   ctaDirect: z.string().optional(),
   ctaKeranjangKuning: z.string().optional(),
   safeClaimChecklist: z.array(z.string()),
+  nanoBananaPrompts: z.unknown().optional(),
+  veo3Prompts: z.unknown().optional(),
+  complianceChecklist: z.unknown().optional(),
   editingNotes: z.array(z.string()).optional(),
   postingNotes: z.array(z.string()).optional(),
   talkingPoints: z.array(z.string()).optional(),
@@ -75,6 +82,7 @@ export type ContentDraft = {
   id: string;
   productId: string;
   product: ContentDraftProduct;
+  contentTitle?: string;
   contentMode: string;
   targetAudience: string;
   tone: string;
@@ -85,7 +93,9 @@ export type ContentDraft = {
   selectedHook: string;
   script15s: string;
   script30s: string;
+  script60s?: string;
   scenePlan: string[];
+  structuredScenePlan?: unknown;
   voiceOverDraft: string;
   caption: string;
   captionShort: string;
@@ -97,6 +107,10 @@ export type ContentDraft = {
   ctaDirect: string;
   ctaKeranjangKuning: string;
   safeClaimChecklist: string[];
+  productBrief?: unknown;
+  nanoBananaPrompts?: unknown;
+  veo3Prompts?: unknown;
+  complianceChecklist?: unknown;
   editingNotes: string[];
   postingNotes: string[];
   talkingPoints: string[];
@@ -124,6 +138,32 @@ function asStringArray(value: unknown): string[] {
   return [];
 }
 
+function asDisplayArray(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.map((item) => {
+    if (typeof item === "string") return item;
+    if (item && typeof item === "object") {
+      const scene = item as Record<string, unknown>;
+      return [
+        scene.sceneNumber ? `Scene ${scene.sceneNumber}` : "Scene",
+        scene.duration ? `(${scene.duration})` : "",
+        scene.visualAction ? `Visual: ${scene.visualAction}` : "",
+        scene.voiceOverLine ? `VO: ${scene.voiceOverLine}` : "",
+        scene.onScreenText ? `Subtitle: ${scene.onScreenText}` : "",
+        scene.cameraAngle ? `Angle: ${scene.cameraAngle}` : "",
+        scene.cameraMovement ? `Movement: ${scene.cameraMovement}` : "",
+        scene.productPlacement ? `Product: ${scene.productPlacement}` : "",
+        scene.transitionSuggestion ? `Transition: ${scene.transitionSuggestion}` : ""
+      ].filter(Boolean).join(" - ");
+    }
+
+    return String(item);
+  });
+}
+
 function decimalToNumber(value: unknown) {
   return Number(value ?? 0);
 }
@@ -131,9 +171,11 @@ function decimalToNumber(value: unknown) {
 export function buildContentPackCreateData(input: ContentPackInput) {
   return {
     productId: input.productId,
+    contentTitle: input.contentTitle,
     contentMode: input.contentMode,
     targetAudience: input.targetAudience,
     tone: input.tone,
+    productBrief: input.productBrief as Prisma.InputJsonValue | undefined,
     productInsight: input.productInsight,
     mainSellingPoint: input.mainSellingPoint,
     targetAudienceMatch: input.targetAudienceMatch,
@@ -141,7 +183,8 @@ export function buildContentPackCreateData(input: ContentPackInput) {
     selectedHook: input.selectedHook ?? input.hooks[0] ?? "",
     script15s: input.script15,
     script30s: input.script30,
-    scenePlan: input.scenePlan as Prisma.InputJsonValue,
+    script60s: input.script60,
+    scenePlan: (input.structuredScenePlan ?? input.scenePlan) as Prisma.InputJsonValue,
     voiceOverDraft: input.voiceOverDraft,
     caption: input.caption,
     captionShort: input.captionShort,
@@ -153,6 +196,8 @@ export function buildContentPackCreateData(input: ContentPackInput) {
     ctaDirect: input.ctaDirect,
     ctaKeranjangKuning: input.ctaKeranjangKuning,
     safeClaimChecklist: input.safeClaimChecklist as Prisma.InputJsonValue,
+    nanoBananaPrompts: input.nanoBananaPrompts as Prisma.InputJsonValue | undefined,
+    veo3Prompts: input.veo3Prompts as Prisma.InputJsonValue | undefined,
     editingNotes: input.editingNotes as Prisma.InputJsonValue | undefined,
     postingNotes: input.postingNotes as Prisma.InputJsonValue | undefined,
     talkingPoints: input.talkingPoints as Prisma.InputJsonValue | undefined,
@@ -165,9 +210,11 @@ export function buildContentPackCreateData(input: ContentPackInput) {
 export function contentPackToInput(productId: string, pack: ContentPack, providerMode: "AI" | "TEMPLATE") {
   return contentPackInputSchema.parse({
     productId,
+    contentTitle: pack.contentTitle,
     contentMode: pack.options?.contentMode,
     targetAudience: pack.options?.targetAudience,
     tone: pack.options?.tone,
+    productBrief: pack.productBrief,
     productInsight: pack.productInsight,
     mainSellingPoint: pack.mainSellingPoint,
     targetAudienceMatch: pack.targetAudienceMatch,
@@ -175,7 +222,9 @@ export function contentPackToInput(productId: string, pack: ContentPack, provide
     selectedHook: pack.hooks[0],
     script15: pack.script15,
     script30: pack.script30,
+    script60: pack.script60,
     scenePlan: pack.scenePlan,
+    structuredScenePlan: pack.structuredScenePlan,
     voiceOverDraft: pack.voiceOverDraft,
     caption: pack.caption,
     captionShort: pack.captionShort,
@@ -187,6 +236,9 @@ export function contentPackToInput(productId: string, pack: ContentPack, provide
     ctaDirect: pack.ctaDirect,
     ctaKeranjangKuning: pack.ctaKeranjangKuning,
     safeClaimChecklist: pack.safeClaimChecklist,
+    nanoBananaPrompts: pack.nanoBananaPrompts,
+    veo3Prompts: pack.veo3Prompts,
+    complianceChecklist: pack.complianceChecklist,
     editingNotes: pack.editingNotes,
     postingNotes: pack.postingNotes,
     talkingPoints: pack.talkingPoints,
@@ -215,16 +267,19 @@ export function buildContentPackUpdateData(input: ContentPackUpdate) {
 export function buildDuplicateContentPackData(draft: ContentDraft) {
   return {
     productId: draft.productId,
+    contentTitle: draft.contentTitle,
     contentMode: draft.contentMode,
     targetAudience: draft.targetAudience,
     tone: draft.tone,
     productInsight: draft.productInsight,
     mainSellingPoint: draft.mainSellingPoint,
     targetAudienceMatch: draft.targetAudienceMatch,
+    productBrief: draft.productBrief as Prisma.InputJsonValue,
     hooks: draft.hooks as Prisma.InputJsonValue,
     selectedHook: draft.selectedHook,
     script15s: draft.script15s,
     script30s: draft.script30s,
+    script60s: draft.script60s,
     scenePlan: draft.scenePlan as Prisma.InputJsonValue,
     voiceOverDraft: draft.voiceOverDraft,
     caption: draft.caption,
@@ -237,6 +292,8 @@ export function buildDuplicateContentPackData(draft: ContentDraft) {
     ctaDirect: draft.ctaDirect,
     ctaKeranjangKuning: draft.ctaKeranjangKuning,
     safeClaimChecklist: draft.safeClaimChecklist as Prisma.InputJsonValue,
+    nanoBananaPrompts: draft.nanoBananaPrompts as Prisma.InputJsonValue,
+    veo3Prompts: draft.veo3Prompts as Prisma.InputJsonValue,
     editingNotes: draft.editingNotes as Prisma.InputJsonValue,
     postingNotes: draft.postingNotes as Prisma.InputJsonValue,
     talkingPoints: draft.talkingPoints as Prisma.InputJsonValue,
@@ -261,8 +318,10 @@ export function mapDbContentDraft(contentPack: {
     commissionRate: unknown;
   };
   contentMode: string | null;
+  contentTitle: string | null;
   targetAudience: string | null;
   tone: string | null;
+  productBrief: unknown;
   productInsight: string | null;
   mainSellingPoint: string | null;
   targetAudienceMatch: string | null;
@@ -270,6 +329,7 @@ export function mapDbContentDraft(contentPack: {
   selectedHook: string | null;
   script15s: string;
   script30s: string;
+  script60s: string | null;
   scenePlan: unknown;
   voiceOverDraft: string | null;
   caption: string;
@@ -282,6 +342,8 @@ export function mapDbContentDraft(contentPack: {
   ctaDirect: string | null;
   ctaKeranjangKuning: string | null;
   safeClaimChecklist: unknown;
+  nanoBananaPrompts: unknown;
+  veo3Prompts: unknown;
   editingNotes: unknown;
   postingNotes: unknown;
   talkingPoints: unknown;
@@ -307,17 +369,21 @@ export function mapDbContentDraft(contentPack: {
       price: decimalToNumber(contentPack.product.price),
       commissionRate: decimalToNumber(contentPack.product.commissionRate)
     },
+    contentTitle: contentPack.contentTitle ?? `${contentPack.product.productName} - ${contentPack.contentMode ?? "Content Package"}`,
     contentMode: contentPack.contentMode ?? "Product Demo",
     targetAudience: contentPack.targetAudience ?? "Affiliate Pemula",
     tone: contentPack.tone ?? "Natural",
     productInsight: contentPack.productInsight ?? "",
     mainSellingPoint: contentPack.mainSellingPoint ?? "",
     targetAudienceMatch: contentPack.targetAudienceMatch ?? "",
+    productBrief: contentPack.productBrief ?? null,
     hooks,
     selectedHook: contentPack.selectedHook ?? hooks[0] ?? "",
     script15s: contentPack.script15s,
     script30s: contentPack.script30s,
-    scenePlan: asStringArray(contentPack.scenePlan),
+    script60s: contentPack.script60s ?? "",
+    scenePlan: asDisplayArray(contentPack.scenePlan),
+    structuredScenePlan: contentPack.scenePlan,
     voiceOverDraft: contentPack.voiceOverDraft ?? "",
     caption: contentPack.caption,
     captionShort: contentPack.captionShort ?? "",
@@ -329,6 +395,9 @@ export function mapDbContentDraft(contentPack: {
     ctaDirect: contentPack.ctaDirect ?? "",
     ctaKeranjangKuning: contentPack.ctaKeranjangKuning ?? "",
     safeClaimChecklist: asStringArray(contentPack.safeClaimChecklist),
+    nanoBananaPrompts: contentPack.nanoBananaPrompts ?? null,
+    veo3Prompts: contentPack.veo3Prompts ?? null,
+    complianceChecklist: null,
     editingNotes: asStringArray(contentPack.editingNotes),
     postingNotes: asStringArray(contentPack.postingNotes),
     talkingPoints: asStringArray(contentPack.talkingPoints),
@@ -349,7 +418,10 @@ export function getContentDraftFullText(draft: ContentDraft) {
     `Hook:\n${draft.hooks.join("\n")}`,
     `Script 15s:\n${draft.script15s}`,
     `Script 30s:\n${draft.script30s}`,
+    `Script 60s:\n${draft.script60s}`,
     `Scene plan:\n${draft.scenePlan.join("\n")}`,
+    `Nano Banana image prompts:\n${JSON.stringify(draft.nanoBananaPrompts, null, 2)}`,
+    `Veo 3 video prompts:\n${JSON.stringify(draft.veo3Prompts, null, 2)}`,
     `Voice over:\n${draft.voiceOverDraft}`,
     `Caption:\n${draft.caption}`,
     `Hashtags:\n${draft.hashtags.join(" ")}`,
