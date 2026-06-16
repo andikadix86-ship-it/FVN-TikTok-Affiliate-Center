@@ -49,6 +49,8 @@ export function buildStoryboard(input: PromptInput, scenes: ScenePlanItem[] = bu
       mood: `${options.tone}, realistis, beginner-friendly.`,
       transition: scene.transitionSuggestion,
       productPlacement: scene.productPlacement,
+      mediaSourceType: "generated",
+      assignedMediaAssets: [],
       nanoBananaImagePrompt: framePrompt(input, scene, title),
       veo3ScenePrompt: veoScenePrompts[index]?.prompt ?? "",
       previewImagePlaceholder: placeholder(scene.sceneNumber, title),
@@ -73,6 +75,8 @@ export function buildPreviewVideoMeta(storyboard: StoryboardSet, providerMode: "
     totalDuration: storyboard.totalDuration,
     aspectRatio: "9:16",
     providerMode,
+    currentScene: 1,
+    generatedAt: new Date().toISOString(),
     scenes: storyboard.scenes.map((scene) => ({
       sceneNumber: scene.sceneNumber,
       duration: scene.duration,

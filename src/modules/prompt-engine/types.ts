@@ -163,11 +163,71 @@ export type StoryboardItem = {
   mood: string;
   transition: string;
   productPlacement: string;
+  mediaSourceType: "generated" | "uploaded" | "mixed";
+  assignedMediaAssets: UploadedMediaAsset[];
   nanoBananaImagePrompt: string;
   veo3ScenePrompt: string;
   previewImageUrl?: string;
   previewImagePlaceholder: string;
   notes: string;
+};
+
+export type UploadedMediaAsset = {
+  id: string;
+  fileName: string;
+  fileType: "image" | "video" | "audio";
+  mimeType: string;
+  url: string;
+  thumbnailUrl: string;
+  duration?: number;
+  width?: number;
+  height?: number;
+  size: number;
+  createdAt: string;
+};
+
+export type SceneMediaAssignment = {
+  sceneNumber: number;
+  assetIds: string[];
+  primaryAssetId?: string;
+  usageType: "scene background" | "product image" | "reference image" | "overlay image";
+};
+
+export type SubtitleSettings = {
+  fontFamily: "Sans" | "Rounded" | "Clean Modern" | "Bold Headline" | "Subtitle style";
+  fontSize: "small" | "medium" | "large";
+  fontWeight: "normal" | "semi-bold" | "bold";
+  textColor: string;
+  backgroundStyle: "none" | "solid" | "translucent";
+  position: "top" | "center" | "bottom";
+  alignment: "left" | "center" | "right";
+};
+
+export type FontSettings = {
+  subtitle: SubtitleSettings;
+  textOverlay: SubtitleSettings;
+  hookText: SubtitleSettings;
+  ctaText: SubtitleSettings;
+};
+
+export type MusicSettings = {
+  sourceType: "none" | "uploaded" | "default";
+  assetId?: string;
+  volume: number;
+  muted: boolean;
+  trimStart: number;
+  loop: boolean;
+};
+
+export type VoiceOverSettings = {
+  sourceType: "manual_upload" | "browser_recording" | "auto_placeholder" | "none";
+  assetId?: string;
+  provider: "none" | "placeholder" | "google_ai" | "gemini";
+  selectedVoice: "Female Casual ID" | "Male Casual ID" | "Friendly Seller ID" | "UGC Creator ID";
+  language: "id-ID";
+  style: string;
+  speed: number;
+  sceneMode: "full_video" | "per_scene";
 };
 
 export type StoryboardSet = {
@@ -185,6 +245,8 @@ export type PreviewVideoMeta = {
   totalDuration: string;
   aspectRatio: "9:16";
   providerMode: "AI" | "TEMPLATE";
+  currentScene: number;
+  generatedAt: string;
   scenes: Array<{
     sceneNumber: number;
     duration: string;
@@ -242,6 +304,12 @@ export type ContentPack = {
   scenePlan: string[];
   structuredScenePlan?: ScenePlanItem[];
   storyboard?: StoryboardSet;
+  uploadedMediaAssets?: UploadedMediaAsset[];
+  sceneMediaAssignments?: SceneMediaAssignment[];
+  subtitleSettings?: SubtitleSettings;
+  fontSettings?: FontSettings;
+  musicSettings?: MusicSettings;
+  voiceOverSettings?: VoiceOverSettings;
   previewVideoMeta?: PreviewVideoMeta;
   voiceOverDraft?: string;
   caption: string;
@@ -275,6 +343,12 @@ export type ContentDraft = {
   script: string;
   scenePlan: ScenePlanItem[];
   storyboard: StoryboardSet;
+  uploadedMediaAssets: UploadedMediaAsset[];
+  sceneMediaAssignments: SceneMediaAssignment[];
+  subtitleSettings: SubtitleSettings;
+  fontSettings: FontSettings;
+  musicSettings: MusicSettings;
+  voiceOverSettings: VoiceOverSettings;
   previewVideoMeta: PreviewVideoMeta;
   nanoBananaPrompts: NanoBananaPromptSet;
   veo3Prompts: Veo3PromptSet;

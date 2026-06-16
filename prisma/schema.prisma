@@ -90,6 +90,12 @@ model ContentPack {
   script60s          String?      @db.Text
   scenePlan          Json
   storyboard         Json?
+  uploadedMediaAssets Json?
+  sceneMediaAssignments Json?
+  subtitleSettings   Json?
+  fontSettings       Json?
+  musicSettings      Json?
+  voiceOverSettings  Json?
   previewVideoMeta   Json?
   voiceOverDraft     String?      @db.Text
   caption            String       @db.Text

@@ -31,6 +31,12 @@ export const contentPackInputSchema = z.object({
   scenePlan: z.array(z.string()),
   structuredScenePlan: z.unknown().optional(),
   storyboard: z.unknown().optional(),
+  uploadedMediaAssets: z.unknown().optional(),
+  sceneMediaAssignments: z.unknown().optional(),
+  subtitleSettings: z.unknown().optional(),
+  fontSettings: z.unknown().optional(),
+  musicSettings: z.unknown().optional(),
+  voiceOverSettings: z.unknown().optional(),
   previewVideoMeta: z.unknown().optional(),
   voiceOverDraft: z.string().optional(),
   caption: z.string(),
@@ -99,6 +105,12 @@ export type ContentDraft = {
   scenePlan: string[];
   structuredScenePlan?: unknown;
   storyboard?: unknown;
+  uploadedMediaAssets?: unknown;
+  sceneMediaAssignments?: unknown;
+  subtitleSettings?: unknown;
+  fontSettings?: unknown;
+  musicSettings?: unknown;
+  voiceOverSettings?: unknown;
   previewVideoMeta?: unknown;
   voiceOverDraft: string;
   caption: string;
@@ -190,6 +202,12 @@ export function buildContentPackCreateData(input: ContentPackInput) {
     script60s: input.script60,
     scenePlan: (input.structuredScenePlan ?? input.scenePlan) as Prisma.InputJsonValue,
     storyboard: input.storyboard as Prisma.InputJsonValue | undefined,
+    uploadedMediaAssets: input.uploadedMediaAssets as Prisma.InputJsonValue | undefined,
+    sceneMediaAssignments: input.sceneMediaAssignments as Prisma.InputJsonValue | undefined,
+    subtitleSettings: input.subtitleSettings as Prisma.InputJsonValue | undefined,
+    fontSettings: input.fontSettings as Prisma.InputJsonValue | undefined,
+    musicSettings: input.musicSettings as Prisma.InputJsonValue | undefined,
+    voiceOverSettings: input.voiceOverSettings as Prisma.InputJsonValue | undefined,
     previewVideoMeta: input.previewVideoMeta as Prisma.InputJsonValue | undefined,
     voiceOverDraft: input.voiceOverDraft,
     caption: input.caption,
@@ -233,6 +251,12 @@ export function contentPackToInput(productId: string, pack: ContentPack, provide
     scenePlan: pack.scenePlan,
     structuredScenePlan: pack.structuredScenePlan,
     storyboard: pack.storyboard,
+    uploadedMediaAssets: pack.uploadedMediaAssets,
+    sceneMediaAssignments: pack.sceneMediaAssignments,
+    subtitleSettings: pack.subtitleSettings,
+    fontSettings: pack.fontSettings,
+    musicSettings: pack.musicSettings,
+    voiceOverSettings: pack.voiceOverSettings,
     previewVideoMeta: pack.previewVideoMeta,
     voiceOverDraft: pack.voiceOverDraft,
     caption: pack.caption,
@@ -291,6 +315,12 @@ export function buildDuplicateContentPackData(draft: ContentDraft) {
     script60s: draft.script60s,
     scenePlan: draft.scenePlan as Prisma.InputJsonValue,
     storyboard: draft.storyboard as Prisma.InputJsonValue,
+    uploadedMediaAssets: draft.uploadedMediaAssets as Prisma.InputJsonValue,
+    sceneMediaAssignments: draft.sceneMediaAssignments as Prisma.InputJsonValue,
+    subtitleSettings: draft.subtitleSettings as Prisma.InputJsonValue,
+    fontSettings: draft.fontSettings as Prisma.InputJsonValue,
+    musicSettings: draft.musicSettings as Prisma.InputJsonValue,
+    voiceOverSettings: draft.voiceOverSettings as Prisma.InputJsonValue,
     previewVideoMeta: draft.previewVideoMeta as Prisma.InputJsonValue,
     voiceOverDraft: draft.voiceOverDraft,
     caption: draft.caption,
@@ -344,6 +374,12 @@ export function mapDbContentDraft(contentPack: {
   script60s: string | null;
   scenePlan: unknown;
   storyboard?: unknown;
+  uploadedMediaAssets?: unknown;
+  sceneMediaAssignments?: unknown;
+  subtitleSettings?: unknown;
+  fontSettings?: unknown;
+  musicSettings?: unknown;
+  voiceOverSettings?: unknown;
   previewVideoMeta?: unknown;
   voiceOverDraft: string | null;
   caption: string;
@@ -400,6 +436,12 @@ export function mapDbContentDraft(contentPack: {
     scenePlan: asDisplayArray(contentPack.scenePlan),
     structuredScenePlan: contentPack.scenePlan,
     storyboard: contentPack.storyboard ?? null,
+    uploadedMediaAssets: contentPack.uploadedMediaAssets ?? [],
+    sceneMediaAssignments: contentPack.sceneMediaAssignments ?? [],
+    subtitleSettings: contentPack.subtitleSettings ?? null,
+    fontSettings: contentPack.fontSettings ?? null,
+    musicSettings: contentPack.musicSettings ?? null,
+    voiceOverSettings: contentPack.voiceOverSettings ?? null,
     previewVideoMeta: contentPack.previewVideoMeta ?? null,
     voiceOverDraft: contentPack.voiceOverDraft ?? "",
     caption: contentPack.caption,
@@ -438,6 +480,12 @@ export function getContentDraftFullText(draft: ContentDraft) {
     `Script 60s:\n${draft.script60s}`,
     `Scene plan:\n${draft.scenePlan.join("\n")}`,
     `Storyboard:\n${JSON.stringify(draft.storyboard, null, 2)}`,
+    `Uploaded media assets:\n${JSON.stringify(draft.uploadedMediaAssets, null, 2)}`,
+    `Scene media assignments:\n${JSON.stringify(draft.sceneMediaAssignments, null, 2)}`,
+    `Subtitle settings:\n${JSON.stringify(draft.subtitleSettings, null, 2)}`,
+    `Font settings:\n${JSON.stringify(draft.fontSettings, null, 2)}`,
+    `Music settings:\n${JSON.stringify(draft.musicSettings, null, 2)}`,
+    `Voice over settings:\n${JSON.stringify(draft.voiceOverSettings, null, 2)}`,
     `Preview Video:\n${JSON.stringify(draft.previewVideoMeta, null, 2)}`,
     `Nano Banana image prompts:\n${JSON.stringify(draft.nanoBananaPrompts, null, 2)}`,
     `Veo 3 video prompts:\n${JSON.stringify(draft.veo3Prompts, null, 2)}`,

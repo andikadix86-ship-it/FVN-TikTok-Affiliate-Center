@@ -11,6 +11,41 @@ import { buildPreviewVideoMeta, buildStoryboard } from "./storyboard.prompt";
 import { ContentPack, defaultPromptOptions, PromptInput } from "./types";
 import { buildStructuredScenePlan, buildVeo3PromptSet } from "./veo3-video.prompt";
 
+const defaultSubtitleSettings = {
+  fontFamily: "Sans" as const,
+  fontSize: "medium" as const,
+  fontWeight: "semi-bold" as const,
+  textColor: "#ffffff",
+  backgroundStyle: "translucent" as const,
+  position: "bottom" as const,
+  alignment: "center" as const
+};
+
+const defaultFontSettings = {
+  subtitle: defaultSubtitleSettings,
+  textOverlay: { ...defaultSubtitleSettings, position: "center" as const },
+  hookText: { ...defaultSubtitleSettings, fontFamily: "Bold Headline" as const, fontSize: "large" as const, position: "top" as const },
+  ctaText: { ...defaultSubtitleSettings, fontFamily: "Rounded" as const, position: "bottom" as const }
+};
+
+const defaultMusicSettings = {
+  sourceType: "none" as const,
+  volume: 60,
+  muted: false,
+  trimStart: 0,
+  loop: true
+};
+
+const defaultVoiceOverSettings = {
+  sourceType: "auto_placeholder" as const,
+  provider: "placeholder" as const,
+  selectedVoice: "Female Casual ID" as const,
+  language: "id-ID" as const,
+  style: "Casual Indonesia, natural affiliate UGC",
+  speed: 1,
+  sceneMode: "per_scene" as const
+};
+
 function resolveVideoStyle(contentMode: string) {
   if (contentMode.includes("Comparison")) return "comparison" as const;
   if (contentMode.includes("Unboxing")) return "unboxing" as const;
@@ -74,6 +109,12 @@ export function buildTemplateContentPack(input: PromptInput): ContentPack {
     scenePlan: buildScenePlan(promptInput),
     structuredScenePlan,
     storyboard,
+    uploadedMediaAssets: [],
+    sceneMediaAssignments: [],
+    subtitleSettings: defaultSubtitleSettings,
+    fontSettings: defaultFontSettings,
+    musicSettings: defaultMusicSettings,
+    voiceOverSettings: defaultVoiceOverSettings,
     previewVideoMeta,
     voiceOverDraft: buildVoiceOverDraft(promptInput),
     caption,
