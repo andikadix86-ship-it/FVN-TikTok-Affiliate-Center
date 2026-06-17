@@ -42,5 +42,7 @@ describe("AppShell navigation", () => {
     expect(html).toContain("/privacy");
     expect(html).toContain("Terms of Service");
     expect(html).toContain("Privacy Policy");
+    expect(html).toContain("h-screen");
+    expect(html).toContain("overflow-y-auto");
   });
 });

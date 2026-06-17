@@ -59,8 +59,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <main className="min-h-screen bg-[#f7f4ff]">
-      <aside className="fixed bottom-0 left-0 top-0 z-40 hidden w-72 border-r border-violet-100 bg-white/95 px-4 py-5 shadow-soft backdrop-blur lg:block">
-        <a href="/" className="flex items-center gap-3 rounded-[1.5rem] bg-gradient-to-br from-violet-700 to-fuchsia-600 p-4 text-white">
+      <aside className="fixed inset-y-0 left-0 z-40 hidden h-screen w-72 flex-col border-r border-violet-100 bg-white/95 px-4 py-5 shadow-soft backdrop-blur lg:flex">
+        <a href="/" className="flex shrink-0 items-center gap-3 rounded-[1.5rem] bg-gradient-to-br from-violet-700 to-fuchsia-600 p-4 text-white">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20 text-xl font-black">F</div>
           <div>
             <p className="text-sm font-black">FVN Affiliate</p>
@@ -68,7 +68,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </a>
 
-        <nav className="mt-5 space-y-1">
+        <nav className="mt-5 min-h-0 flex-1 space-y-1 overflow-y-auto pr-1">
           {navItems.map((item) => {
             const Icon = item.icon;
 
@@ -140,7 +140,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </footer>
       </div>
 
-      <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-violet-100 bg-white/95 px-2 py-2 backdrop-blur lg:hidden">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 max-h-[calc(100vh-1rem)] overflow-y-auto border-t border-violet-100 bg-white/95 px-2 py-2 backdrop-blur lg:hidden">
         <div className="grid grid-cols-5 gap-1">
           {mobileNavItems.map((item) => {
             const Icon = item.icon;
