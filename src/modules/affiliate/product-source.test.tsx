@@ -9,7 +9,7 @@ import { sortProductsBySourcePriority } from "@/modules/database/product-service
 
 describe("Product Hunter sources", () => {
   it("marks every sample product as DEMO", () => {
-    expect(sampleProducts.length).toBeGreaterThan(0);
+    expect(sampleProducts.length).toBeGreaterThanOrEqual(25);
     expect(sampleProducts.every((product) => product.source === "DEMO")).toBe(true);
   });
 
@@ -26,7 +26,7 @@ describe("Product Hunter sources", () => {
     expect(selected[2].source).toBe("REAL_API");
   });
 
-  it("shows that demo products are not from TikTok Shop", () => {
+  it("shows marketplace API warning for demo products", () => {
     const html = renderToStaticMarkup(
       <AffiliateWorkflow
         tiktokConnected={false}
@@ -36,7 +36,7 @@ describe("Product Hunter sources", () => {
       />
     );
 
-    expect(html).toContain("Data Contoh - Bukan dari TikTok Shop");
+    expect(html).toContain("Marketplace API belum terhubung. Data ini masih contoh.");
   });
 
   it("shows workflow source modes without presenting demo products as real API", () => {
@@ -50,21 +50,42 @@ describe("Product Hunter sources", () => {
       />
     );
 
-    expect(html).toContain("Data Contoh - Bukan dari TikTok Shop");
-    expect(html).toContain("Data Tersimpan");
-    expect(html).toContain("Data Marketplace");
-    expect(html).toContain("Data Partner");
-    expect(html).toContain("Data Tersimpan - Input user");
-    expect(html).toContain("Data Marketplace - Dari file user");
+    expect(html).toContain("DEMO");
+    expect(html).toContain("MANUAL");
+    expect(html).toContain("CSV_IMPORT");
+    expect(html).toContain("REAL_API");
     expect(html).toContain("Input user");
     expect(html).toContain("aktif setelah API partner terhubung");
   });
 
+  it("renders expanded Product Intelligence ranking surfaces", () => {
+    const html = renderToStaticMarkup(
+      <AffiliateWorkflow
+        activePage="product-intelligence"
+        tiktokConnected={false}
+        promptEngineMode="TEMPLATE_MODE"
+        initialProducts={sampleProducts}
+        databaseConnected={false}
+      />
+    );
+
+    expect(html).toContain("Category Browser");
+    expect(html).toContain("Top Hari Ini");
+    expect(html).toContain("Top Minggu Ini");
+    expect(html).toContain("Top Bulan Ini");
+    expect(html).toContain("Opportunity Score");
+    expect(html).toContain("Lihat Lebih Banyak");
+    expect(html.match(/TOP [0-9]+/g)?.length).toBeGreaterThanOrEqual(10);
+    expect(html.match(/Official Store/g)?.length).toBeGreaterThanOrEqual(10);
+    expect(html).toContain("Ayu Review");
+    expect(html).toContain("Sari Hemat");
+  });
+
   it("returns honest source badge labels", () => {
-    expect(getSourceBadgeText("DEMO")).toBe("Data Contoh - Bukan dari TikTok Shop");
-    expect(getSourceBadgeText("MANUAL")).toBe("Data Tersimpan - Input user");
-    expect(getSourceBadgeText("CSV_IMPORT")).toBe("Data Marketplace - Dari file user");
-    expect(getSourceBadgeText("REAL_API")).toBe("Data Partner - Data API resmi");
+    expect(getSourceBadgeText("DEMO")).toBe("DEMO");
+    expect(getSourceBadgeText("MANUAL")).toBe("MANUAL");
+    expect(getSourceBadgeText("CSV_IMPORT")).toBe("CSV_IMPORT");
+    expect(getSourceBadgeText("REAL_API")).toBe("REAL_API");
     expect(getSourceTrustText("DEMO")).toBe("Bukan dari TikTok Shop");
     expect(getSourceTrustText("MANUAL")).toBe("Input user");
     expect(getSourceTrustText("CSV_IMPORT")).toBe("Dari file user");

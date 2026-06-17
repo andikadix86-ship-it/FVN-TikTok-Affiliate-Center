@@ -22,6 +22,7 @@ import { saveProductWorkflowContext } from "../workflow-context";
 import { AffiliateProduct, ProductSource } from "../types";
 
 type MainTab = "trending-list" | "top-seller" | "top-affiliator" | "trending-product";
+type RankingTab = "Top Hari Ini" | "Top Minggu Ini" | "Top Bulan Ini" | "Opportunity Score";
 type SellerSubTab = "all" | "own" | "brand" | "fast-growth";
 type ProductSubTab = "all" | "new" | "potential" | "fast-growth" | "video";
 
@@ -52,10 +53,10 @@ type AffiliatorRow = {
 };
 
 const sourceLabels: Record<ProductSource, string> = {
-  DEMO: "Data Contoh",
-  MANUAL: "Data Tersimpan",
-  CSV_IMPORT: "Data Marketplace",
-  REAL_API: "Data Partner"
+  DEMO: "DEMO",
+  MANUAL: "MANUAL",
+  CSV_IMPORT: "CSV_IMPORT",
+  REAL_API: "REAL_API"
 };
 
 const sourceClasses: Record<ProductSource, string> = {
@@ -64,6 +65,7 @@ const sourceClasses: Record<ProductSource, string> = {
   CSV_IMPORT: "bg-sky-100 text-sky-800",
   REAL_API: "bg-emerald-100 text-emerald-800"
 };
+const fixedCategories = ["Electronics", "Fashion", "Beauty", "Home & Living", "Kitchen", "Baby", "Health", "Sports", "Automotive", "Books"];
 
 export function ProductIntelligenceDashboard({
   products,
@@ -84,10 +86,11 @@ export function ProductIntelligenceDashboard({
   const [period, setPeriod] = useState("7 hari");
   const [category, setCategory] = useState("Semua kategori");
   const [sortBy, setSortBy] = useState("Trend Score");
+  const [rankingTab, setRankingTab] = useState<RankingTab>("Top Hari Ini");
   const [expandedProducts, setExpandedProducts] = useState(false);
   const [notice, setNotice] = useState("");
   const hasDemoData = products.some((product) => product.source === "DEMO");
-  const categoryOptions = ["Semua kategori", ...Array.from(new Set(products.map((product) => product.category))).slice(0, 8)];
+  const categoryOptions = ["Semua kategori", ...fixedCategories];
   const rankedProducts = useMemo(
     () => {
       const search = query.trim().toLowerCase();
@@ -102,17 +105,20 @@ export function ProductIntelligenceDashboard({
       return filtered
         .map((product) => ({ product, score: scoreProduct(product) }))
         .sort((a, b) => {
+          if (rankingTab === "Opportunity Score") return b.score.total - a.score.total;
+          if (rankingTab === "Top Minggu Ini") return (b.product.soldCount ?? b.product.salesScore) - (a.product.soldCount ?? a.product.salesScore);
+          if (rankingTab === "Top Bulan Ini") return estimateRevenue(b.product, b.score.total, 0) - estimateRevenue(a.product, a.score.total, 0);
           if (sortBy === "Komisi") return b.product.commissionRate - a.product.commissionRate;
           if (sortBy === "Penjualan") return b.product.salesScore - a.product.salesScore;
           if (sortBy === "Pendapatan") return estimateRevenue(b.product, b.score.total, 0) - estimateRevenue(a.product, a.score.total, 0);
           return b.score.total - a.score.total;
         });
     },
-    [category, platform, products, query, sortBy]
+    [category, platform, products, query, rankingTab, sortBy]
   );
   const displayLimit = productDisplayLimit(expandedProducts);
   const topProducts = rankedProducts.slice(0, displayLimit);
-  const topSellers: SellerRow[] = rankedProducts.slice(0, 8).map(({ product, score }, index) => ({
+  const topSellers: SellerRow[] = rankedProducts.slice(0, 10).map(({ product, score }, index) => ({
     id: `seller-${product.id}`,
     rank: index + 1,
     name: `${product.category} Official Store`,
@@ -125,7 +131,7 @@ export function ProductIntelligenceDashboard({
     affiliateRevenue: estimateRevenue(product, score.total, index) * 0.18,
     videoRevenue: estimateRevenue(product, score.total, index) * 0.12
   }));
-  const topAffiliators: AffiliatorRow[] = rankedProducts.slice(0, 8).map(({ product, score }, index) => ({
+  const topAffiliators: AffiliatorRow[] = rankedProducts.slice(0, 10).map(({ product, score }, index) => ({
     id: `creator-${product.id}`,
     rank: index + 1,
     name: creatorNames[index % creatorNames.length],
@@ -185,9 +191,53 @@ export function ProductIntelligenceDashboard({
 
       {hasDemoData ? (
         <div className="rounded-[1.5rem] border border-amber-200 bg-amber-50 p-4">
-          <p className="text-sm font-black text-amber-950">Data ini masih contoh. Hubungkan marketplace API untuk data real.</p>
+          <p className="text-sm font-black text-amber-950">Marketplace API belum terhubung. Data ini masih contoh.</p>
         </div>
       ) : null}
+
+      <section className="grid gap-4 lg:grid-cols-[240px_1fr]">
+        <div className="rounded-[2rem] border border-white bg-white p-4 shadow-soft">
+          <p className="text-sm font-black text-ink">Category Browser</p>
+          <div className="mt-3 grid gap-2">
+            {categoryOptions.map((item) => (
+              <button
+                key={item}
+                type="button"
+                onClick={() => {
+                  setCategory(item);
+                  setNotice(`Filter Category aktif: ${item}.`);
+                }}
+                className={`rounded-2xl px-3 py-2 text-left text-sm font-black ${category === item ? "bg-violet-600 text-white" : "bg-violet-50 text-violet-700"}`}
+              >
+                {item}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="rounded-[2rem] border border-white bg-white p-4 shadow-soft">
+          <p className="text-sm font-black text-ink">Ranking</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {(["Top Hari Ini", "Top Minggu Ini", "Top Bulan Ini", "Opportunity Score"] as RankingTab[]).map((item) => (
+              <button
+                key={item}
+                type="button"
+                onClick={() => {
+                  setRankingTab(item);
+                  setNotice(`Ranking aktif: ${item}.`);
+                }}
+                className={`rounded-full px-4 py-2 text-sm font-black ${rankingTab === item ? "bg-ink text-white" : "bg-slate-100 text-ink"}`}
+              >
+                {item}
+              </button>
+            ))}
+          </div>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {(["DEMO", "MANUAL", "CSV_IMPORT", "REAL_API"] as ProductSource[]).map((source) => (
+              <span key={source} className={`rounded-full px-3 py-1 text-xs font-black ${sourceClasses[source]}`}>{source}</span>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {rankedProducts.length === 0 ? (
         <div className="rounded-[1.5rem] border border-dashed border-violet-200 bg-white p-6 text-center">
@@ -217,6 +267,21 @@ export function ProductIntelligenceDashboard({
         ))}
       </div>
 
+      <div className="flex items-center justify-between gap-3 rounded-2xl border border-violet-100 bg-white p-3 shadow-soft">
+        <p className="text-sm font-bold text-ink">Menampilkan {Math.min(topProducts.length, rankedProducts.length)} dari {rankedProducts.length} produk.</p>
+        <button
+          type="button"
+          onClick={() => {
+            setExpandedProducts(true);
+            setNotice("Lihat Lebih Banyak aktif. Minimal 25 produk ditampilkan jika data tersedia.");
+          }}
+          disabled={expandedProducts}
+          className="rounded-full bg-violet-600 px-4 py-2 text-sm font-black text-white disabled:opacity-50"
+        >
+          Lihat Lebih Banyak
+        </button>
+      </div>
+
       <AiRecommendationPanel product={topProducts[0]?.product} category={topProducts[0]?.product.category ?? "Home & Living"} onSelectProduct={onSelectProduct} />
 
       <div className="rounded-[2rem] border border-white bg-white p-3 shadow-soft">
@@ -242,9 +307,9 @@ export function ProductIntelligenceDashboard({
 
       {activeTab === "trending-list" ? (
         <TrendingOverview
-          topProducts={topProducts.slice(0, 3)}
-          topAffiliators={topAffiliators.slice(0, 5)}
-          topSellers={topSellers.slice(0, 5)}
+          topProducts={topProducts}
+          topAffiliators={topAffiliators}
+          topSellers={topSellers}
           selectedProductId={selectedProductId}
           onProductAction={handleProductAction}
         />
@@ -339,7 +404,7 @@ function TrendingOverview({
           </div>
           <span className="rounded-full bg-violet-50 px-3 py-1 text-xs font-black text-violet-700">Trend Score</span>
         </div>
-        <div className="mt-4 grid gap-3 lg:grid-cols-3">
+        <div className="mt-4 grid max-h-[760px] gap-3 overflow-y-auto pr-1 sm:grid-cols-2 xl:grid-cols-3">
           {topProducts.map(({ product, score }, index) => (
             <article key={product.id} className={`rounded-[1.5rem] border p-4 transition ${selectedProductId === product.id ? "border-violet-300 bg-violet-50" : "border-line bg-white hover:bg-violet-50/60"}`}>
               <div className="flex items-center justify-between">
@@ -419,7 +484,7 @@ function TopSellerTable({ sellers, compact = false }: { sellers: SellerRow[]; co
               {!compact ? <td className="px-3 py-3">{formatRupiah(seller.videoRevenue)}</td> : null}
               <td className="rounded-r-2xl px-3 py-3">
                 <div className="flex flex-wrap gap-2">
-                  <SmallAction href="/produk-affiliate#product-detail" label="Analisa Toko" />
+                  <SmallAction href="/produk-affiliate#seller-detail" label="Lihat Seller" />
                   {!compact ? <SmallAction href="/produk-affiliate" label="Cari Produk Dari Toko Ini" /> : null}
                   {!compact ? <SmallAction href="/buat-konten" label="Generate Strategi Konten" dark /> : null}
                 </div>
@@ -597,6 +662,7 @@ function ProductActionButtons({
 
   return (
     <div className={`mt-4 flex flex-wrap gap-2 ${compact ? "" : "min-w-[220px]"}`}>
+      <SmallAction href="/produk-affiliate#product-detail" label="Lihat Detail Produk" onClick={() => click("Lihat Detail Produk")} />
       <SmallAction href="/produk-affiliate#product-detail" label="Save Opportunity" onClick={() => click("Save Opportunity")} />
       <SmallAction href="/buat-konten" label="Create Content" onClick={() => click("Create Content")} dark />
       <SmallAction href="/campaigns" label="Create Campaign" onClick={() => click("Create Campaign")} />

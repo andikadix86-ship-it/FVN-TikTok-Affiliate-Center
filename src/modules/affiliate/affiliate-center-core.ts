@@ -1,7 +1,7 @@
 import { AffiliateProduct } from "./types";
 
-export type ContentFactoryType = "Video Review" | "Story Selling" | "Edukasi" | "Testimoni";
-export type StoryMode = "Affiliate Story" | "Education Story" | "Business Story" | "Islamic Story" | "Kids Animation Story" | "Motivational Story";
+export type ContentFactoryType = "Product Review" | "Problem Solution" | "Comparison" | "UGC Script" | "Short Video" | "Live Selling Script";
+export type StoryMode = "Kids Animation" | "Education" | "Business Story" | "Affiliate Story" | "Islamic Story" | "Motivational Story";
 export type GeneratedStatus = "Draft" | "Generated" | "Saved" | "Scheduled";
 export type GeneratedSourceLabel = "Content Factory" | "Story Engine" | "Creative Studio" | "Multi Video Engine";
 
@@ -39,9 +39,11 @@ export type MultiVideoVariant = {
   sceneList: string[];
   imagePrompt: string;
   videoPrompt: string;
+  script: string;
   voiceOver: string;
   subtitle: string;
   caption: string;
+  hashtag: string[];
   cta: string;
   previewImagePlaceholder: string;
   previewVideoPlaceholder: string;
@@ -55,6 +57,7 @@ export type GeneratedLibraryItem = {
   status: GeneratedStatus;
   type: "TEXT" | "IMAGE" | "VIDEO";
   productName: string;
+  platform?: string;
   preview: string;
   imagePrompt?: string;
   videoPrompt?: string;
@@ -100,39 +103,63 @@ export function createContentFactoryOutput(product: AffiliateProduct, contentTyp
   const benefit = product.mainBenefit || "membantu aktivitas harian jadi lebih praktis";
   const cta = "Cek detail produk dan bandingkan sebelum checkout.";
 
-  if (contentType === "Story Selling") {
+  if (contentType === "Problem Solution") {
     return {
       contentType,
-      hook: `Awalnya saya tidak yakin ${product.productName} bakal kepakai.`,
-      opening: "Mulai dari masalah kecil sehari-hari yang sering dialami target audience.",
-      mainScript: `Ceritakan kondisi sebelum memakai ${product.productName}, momen menemukan produk, lalu perubahan yang terasa. Tekankan manfaat: ${benefit}.`,
+      hook: `Masalah ini sering muncul: ${product.problemSolved || "produk terasa ribet dipilih"}.`,
+      opening: "Buka dengan pain point yang jelas dan dekat dengan keseharian audience.",
+      mainScript: `Tampilkan masalah, jelaskan kenapa masalah itu mengganggu, lalu posisikan ${product.productName} sebagai solusi praktis. Tunjukkan demo singkat dan manfaat utama: ${benefit}.`,
       cta,
-      caption: `${product.productName} dalam cerita singkat: problem, discovery, benefit, dan CTA.`,
-      hashtag: ["#StorySelling", "#AffiliateTikTok", "#ReviewJujur"]
+      caption: `${product.productName} sebagai solusi praktis untuk masalah harian.`,
+      hashtag: ["#ProblemSolution", "#AffiliateTikTok", "#ReviewJujur"]
     };
   }
 
-  if (contentType === "Edukasi") {
+  if (contentType === "Comparison") {
     return {
       contentType,
-      hook: `Sebelum beli ${product.productName}, pahami dulu cara memilih yang benar.`,
-      opening: "Buka dengan pertanyaan edukatif dan kesalahan umum pembeli.",
-      mainScript: `Jelaskan 3 poin: fungsi utama, cara pakai, dan indikator produk layak dibeli. Masukkan ${product.productName} sebagai contoh tanpa klaim berlebihan.`,
+      hook: `Pilih yang biasa atau ${product.productName}? Ini bedanya.`,
+      opening: "Mulai dengan perbandingan situasi sebelum dan sesudah memakai produk.",
+      mainScript: `Bandingkan opsi biasa dengan ${product.productName}: kepraktisan, harga, cara pakai, dan siapa yang paling cocok. Hindari klaim absolut, fokus pada perbedaan yang bisa dilihat.`,
       cta,
-      caption: `Panduan singkat memilih ${product.productName}. Simpan sebelum checkout.`,
-      hashtag: ["#EdukasiProduk", "#TipsBelanja", "#AffiliateTikTok"]
+      caption: `Comparison singkat ${product.productName} sebelum checkout.`,
+      hashtag: ["#ComparisonReview", "#TipsBelanja", "#AffiliateTikTok"]
     };
   }
 
-  if (contentType === "Testimoni") {
+  if (contentType === "UGC Script") {
     return {
       contentType,
-      hook: `Saya coba ${product.productName}, ini bagian yang paling terasa.`,
-      opening: "Mulai dari konteks pemakaian nyata dan ekspektasi awal.",
-      mainScript: `Sampaikan pengalaman sebelum dan sesudah memakai ${product.productName}. Jelaskan yang membantu, yang perlu diperhatikan, dan siapa yang cocok memakai produk ini.`,
+      hook: `Aku nemu ${product.productName} dan ternyata ini yang paling kepakai.`,
+      opening: "Gunakan gaya natural seperti cerita dari pengguna asli.",
+      mainScript: `Rekam gaya UGC: unboxing singkat, alasan tertarik, demo pakai, reaksi setelah mencoba, lalu catatan jujur tentang ${product.productName}.`,
       cta,
-      caption: `Testimoni singkat ${product.productName}: cocok untuk yang butuh solusi praktis.`,
-      hashtag: ["#TestimoniProduk", "#ReviewProduk", "#AffiliateTikTok"]
+      caption: `UGC natural untuk ${product.productName}.`,
+      hashtag: ["#UGCIndonesia", "#ReviewProduk", "#AffiliateTikTok"]
+    };
+  }
+
+  if (contentType === "Short Video") {
+    return {
+      contentType,
+      hook: `${product.productName} dalam 15 detik: masalah, demo, hasil.`,
+      opening: "Tampilkan visual paling kuat di detik pertama.",
+      mainScript: `Buat script padat: 1 detik hook, 5 detik masalah, 6 detik demo ${product.productName}, 3 detik CTA. Gunakan subtitle pendek dan visual jelas.`,
+      cta,
+      caption: `Short video cepat untuk ${product.productName}.`,
+      hashtag: ["#ShortVideo", "#TikTokAffiliate", "#ProdukViral"]
+    };
+  }
+
+  if (contentType === "Live Selling Script") {
+    return {
+      contentType,
+      hook: `Yang baru masuk live, ini fungsi utama ${product.productName}.`,
+      opening: "Sapa audience, sebut masalah, lalu demo produk secara berulang.",
+      mainScript: `Script live: pembukaan, demo manfaat ${benefit}, jawab keberatan harga/kualitas, ulangi CTA, dan arahkan penonton cek keranjang atau showcase.`,
+      cta,
+      caption: `Live selling script untuk ${product.productName}.`,
+      hashtag: ["#LiveSelling", "#TikTokShop", "#AffiliateTikTok"]
     };
   }
 
@@ -158,7 +185,7 @@ export function createStoryEngineOutput(product: AffiliateProduct, mode: StoryMo
       voiceOver: `Awalnya masalah ini terasa sepele. Lalu ${product.productName} muncul sebagai solusi praktis. Lihat manfaatnya, cek buktinya, lalu putuskan dengan bijak.`,
       subtitle: "Problem -> Product Discovery -> Benefit -> Proof -> CTA"
     },
-    "Education Story": {
+    "Education": {
       structure: "Question -> Explanation -> Example -> Lesson -> CTA",
       hook: `Kenapa ${product.category} seperti ${product.productName} sering dibutuhkan?`,
       shortScript: `Question: apa masalahnya? Explanation: jelaskan konsepnya. Example: pakai ${product.productName}. Lesson: prinsip memilih. CTA: simpan.`,
@@ -182,7 +209,7 @@ export function createStoryEngineOutput(product: AffiliateProduct, mode: StoryMo
       voiceOver: "Dalam memilih sesuatu, lihat manfaat dan niatnya. Jangan berlebihan, pahami kebutuhannya, lalu ambil keputusan dengan bijak.",
       subtitle: "Opening Wisdom -> Story Lesson -> Moral Value -> Soft CTA"
     },
-    "Kids Animation Story": {
+    "Kids Animation": {
       structure: "Character -> Problem -> Adventure -> Lesson -> Happy Ending",
       hook: "Ada karakter kecil yang punya masalah besar hari ini.",
       shortScript: `Character: tokoh kecil. Problem: bingung. Adventure: mencari solusi. Lesson: belajar. Happy Ending: tutup ceria.`,
@@ -233,9 +260,11 @@ export function createMultiVideoVariants(product: AffiliateProduct, count: numbe
       sceneList: scenes,
       imagePrompt,
       videoPrompt,
+      script: story?.shortScript ?? `${product.productName}: hook, problem, demo, benefit, CTA.`,
       voiceOver: story?.voiceOver ?? `${product.productName}. Mulai dari masalah, tunjukkan solusi, beri contoh singkat, lalu arahkan penonton untuk bertindak.`,
       subtitle: story?.subtitle ?? `${product.productName} | ${duration} | ${platform}`,
       caption: story?.caption ?? `Konsep ${duration} untuk ${product.productName}.`,
+      hashtag: story?.hashtag ?? ["#FVNAffiliate", "#TikTokAffiliate"],
       cta: story?.cta ?? "Cek detail produk sebelum membeli.",
       previewImagePlaceholder: "Preview generated from prompt only - real media provider not connected.",
       previewVideoPlaceholder: "Preview generated from prompt only - real media provider not connected.",
@@ -253,10 +282,11 @@ export function videosToLibraryItems(product: AffiliateProduct, variants: MultiV
     status,
     type: "VIDEO",
     productName: product.productName,
-    preview: `${variant.hook}\n${variant.sceneList.join("\n")}\n${variant.caption}`,
+    platform: variant.platform,
+    preview: `${variant.hook}\n${variant.script}\n${variant.sceneList.join("\n")}\n${variant.caption}`,
     imagePrompt: variant.imagePrompt,
     videoPrompt: variant.videoPrompt,
-    tags: [variant.platform, variant.duration, "multi-video"],
+    tags: [variant.platform, variant.duration, "multi-video", ...variant.hashtag],
     createdAt: now
   }));
 }

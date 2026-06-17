@@ -99,9 +99,10 @@ export function ContentFactoryFlowPanel({
   contentPack: ContentPack;
   onGenerate: () => void;
 }) {
-  const templates: ContentFactoryType[] = ["Video Review", "Story Selling", "Edukasi", "Testimoni"];
-  const [contentType, setContentType] = useState<ContentFactoryType>("Video Review");
-  const [scriptOutput, setScriptOutput] = useState(() => createContentFactoryOutput(product, "Video Review"));
+  const templates: ContentFactoryType[] = ["Product Review", "Problem Solution", "Comparison", "UGC Script", "Short Video", "Live Selling Script"];
+  const [contentType, setContentType] = useState<ContentFactoryType>("Product Review");
+  const [scriptOutput, setScriptOutput] = useState(() => createContentFactoryOutput(product, "Product Review"));
+  const [message, setMessage] = useState("");
 
   function changeContentType(nextType: ContentFactoryType) {
     setContentType(nextType);
@@ -111,6 +112,33 @@ export function ContentFactoryFlowPanel({
   function generateScript() {
     setScriptOutput(createContentFactoryOutput(product, contentType));
     onGenerate();
+    setMessage(`${contentType} regenerated.`);
+  }
+
+  async function copyScript() {
+    const text = `${scriptOutput.hook}\n\n${scriptOutput.opening}\n\n${scriptOutput.mainScript}\n\n${scriptOutput.cta}\n${scriptOutput.caption}\n${scriptOutput.hashtag.join(" ")}`;
+    try {
+      await navigator.clipboard.writeText(text);
+      setMessage("Script copied.");
+    } catch {
+      setMessage("Copy belum berhasil otomatis. Pilih teks dan salin manual.");
+    }
+  }
+
+  function saveScriptToLibrary() {
+    saveGeneratedLibraryItems([{
+      id: `content-factory-${product.id}-${Date.now()}`,
+      title: `${product.productName} - ${contentType}`,
+      sourceLabel: "Content Factory",
+      status: "Saved",
+      type: "TEXT",
+      productName: product.productName,
+      platform: "TikTok",
+      preview: `${scriptOutput.hook}\n${scriptOutput.opening}\n${scriptOutput.mainScript}\n${scriptOutput.caption}`,
+      tags: [contentType, "content-factory", ...scriptOutput.hashtag],
+      createdAt: new Date().toISOString()
+    }]);
+    setMessage("Content Factory output saved to Content Library.");
   }
 
   return (
@@ -144,18 +172,41 @@ export function ContentFactoryFlowPanel({
         <OutputCard title="Caption" value={scriptOutput.caption} />
         <OutputCard title="Hashtag" value={scriptOutput.hashtag.join(" ")} />
       </div>
+      <div className="flex flex-wrap gap-2">
+        <button onClick={generateScript} className="rounded-full bg-violet-600 px-4 py-2 text-sm font-black text-white">Generate</button>
+        <button onClick={copyScript} className="rounded-full border border-line bg-white px-4 py-2 text-sm font-black text-ink">Copy</button>
+        <button onClick={saveScriptToLibrary} className="rounded-full border border-line bg-white px-4 py-2 text-sm font-black text-ink">Save to Library</button>
+        <a href="/campaigns" onClick={() => setMessage("Create Campaign siap memakai produk terpilih.")} className="rounded-full border border-line bg-white px-4 py-2 text-sm font-black text-ink">Create Campaign</a>
+      </div>
+      {message ? <Notice message={message} /> : null}
       <WorkflowActionButtons product={product} trendScore={trendScore} contentPack={contentPack} />
     </div>
   );
 }
 
 export function StoryEngineDashboard({ product, trendScore, contentPack }: { product: AffiliateProduct; trendScore: number; contentPack: ContentPack }) {
-  const storyModes: StoryMode[] = ["Affiliate Story", "Education Story", "Business Story", "Islamic Story", "Kids Animation Story", "Motivational Story"];
+  const storyModes: StoryMode[] = ["Kids Animation", "Education", "Business Story", "Affiliate Story", "Islamic Story", "Motivational Story"];
   const [mode, setMode] = useState<StoryMode>("Affiliate Story");
   const [message, setMessage] = useState("");
   const storyOutput = createStoryEngineOutput(product, mode);
 
   function saveStory(action: string) {
+    if (action === "Simpan ke Content Library") {
+      saveGeneratedLibraryItems([{
+        id: `story-engine-${product.id}-${Date.now()}`,
+        title: `${product.productName} - ${mode}`,
+        sourceLabel: "Story Engine",
+        status: "Saved",
+        type: "TEXT",
+        productName: product.productName,
+        platform: "TikTok",
+        preview: `${storyOutput.shortScript}\n${storyOutput.scenePlan.join("\n")}\n${storyOutput.caption}`,
+        imagePrompt: storyOutput.imagePrompt,
+        videoPrompt: storyOutput.videoPrompt,
+        tags: [mode, "story-engine", ...storyOutput.hashtag],
+        createdAt: new Date().toISOString()
+      }]);
+    }
     saveAffiliateWorkflowContext({
       product: productToWorkflowContext(product, trendScore),
       contentIdea: {
@@ -173,6 +224,16 @@ export function StoryEngineDashboard({ product, trendScore, contentPack }: { pro
       updatedAt: new Date().toISOString()
     });
     setMessage(`${action} siap. Konteks story disimpan untuk menu berikutnya.`);
+  }
+
+  async function copyStory() {
+    const text = `${storyOutput.hook}\n${storyOutput.shortScript}\n${storyOutput.scenePlan.join("\n")}\n${storyOutput.imagePrompt}\n${storyOutput.videoPrompt}\n${storyOutput.caption}\n${storyOutput.hashtag.join(" ")}\n${storyOutput.cta}`;
+    try {
+      await navigator.clipboard.writeText(text);
+      setMessage("Story copied.");
+    } catch {
+      setMessage("Copy belum berhasil otomatis. Pilih teks dan salin manual.");
+    }
   }
 
   return (
@@ -207,8 +268,11 @@ export function StoryEngineDashboard({ product, trendScore, contentPack }: { pro
         <OutputCard title="CTA & Hashtag" value={`${storyOutput.cta}\n${storyOutput.hashtag.join(" ")}`} />
       </div>
       <div className="mt-4 flex flex-wrap gap-2">
+        <button onClick={() => saveStory("Generate Story")} className="rounded-full bg-violet-600 px-4 py-2 text-sm font-black text-white">Generate Story</button>
+        <button onClick={copyStory} className="rounded-full border border-line bg-white px-4 py-2 text-sm font-black text-ink">Copy</button>
+        <button onClick={() => saveStory("Simpan ke Content Library")} className="rounded-full border border-line bg-white px-4 py-2 text-sm font-black text-ink">Save to Library</button>
         <ActionLink href="/multi-video-engine" label="Kirim ke Multi Video Engine" onClick={() => saveStory("Kirim ke Multi Video Engine")} />
-        <ActionLink href="/content-library" label="Simpan ke Content Library" onClick={() => saveStory("Simpan ke Content Library")} />
+        <ActionLink href="/multi-video-engine" label="Create Video" onClick={() => saveStory("Create Video")} />
         <ActionLink href="/rencana-posting" label="Jadwalkan" onClick={() => saveStory("Jadwalkan")} />
       </div>
       {message ? <Notice message={message} /> : null}
@@ -240,7 +304,7 @@ export function MultiVideoEngineDashboard({ product, trendScore, contentPack }: 
   }
 
   function saveVideos(action: string) {
-    const status = action === "Jadwalkan Batch" ? "Scheduled" : "Saved";
+    const status = action === "Schedule" ? "Scheduled" : "Saved";
     const saved = videoPlans.map((plan) => ({ ...plan, status: status as "Saved" | "Scheduled" }));
     setVideoPlans(saved);
     saveGeneratedLibraryItems(videosToLibraryItems(product, saved, status));
@@ -262,10 +326,10 @@ export function MultiVideoEngineDashboard({ product, trendScore, contentPack }: 
         <SelectCard label="Format video" value={format} options={formats} onChange={setFormat} />
       </div>
       <div className="mt-4 flex flex-wrap gap-2">
-        <button onClick={generateVideos} className="rounded-full bg-violet-600 px-4 py-2 text-sm font-black text-white">Generate Multi Video</button>
-        <button onClick={() => saveVideos("Simpan Semua ke Content Library")} className="rounded-full border border-line bg-white px-4 py-2 text-sm font-black text-ink">Simpan Semua ke Content Library</button>
-        <a href="/rencana-posting" onClick={() => saveVideos("Jadwalkan Batch")} className="rounded-full border border-line bg-white px-4 py-2 text-sm font-black text-ink">Jadwalkan Batch</a>
-        <button onClick={() => { setEditMode(true); setMessage("Edit Satu-Satu aktif. Ubah prompt melalui preview card sebelum menyimpan."); }} className="rounded-full border border-line bg-white px-4 py-2 text-sm font-black text-ink">Edit Satu-Satu</button>
+        <button onClick={generateVideos} className="rounded-full bg-violet-600 px-4 py-2 text-sm font-black text-white">Generate Batch</button>
+        <button onClick={() => saveVideos("Save All to Library")} className="rounded-full border border-line bg-white px-4 py-2 text-sm font-black text-ink">Save All to Library</button>
+        <a href="/rencana-posting" onClick={() => saveVideos("Schedule")} className="rounded-full border border-line bg-white px-4 py-2 text-sm font-black text-ink">Schedule</a>
+        <button onClick={() => { setEditMode(true); setMessage("Edit aktif. Ubah prompt melalui preview card sebelum menyimpan."); }} className="rounded-full border border-line bg-white px-4 py-2 text-sm font-black text-ink">Edit</button>
       </div>
       <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4">
         <p className="text-sm font-black text-amber-950">Preview generated from prompt only - real media provider not connected.</p>
@@ -291,12 +355,14 @@ export function MultiVideoEngineDashboard({ product, trendScore, contentPack }: 
               <p className="text-sm leading-6 text-muted"><strong>Duration:</strong> {plan.duration}</p>
               <p className="text-sm leading-6 text-muted"><strong>Platform:</strong> {plan.platform}</p>
               <p className="text-sm leading-6 text-muted"><strong>Hook:</strong> {plan.hook}</p>
+              <p className="text-sm leading-6 text-muted"><strong>Script:</strong> {plan.script}</p>
               <p className="text-sm leading-6 text-muted"><strong>Scene list:</strong> {plan.sceneList.join(" | ")}</p>
               <p className="text-sm leading-6 text-muted"><strong>Image prompt:</strong> {plan.imagePrompt}</p>
               <p className="text-sm leading-6 text-muted"><strong>Video prompt:</strong> {plan.videoPrompt}</p>
               <p className="text-sm leading-6 text-muted"><strong>Voice over:</strong> {plan.voiceOver}</p>
               <p className="text-sm leading-6 text-muted"><strong>Subtitle:</strong> {plan.subtitle}</p>
               <p className="text-sm leading-6 text-muted"><strong>Caption:</strong> {plan.caption}</p>
+              <p className="text-sm leading-6 text-muted"><strong>Hashtag:</strong> {plan.hashtag.join(" ")}</p>
               <p className="text-sm leading-6 text-muted"><strong>CTA:</strong> {plan.cta}</p>
               {editMode ? <textarea defaultValue={plan.videoPrompt} className="min-h-24 rounded-xl border border-line p-3 text-sm" /> : null}
             </div>

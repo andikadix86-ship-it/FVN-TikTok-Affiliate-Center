@@ -15,6 +15,9 @@ import { GeneratedLibraryItem, readGeneratedLibraryItems } from "@/modules/affil
 
 const statusOptions: Array<ContentStatus | "ALL"> = ["ALL", "DRAFT", "READY", "POSTED", "ARCHIVED"];
 const sourceOptions: Array<ProductSource | "ALL"> = ["ALL", "DEMO", "MANUAL", "CSV_IMPORT", "REAL_API"];
+const generatedSourceOptions = ["ALL", "Content Factory", "Story Engine", "Multi Video Engine", "Creative Studio"];
+const typeOptions = ["ALL", "TEXT", "IMAGE", "VIDEO"];
+const platformOptions = ["ALL", "TikTok", "Reels", "Shorts"];
 
 function statusLabel(status: ContentStatus | "ALL") {
   return status === "ALL" ? "Semua" : contentStatusLabels[status];
@@ -23,10 +26,10 @@ function statusLabel(status: ContentStatus | "ALL") {
 function sourceLabel(source: ProductSource | "ALL") {
   const labels: Record<ProductSource | "ALL", string> = {
     ALL: "Semua data",
-    DEMO: "Data Contoh",
-    MANUAL: "Data Tersimpan",
-    CSV_IMPORT: "Data Marketplace",
-    REAL_API: "Data Partner"
+    DEMO: "DEMO",
+    MANUAL: "MANUAL",
+    CSV_IMPORT: "CSV_IMPORT",
+    REAL_API: "REAL_API"
   };
 
   return labels[source];
@@ -57,6 +60,9 @@ export function ContentDraftList({ initialDrafts }: { initialDrafts: ContentDraf
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<ContentStatus | "ALL">("ALL");
   const [source, setSource] = useState<ProductSource | "ALL">("ALL");
+  const [generatedSource, setGeneratedSource] = useState("ALL");
+  const [type, setType] = useState("ALL");
+  const [platform, setPlatform] = useState("ALL");
   const [contentMode, setContentMode] = useState("ALL");
   const [targetAudience, setTargetAudience] = useState("ALL");
   const [createdDate, setCreatedDate] = useState("");
@@ -73,9 +79,12 @@ export function ContentDraftList({ initialDrafts }: { initialDrafts: ContentDraf
     return generatedItems.filter((item) => {
       const matchesQuery = !term || `${item.title} ${item.productName} ${item.preview} ${item.tags.join(" ")}`.toLowerCase().includes(term);
       const matchesStatus = status === "ALL" || (status === "READY" && ["Generated", "Saved"].includes(item.status)) || (status === "DRAFT" && item.status === "Draft") || (status === "POSTED" && item.status === "Scheduled");
-      return matchesQuery && matchesStatus;
+      const matchesSource = generatedSource === "ALL" || item.sourceLabel === generatedSource;
+      const matchesType = type === "ALL" || item.type === type;
+      const matchesPlatform = platform === "ALL" || item.platform === platform || item.tags.includes(platform);
+      return matchesQuery && matchesStatus && matchesSource && matchesType && matchesPlatform;
     });
-  }, [generatedItems, query, status]);
+  }, [generatedItems, generatedSource, platform, query, status, type]);
 
   useEffect(() => {
     const loadGeneratedItems = () => setGeneratedItems(readGeneratedLibraryItems());
@@ -119,6 +128,35 @@ export function ContentDraftList({ initialDrafts }: { initialDrafts: ContentDraf
     setMessage("Duplikat draft dibuat sebagai Draft.");
   }
 
+  function runGeneratedAction(item: GeneratedLibraryItem, action: "edit" | "duplicate" | "schedule" | "delete") {
+    if (action === "delete") {
+      const next = generatedItems.filter((current) => current.id !== item.id);
+      localStorage.setItem("fvn-generated-content-library", JSON.stringify(next));
+      setGeneratedItems(next);
+      setMessage("Generated item deleted.");
+      return;
+    }
+
+    if (action === "duplicate") {
+      const copy = { ...item, id: `${item.id}-copy-${Date.now()}`, title: `${item.title} Copy`, status: "Draft" as const, createdAt: new Date().toISOString() };
+      const next = [copy, ...generatedItems];
+      localStorage.setItem("fvn-generated-content-library", JSON.stringify(next));
+      setGeneratedItems(next);
+      setMessage("Generated item duplicated.");
+      return;
+    }
+
+    if (action === "schedule") {
+      const next = generatedItems.map((current) => current.id === item.id ? { ...current, status: "Scheduled" as const } : current);
+      localStorage.setItem("fvn-generated-content-library", JSON.stringify(next));
+      setGeneratedItems(next);
+      setMessage("Generated item marked Scheduled.");
+      return;
+    }
+
+    setMessage("Edit ready. Open the generated prompt details, adjust text, then duplicate or schedule.");
+  }
+
   async function createCampaign(id: string) {
     const response = await fetch(`/api/content-packs/${id}/campaign`, { method: "POST" });
     setMessage(response.ok ? "Campaign dari draft berhasil dibuat." : "Campaign belum bisa dibuat dari draft.");
@@ -127,7 +165,7 @@ export function ContentDraftList({ initialDrafts }: { initialDrafts: ContentDraf
   return (
     <div className="grid gap-4">
       <div className="rounded-2xl border border-line bg-white p-4">
-        <div className="grid gap-3 lg:grid-cols-[1.4fr_repeat(5,0.8fr)]">
+        <div className="grid gap-3 lg:grid-cols-[1.4fr_repeat(8,0.8fr)]">
           <label className="relative">
             <Search className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-muted" />
             <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Cari produk, hook, caption, hashtag, notes" className="min-h-11 w-full rounded-xl border border-line pl-9 pr-3 text-sm outline-none focus:border-mint" />
@@ -137,6 +175,15 @@ export function ContentDraftList({ initialDrafts }: { initialDrafts: ContentDraf
           </select>
           <select value={source} onChange={(event) => setSource(event.target.value as ProductSource | "ALL")} className="min-h-11 rounded-xl border border-line px-3 text-sm">
             {sourceOptions.map((item) => <option key={item} value={item}>{sourceLabel(item)}</option>)}
+          </select>
+          <select value={generatedSource} onChange={(event) => setGeneratedSource(event.target.value)} className="min-h-11 rounded-xl border border-line px-3 text-sm">
+            {generatedSourceOptions.map((item) => <option key={item} value={item}>{item === "ALL" ? "Semua source" : item}</option>)}
+          </select>
+          <select value={type} onChange={(event) => setType(event.target.value)} className="min-h-11 rounded-xl border border-line px-3 text-sm">
+            {typeOptions.map((item) => <option key={item} value={item}>{item === "ALL" ? "Semua type" : item}</option>)}
+          </select>
+          <select value={platform} onChange={(event) => setPlatform(event.target.value)} className="min-h-11 rounded-xl border border-line px-3 text-sm">
+            {platformOptions.map((item) => <option key={item} value={item}>{item === "ALL" ? "Semua platform" : item}</option>)}
           </select>
           <select value={contentMode} onChange={(event) => setContentMode(event.target.value)} className="min-h-11 rounded-xl border border-line px-3 text-sm">
             <option value="ALL">Semua mode</option>
@@ -175,6 +222,12 @@ export function ContentDraftList({ initialDrafts }: { initialDrafts: ContentDraf
               {item.videoPrompt ? <p className="mt-2 text-xs leading-5 text-violet-700"><strong>Video prompt:</strong> {item.videoPrompt}</p> : null}
               <div className="mt-3 flex flex-wrap gap-2">
                 {item.tags.map((tag) => <span key={tag} className="rounded-full bg-slate-50 px-2 py-1 text-[10px] font-bold text-muted">{tag}</span>)}
+              </div>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <button onClick={() => runGeneratedAction(item, "edit")} className="icon-btn">Edit</button>
+                <button onClick={() => runGeneratedAction(item, "duplicate")} className="icon-btn">Duplicate</button>
+                <button onClick={() => runGeneratedAction(item, "schedule")} className="icon-btn">Schedule</button>
+                <button onClick={() => runGeneratedAction(item, "delete")} className="icon-btn"><Trash2 className="h-4 w-4" />Delete</button>
               </div>
             </article>
           ))}

@@ -42,13 +42,15 @@ describe("affiliate center core workflows", () => {
   });
 
   it("changes Content Factory script for each content type", () => {
-    const review = createContentFactoryOutput(product, "Video Review");
-    const story = createContentFactoryOutput(product, "Story Selling");
-    const education = createContentFactoryOutput(product, "Edukasi");
-    const testimonial = createContentFactoryOutput(product, "Testimoni");
+    const review = createContentFactoryOutput(product, "Product Review");
+    const problem = createContentFactoryOutput(product, "Problem Solution");
+    const comparison = createContentFactoryOutput(product, "Comparison");
+    const ugc = createContentFactoryOutput(product, "UGC Script");
+    const short = createContentFactoryOutput(product, "Short Video");
+    const live = createContentFactoryOutput(product, "Live Selling Script");
 
-    expect(new Set([review.mainScript, story.mainScript, education.mainScript, testimonial.mainScript]).size).toBe(4);
-    for (const output of [review, story, education, testimonial]) {
+    expect(new Set([review.mainScript, problem.mainScript, comparison.mainScript, ugc.mainScript, short.mainScript, live.mainScript]).size).toBe(6);
+    for (const output of [review, problem, comparison, ugc, short, live]) {
       expect(output.hook).toBeTruthy();
       expect(output.opening).toBeTruthy();
       expect(output.mainScript).toBeTruthy();
@@ -60,10 +62,10 @@ describe("affiliate center core workflows", () => {
 
   it("changes Story Engine structure for each mode", () => {
     expect(createStoryEngineOutput(product, "Affiliate Story").structure).toContain("Product Discovery");
-    expect(createStoryEngineOutput(product, "Education Story").structure).toContain("Question");
+    expect(createStoryEngineOutput(product, "Education").structure).toContain("Question");
     expect(createStoryEngineOutput(product, "Business Story").structure).toContain("Problem Market");
     expect(createStoryEngineOutput(product, "Islamic Story").structure).toContain("Opening Wisdom");
-    expect(createStoryEngineOutput(product, "Kids Animation Story").structure).toContain("Happy Ending");
+    expect(createStoryEngineOutput(product, "Kids Animation").structure).toContain("Happy Ending");
     expect(createStoryEngineOutput(product, "Motivational Story").structure).toContain("Turning Point");
   });
 

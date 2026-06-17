@@ -91,10 +91,10 @@ function sourceBadge(source: ProductSource) {
 
 function userSourceLabel(source: ProductSource) {
   const labels: Record<ProductSource, string> = {
-    DEMO: "Data Contoh",
-    MANUAL: "Data Tersimpan",
-    CSV_IMPORT: "Data Marketplace",
-    REAL_API: "Data Partner"
+    DEMO: "DEMO",
+    MANUAL: "MANUAL",
+    CSV_IMPORT: "CSV_IMPORT",
+    REAL_API: "REAL_API"
   };
 
   return labels[source];
@@ -962,7 +962,7 @@ export function AffiliateWorkflow({
         </div>
         {isDemoOnly ? (
           <div className="mt-4 rounded-2xl border border-orange-200 bg-orange-50 p-4">
-            <p className="text-sm font-black text-orange-900">Data Contoh - Bukan dari TikTok Shop</p>
+            <p className="text-sm font-black text-orange-900">DEMO</p>
             <p className="mt-1 text-sm leading-6 text-orange-900/80">
               Saat ini hanya ada produk demo. Tambahkan produk manual atau import CSV agar aplikasi bisa dipakai untuk produk kamu.
             </p>
@@ -1070,7 +1070,7 @@ export function AffiliateWorkflow({
           {[
             ["Mode AI", promptEngineMode === "AI_CONNECTED" ? "AI Connected" : "Template Mode"],
             ["Status TikTok", tiktokConnected ? "Connected" : "Not Connected"],
-            ["Sumber data", isDemoOnly ? "Data Contoh" : "Data Tersimpan / Data Marketplace"]
+            ["Sumber data", isDemoOnly ? "DEMO" : "MANUAL / CSV_IMPORT / REAL_API"]
           ].map(([title, value]) => (
             <div key={title} className="rounded-2xl border border-line bg-white p-4">
               <p className="text-xs font-bold uppercase tracking-wide text-muted">{title}</p>
@@ -1133,7 +1133,7 @@ export function AffiliateWorkflow({
             <div className="flex gap-3">
               <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-orange-700" />
               <div>
-                <p className="text-sm font-black text-orange-900">Data Contoh - Bukan dari TikTok Shop</p>
+                <p className="text-sm font-black text-orange-900">DEMO</p>
                 <p className="mt-1 text-sm leading-6 text-orange-900/80">
                   Produk demo hanya contoh. Tambahkan produk manual atau import CSV agar analisa lebih sesuai kebutuhan kamu.
                 </p>
@@ -1454,8 +1454,8 @@ export function AffiliateWorkflow({
         )}
         {selectedProduct.source === "DEMO" ? (
           <div className="mb-4 rounded-2xl border border-orange-200 bg-orange-50 p-4">
-            <p className="text-sm font-black text-orange-900">Data Contoh</p>
-            <p className="mt-1 text-sm leading-6 text-orange-900/80">Produk ini masih contoh. Hubungkan marketplace atau simpan produk sendiri agar output lebih sesuai kebutuhan kamu.</p>
+            <p className="text-sm font-black text-orange-900">DEMO</p>
+            <p className="mt-1 text-sm leading-6 text-orange-900/80">Marketplace API belum terhubung. Data ini masih contoh.</p>
           </div>
         ) : null}
         <ContentFactoryFlowPanel
