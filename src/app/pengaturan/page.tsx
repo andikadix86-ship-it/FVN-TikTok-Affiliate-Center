@@ -1,5 +1,7 @@
-import { redirect } from "next/navigation";
+import { AffiliateSettingsWorkspacePage } from "@/modules/affiliate/affiliate-workspace-page";
 
-export default function PengaturanAliasPage() {
-  redirect("/#settings");
+export const dynamic = "force-dynamic";
+
+export default function PengaturanPage() {
+  return <AffiliateSettingsWorkspacePage />;
 }

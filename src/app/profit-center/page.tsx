@@ -2,6 +2,6 @@ import { AffiliateWorkspacePage } from "@/modules/affiliate/affiliate-workspace-
 
 export const dynamic = "force-dynamic";
 
-export default function ProdukAffiliatePage() {
-  return <AffiliateWorkspacePage activePage="product-intelligence" />;
+export default function ProfitCenterPage() {
+  return <AffiliateWorkspacePage activePage="profit-center" />;
 }

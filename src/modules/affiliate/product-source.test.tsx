@@ -42,6 +42,7 @@ describe("Product Hunter sources", () => {
   it("shows workflow source modes without presenting demo products as real API", () => {
     const html = renderToStaticMarkup(
       <AffiliateWorkflow
+        activePage="product-intelligence"
         tiktokConnected={false}
         promptEngineMode="TEMPLATE_MODE"
         initialProducts={sampleProducts}
@@ -77,8 +78,45 @@ describe("Product Hunter sources", () => {
   });
 
   it("shows beginner workflow fallback and empty-state guidance", () => {
-    const html = renderToStaticMarkup(
+    const contentFactoryHtml = renderToStaticMarkup(
       <AffiliateWorkflow
+        activePage="content-factory"
+        tiktokConnected={false}
+        promptEngineMode="TEMPLATE_MODE"
+        initialProducts={sampleProducts}
+        databaseConnected={false}
+      />
+    );
+    const storyHtml = renderToStaticMarkup(
+      <AffiliateWorkflow
+        activePage="story-engine"
+        tiktokConnected={false}
+        promptEngineMode="TEMPLATE_MODE"
+        initialProducts={sampleProducts}
+        databaseConnected={false}
+      />
+    );
+    const multiVideoHtml = renderToStaticMarkup(
+      <AffiliateWorkflow
+        activePage="multi-video-engine"
+        tiktokConnected={false}
+        promptEngineMode="TEMPLATE_MODE"
+        initialProducts={sampleProducts}
+        databaseConnected={false}
+      />
+    );
+    const schedulerHtml = renderToStaticMarkup(
+      <AffiliateWorkflow
+        activePage="scheduler"
+        tiktokConnected={false}
+        promptEngineMode="TEMPLATE_MODE"
+        initialProducts={sampleProducts}
+        databaseConnected={false}
+      />
+    );
+    const aiAgentsHtml = renderToStaticMarkup(
+      <AffiliateWorkflow
+        activePage="ai-agents"
         tiktokConnected={false}
         promptEngineMode="TEMPLATE_MODE"
         initialProducts={sampleProducts}
@@ -86,18 +124,17 @@ describe("Product Hunter sources", () => {
       />
     );
 
-    expect(html).toContain("Template Siap Pakai");
-    expect(html).toContain("Koneksi AI belum terhubung");
-    expect(html).toContain("Belum ada konten. Pilih produk lalu buat script konten.");
-    expect(html).toContain("Story Engine");
-    expect(html).toContain("Multi Video Engine");
-    expect(html).toContain("Analytics / Profit Center");
-    expect(html).toContain("AI Agents Optimization");
-    expect(html).toContain("Copy Hook");
-    expect(html).toContain("Copy Script");
-    expect(html).toContain("Copy Caption");
-    expect(html).toContain("Copy Hashtag");
-    expect(html).toContain("Copy Full Pack");
-    expect(html).toContain("Belum ada rencana posting. Buat campaign 7 hari dari produk terbaik kamu.");
+    expect(contentFactoryHtml).toContain("Template Siap Pakai");
+    expect(contentFactoryHtml).toContain("Koneksi AI belum terhubung");
+    expect(contentFactoryHtml).toContain("Belum ada konten. Pilih produk lalu buat script konten.");
+    expect(contentFactoryHtml).toContain("Copy Hook");
+    expect(contentFactoryHtml).toContain("Copy Script");
+    expect(contentFactoryHtml).toContain("Copy Caption");
+    expect(contentFactoryHtml).toContain("Copy Hashtag");
+    expect(contentFactoryHtml).toContain("Copy Full Pack");
+    expect(storyHtml).toContain("Story Engine");
+    expect(multiVideoHtml).toContain("Multi Video Engine");
+    expect(schedulerHtml).toContain("Belum ada rencana posting. Buat campaign 7 hari dari produk terbaik kamu.");
+    expect(aiAgentsHtml).toContain("AI Agents Optimization");
   });
 });

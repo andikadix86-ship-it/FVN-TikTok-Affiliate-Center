@@ -1,5 +1,7 @@
-import { redirect } from "next/navigation";
+import { AffiliateWorkspacePage } from "@/modules/affiliate/affiliate-workspace-page";
 
-export default function RencanaPostingAliasPage() {
-  redirect("/#campaign-planner");
+export const dynamic = "force-dynamic";
+
+export default function RencanaPostingPage() {
+  return <AffiliateWorkspacePage activePage="scheduler" />;
 }

@@ -70,7 +70,7 @@ export default function OnboardingPage() {
               <h1 className="mt-2 text-3xl font-bold leading-tight text-ink">Mulai Affiliate TikTok dengan Lebih Terarah</h1>
               <p className="mt-2 text-sm leading-6 text-muted">Ikuti langkah singkat ini untuk memahami alur produk, konten, campaign, dan evaluasi performa.</p>
             </div>
-            <a href="/#dashboard" className="rounded-full border border-line px-4 py-2 text-center text-sm font-semibold text-ink">
+            <a href="/" className="rounded-full border border-line px-4 py-2 text-center text-sm font-semibold text-ink">
               Buka Dashboard
             </a>
           </div>

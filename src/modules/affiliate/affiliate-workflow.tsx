@@ -103,6 +103,15 @@ function userSourceLabel(source: ProductSource) {
 type SaveTone = "info" | "success" | "error";
 type LoadingAction = "manual" | "csv" | "url" | "edit" | "delete" | "hooks" | "script" | "caption" | "full" | "campaign" | "performance" | null;
 type ProductFilter = "all" | "manual" | "csv" | "demo" | "highScore" | "lowCompetition";
+export type AffiliateActivePage =
+  | "dashboard"
+  | "product-intelligence"
+  | "content-factory"
+  | "story-engine"
+  | "multi-video-engine"
+  | "scheduler"
+  | "profit-center"
+  | "ai-agents";
 
 function formatPromptJson(value: unknown) {
   if (!value) return "";
@@ -258,6 +267,7 @@ function sortProducts(products: AffiliateProduct[]) {
 }
 
 export function AffiliateWorkflow({
+  activePage = "dashboard",
   tiktokConnected,
   promptEngineMode,
   initialProducts,
@@ -287,6 +297,7 @@ export function AffiliateWorkflow({
     topActions: []
   }
 }: {
+  activePage?: AffiliateActivePage;
   tiktokConnected: boolean;
   promptEngineMode: PromptEngineMode;
   initialProducts: AffiliateProduct[];
@@ -920,19 +931,23 @@ export function AffiliateWorkflow({
 
   return (
     <>
-      <AffiliateDashboard
-        products={products}
-        topProducts={topProducts}
-        isDemoOnly={isDemoOnly}
-        sourceCounts={sourceCounts}
-        activeCampaigns={activeCampaigns}
-        contentStats={contentStats}
-        draftContentPacks={draftContentPacks}
-        postedStats={postedStats}
-        analyticsStats={analyticsStats}
-        actionPlanStats={actionPlanStats}
-        onSelectProduct={setSelectedId}
-      />
+      {activePage === "dashboard" ? (
+        <AffiliateDashboard
+          products={products}
+          topProducts={topProducts}
+          isDemoOnly={isDemoOnly}
+          sourceCounts={sourceCounts}
+          activeCampaigns={activeCampaigns}
+          contentStats={contentStats}
+          draftContentPacks={draftContentPacks}
+          postedStats={postedStats}
+          analyticsStats={analyticsStats}
+          actionPlanStats={actionPlanStats}
+          onSelectProduct={setSelectedId}
+        />
+      ) : null}
+      {false ? (
+      <>
       <section id="legacy-dashboard" className="hidden">
         <p className="text-sm font-semibold uppercase tracking-wide text-mint">Dashboard</p>
         <h1 className="mt-2 max-w-3xl text-3xl font-bold leading-tight text-ink sm:text-5xl">
@@ -1099,7 +1114,11 @@ export function AffiliateWorkflow({
           <a href="/onboarding" className="rounded-full bg-violet-600 px-4 py-2 text-sm font-black text-white">Buka Panduan</a>
         </div>
       </section>
+      </>
+      ) : null}
 
+      {activePage === "product-intelligence" ? (
+      <>
       <ProductIntelligenceDashboard
         products={sortedProducts}
         selectedProductId={selectedProduct.id}
@@ -1311,7 +1330,7 @@ export function AffiliateWorkflow({
                       <MetricPill label="Score" value={`${productScore.total}/100`} />
                     </div>
                     <a
-                      href="#content-factory"
+                      href="/buat-konten"
                       onClick={() => setSelectedId(product.id)}
                       className="mt-3 inline-flex rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white"
                     >
@@ -1344,8 +1363,8 @@ export function AffiliateWorkflow({
                 <MetricPill label="Rekomendasi" value={selectedRecommendation} />
               </div>
               <div className="mt-3 flex flex-wrap gap-2">
-                <a href="#content-factory" className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white">Buat Konten</a>
-                <a href="#campaign-planner" className="rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold text-ink">Buat Campaign 7 Hari</a>
+                <a href="/buat-konten" className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white">Buat Konten</a>
+                <a href="/rencana-posting" className="rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold text-ink">Buat Campaign 7 Hari</a>
                 <ActionButton loading={loadingAction === "delete"} onClick={deleteSelectedProduct} className="bg-coral">
                   Delete Product
                 </ActionButton>
@@ -1416,7 +1435,10 @@ export function AffiliateWorkflow({
           <p className="mt-2 text-xs leading-5 text-muted">Score produk otomatis dihitung ulang setelah edit tersimpan.</p>
         </div>
       </SectionCard>
+      </>
+      ) : null}
 
+      {activePage === "content-factory" ? (
       <SectionCard id="content-factory" title="Content Factory" description="Buat konten affiliate, story engine, dan prompt video siap produksi dari produk terpilih." icon={Sparkles}>
         {promptEngineMode === "TEMPLATE_MODE" ? (
           <div className="mb-4 rounded-2xl border border-yellow-200 bg-yellow-50 p-4">
@@ -1578,11 +1600,17 @@ export function AffiliateWorkflow({
           <PromptBlock title="Posting notes" items={editorPack.postingNotes} />
         </div>
       </SectionCard>
+      ) : null}
 
-      <StoryEngineDashboard product={selectedProduct} trendScore={selectedScore.total} contentPack={editorPack} />
+      {activePage === "story-engine" ? (
+        <StoryEngineDashboard product={selectedProduct} trendScore={selectedScore.total} contentPack={editorPack} />
+      ) : null}
 
-      <MultiVideoEngineDashboard product={selectedProduct} trendScore={selectedScore.total} contentPack={editorPack} />
+      {activePage === "multi-video-engine" ? (
+        <MultiVideoEngineDashboard product={selectedProduct} trendScore={selectedScore.total} contentPack={editorPack} />
+      ) : null}
 
+      {activePage === "scheduler" ? (
       <SectionCard id="campaign-planner" title="Scheduler" description="Buat rencana posting 7 atau 14 hari dari produk terpilih dan isi performa manual per hari." icon={CalendarDays}>
         <SchedulerDashboard product={selectedProduct} contentStats={contentStats} />
         <div className="mb-4 grid gap-3 sm:grid-cols-3">
@@ -1697,10 +1725,15 @@ export function AffiliateWorkflow({
           )}
         </div>
       </SectionCard>
+      ) : null}
 
-      <ProfitCenterDashboard analyticsStats={analyticsStats} performanceSummary={performanceSummary} contentStats={contentStats} />
+      {activePage === "profit-center" ? (
+        <ProfitCenterDashboard analyticsStats={analyticsStats} performanceSummary={performanceSummary} contentStats={contentStats} />
+      ) : null}
 
-      <AiAgentsDashboard product={selectedProduct} analyticsStats={analyticsStats} />
+      {activePage === "ai-agents" ? (
+        <AiAgentsDashboard product={selectedProduct} analyticsStats={analyticsStats} />
+      ) : null}
     </>
   );
 }

@@ -93,28 +93,28 @@ export function AffiliateDashboard({
     {
       title: "Cari Produk Viral",
       description: "Temukan produk terbaik hari ini",
-      href: "#product-hunter",
+      href: "/produk-affiliate",
       icon: Flame,
       gradient: "from-violet-500 to-fuchsia-500"
     },
     {
       title: "Buat Konten Affiliate",
       description: "Buat konten menarik dalam 1 klik",
-      href: "#content-factory",
+      href: "/buat-konten",
       icon: WandSparkles,
       gradient: "from-indigo-500 to-violet-500"
     },
     {
       title: "Story Engine",
       description: "Buat story selling yang menjual & viral",
-      href: "#story-engine",
+      href: "/story-engine",
       icon: PlayCircle,
       gradient: "from-purple-500 to-rose-500"
     },
     {
       title: "Jadwalkan Posting",
       description: "Atur jadwal posting semua akunmu",
-      href: "#campaign-planner",
+      href: "/rencana-posting",
       icon: CalendarClock,
       gradient: "from-sky-500 to-violet-500"
     },
@@ -160,8 +160,8 @@ export function AffiliateDashboard({
             <p className="mt-3 text-lg font-bold text-white/90">Selamat datang di FVN Affiliate Center</p>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-white/75">Kelola produk, buat konten, dan tingkatkan profit affiliate kamu.</p>
             <div className="mt-6 flex flex-wrap gap-3">
-              <a href="#product-hunter" className="rounded-full bg-white px-5 py-3 text-sm font-black text-violet-700 shadow-soft">Mulai Cari Produk</a>
-              <a href="#content-factory" className="rounded-full border border-white/30 px-5 py-3 text-sm font-black text-white">Buat Konten</a>
+              <a href="/produk-affiliate" className="rounded-full bg-white px-5 py-3 text-sm font-black text-violet-700 shadow-soft">Mulai Cari Produk</a>
+              <a href="/buat-konten" className="rounded-full border border-white/30 px-5 py-3 text-sm font-black text-white">Buat Konten</a>
             </div>
           </div>
           <div className="rounded-[1.5rem] border border-white/20 bg-white/15 p-4 backdrop-blur">
@@ -215,11 +215,11 @@ export function AffiliateDashboard({
                 <p className="text-xs font-black uppercase tracking-[0.18em] text-violet-600">🔥 TOP 10 PRODUK HARI INI</p>
                 <h2 className="mt-1 text-2xl font-black text-ink">Produk yang paling layak ditest</h2>
               </div>
-              <a href="#product-hunter" className="rounded-full bg-violet-600 px-4 py-2 text-sm font-black text-white">Lihat Semua</a>
+              <a href="/produk-affiliate" className="rounded-full bg-violet-600 px-4 py-2 text-sm font-black text-white">Lihat Semua</a>
             </div>
 
             {topProducts.length === 0 ? (
-              <EmptyState title="Belum ada produk." description="Tambahkan produk manual atau import CSV untuk mulai melihat ranking produk." href="#product-hunter" action="Tambah Produk" />
+              <EmptyState title="Belum ada produk." description="Tambahkan produk manual atau import CSV untuk mulai melihat ranking produk." href="/produk-affiliate" action="Tambah Produk" />
             ) : (
               <div className="mt-5 grid gap-3">
                 {topProducts.map(({ product, score }, index) => (
@@ -243,7 +243,7 @@ export function AffiliateDashboard({
                       </div>
                     </div>
                     <a
-                      href="#content-factory"
+                      href="/buat-konten"
                       onClick={() => onSelectProduct(product.id)}
                       className="inline-flex items-center justify-center rounded-full bg-ink px-4 py-2 text-sm font-black text-white"
                     >
@@ -261,11 +261,11 @@ export function AffiliateDashboard({
                 <h2 className="text-2xl font-black text-ink">Buat Konten Lebih Cepat</h2>
                 <p className="mt-1 text-sm text-muted">Pilih template, lalu lanjutkan di Content Factory.</p>
               </div>
-              <a href="#content-factory" className="text-sm font-black text-violet-700">Buka Content Factory</a>
+              <a href="/buat-konten" className="text-sm font-black text-violet-700">Buka Content Factory</a>
             </div>
             <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {templates.map(([title, description, preset]) => (
-                <a key={title} href={`#content-factory?preset=${encodeURIComponent(preset)}`} className="rounded-[1.4rem] border border-line bg-gradient-to-br from-white to-violet-50 p-4 transition hover:border-violet-300">
+                <a key={title} href={`/buat-konten?preset=${encodeURIComponent(preset)}`} className="rounded-[1.4rem] border border-line bg-gradient-to-br from-white to-violet-50 p-4 transition hover:border-violet-300">
                   <Video className="h-6 w-6 text-violet-700" />
                   <p className="mt-3 text-sm font-black text-ink">{title}</p>
                   <p className="mt-1 text-sm leading-6 text-muted">{description}</p>
@@ -281,7 +281,7 @@ export function AffiliateDashboard({
                 <a href="/content-library" className="text-sm font-black text-violet-700">Lihat Draft</a>
               </div>
               {latestDrafts.length === 0 ? (
-                <EmptyState title="Belum ada konten." description="Mulai dari produk viral atau buat konten baru." href="#content-factory" action="Buat Konten Baru" />
+                <EmptyState title="Belum ada konten." description="Mulai dari produk viral atau buat konten baru." href="/buat-konten" action="Buat Konten Baru" />
               ) : (
                 <div className="mt-4 space-y-3">
                   {latestDrafts.map((draft) => (
@@ -294,7 +294,7 @@ export function AffiliateDashboard({
                           <span className="rounded-full bg-white px-2.5 py-1 text-[10px] font-black text-ink">{draft.status}</span>
                           <span className="rounded-full bg-white px-2.5 py-1 text-[10px] font-black text-muted">30s</span>
                           <a href={`/content-library/${draft.id}`} className="rounded-full bg-violet-600 px-2.5 py-1 text-[10px] font-black text-white">Edit</a>
-                          <a href="#campaign-planner" className="rounded-full bg-white px-2.5 py-1 text-[10px] font-black text-ink">Jadwalkan</a>
+                          <a href="/rencana-posting" className="rounded-full bg-white px-2.5 py-1 text-[10px] font-black text-ink">Jadwalkan</a>
                         </div>
                       </div>
                     </article>
@@ -385,7 +385,7 @@ function AffiliateRightPanel({
       <section className="rounded-[2rem] border border-white bg-white p-5 shadow-soft">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-black text-ink">Jadwal Posting</h2>
-          <a href="#campaign-planner" className="text-xs font-black text-violet-700">Lihat Semua</a>
+          <a href="/rencana-posting" className="text-xs font-black text-violet-700">Lihat Semua</a>
         </div>
         {scheduleItems.length === 0 ? (
           <p className="mt-3 text-sm leading-6 text-muted">Belum ada jadwal. Buat campaign 7 hari dari produk terbaik kamu.</p>
@@ -424,7 +424,7 @@ function AffiliateRightPanel({
         <Megaphone className="h-8 w-8" />
         <h2 className="mt-4 text-xl font-black">Tingkatkan Profit Kamu!</h2>
         <p className="mt-2 text-sm leading-6 text-white/80">Gunakan AI Agents untuk optimasi konten dan tingkatkan konversi hingga 2x lipat.</p>
-        <a href="#ai-agents" className="mt-4 inline-flex rounded-full bg-white px-4 py-2 text-sm font-black text-violet-700">Pelajari Cara Optimasi</a>
+        <a href="/ai-agents" className="mt-4 inline-flex rounded-full bg-white px-4 py-2 text-sm font-black text-violet-700">Pelajari Cara Optimasi</a>
       </section>
 
       <section className="rounded-[2rem] border border-white bg-white p-5 shadow-soft">

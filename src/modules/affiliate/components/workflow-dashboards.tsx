@@ -183,9 +183,9 @@ export function StoryEngineDashboard({ product, trendScore, contentPack }: { pro
         <OutputCard title="CTA & Hashtag" value={`${contentPack.cta}\n${contentPack.hashtags.join(" ")}`} />
       </div>
       <div className="mt-4 flex flex-wrap gap-2">
-        <ActionLink href="#multi-video-engine" label="Kirim ke Multi Video Engine" onClick={() => saveStory("Kirim ke Multi Video Engine")} />
+        <ActionLink href="/multi-video-engine" label="Kirim ke Multi Video Engine" onClick={() => saveStory("Kirim ke Multi Video Engine")} />
         <ActionLink href="/content-library" label="Simpan ke Content Library" onClick={() => saveStory("Simpan ke Content Library")} />
-        <ActionLink href="#campaign-planner" label="Jadwalkan" onClick={() => saveStory("Jadwalkan")} />
+        <ActionLink href="/rencana-posting" label="Jadwalkan" onClick={() => saveStory("Jadwalkan")} />
       </div>
       {message ? <Notice message={message} /> : null}
     </section>
@@ -230,7 +230,7 @@ export function MultiVideoEngineDashboard({ product, trendScore, contentPack }: 
       <div className="mt-4 flex flex-wrap gap-2">
         <button onClick={() => saveVideos("Generate Semua")} className="rounded-full bg-violet-600 px-4 py-2 text-sm font-black text-white">Generate Semua</button>
         <button onClick={() => saveVideos("Simpan Semua ke Content Library")} className="rounded-full border border-line bg-white px-4 py-2 text-sm font-black text-ink">Simpan Semua ke Content Library</button>
-        <a href="#campaign-planner" onClick={() => saveVideos("Jadwalkan Batch")} className="rounded-full border border-line bg-white px-4 py-2 text-sm font-black text-ink">Jadwalkan Batch</a>
+        <a href="/rencana-posting" onClick={() => saveVideos("Jadwalkan Batch")} className="rounded-full border border-line bg-white px-4 py-2 text-sm font-black text-ink">Jadwalkan Batch</a>
         <button onClick={() => saveVideos("Edit Satu-satu")} className="rounded-full border border-line bg-white px-4 py-2 text-sm font-black text-ink">Edit Satu-satu</button>
       </div>
       <div className="mt-4 grid gap-3 lg:grid-cols-2">
@@ -321,10 +321,10 @@ export function ProfitCenterDashboard({
         <OutputCard title="Rekomendasi" value={weakContent ? "Konten views ada tapi klik rendah. Kirim ke AI Agents untuk ubah CTA dan buat versi testimoni." : "Kumpulkan data views, klik, order, dan komisi untuk rekomendasi lebih akurat."} />
       </div>
       <div className="mt-4 flex flex-wrap gap-2">
-        <ActionLink href="#ai-agents" label="Kirim ke AI Agents untuk optimasi" />
-        <ActionLink href="#multi-video-engine" label="Buat versi baru" />
-        <ActionLink href="#content-factory" label="Ganti hook" />
-        <ActionLink href="#campaign-planner" label="Jadwalkan ulang" />
+        <ActionLink href="/ai-agents" label="Kirim ke AI Agents untuk optimasi" />
+        <ActionLink href="/multi-video-engine" label="Buat versi baru" />
+        <ActionLink href="/buat-konten" label="Ganti hook" />
+        <ActionLink href="/rencana-posting" label="Jadwalkan ulang" />
       </div>
     </section>
   );
@@ -359,10 +359,10 @@ export function AiAgentsDashboard({ product, analyticsStats }: { product: Affili
         ))}
       </div>
       <div className="mt-4 flex flex-wrap gap-2">
-        <ActionLink href="#multi-video-engine" label="Buat Versi Baru" />
-        <ActionLink href="#content-factory" label="Kirim ke Content Factory" />
-        <ActionLink href="#story-engine" label="Kirim ke Story Engine" />
-        <ActionLink href="#campaign-planner" label="Jadwalkan Ulang" />
+        <ActionLink href="/multi-video-engine" label="Buat Versi Baru" />
+        <ActionLink href="/buat-konten" label="Kirim ke Content Factory" />
+        <ActionLink href="/story-engine" label="Kirim ke Story Engine" />
+        <ActionLink href="/rencana-posting" label="Jadwalkan Ulang" />
       </div>
       {message ? <Notice message={message} /> : null}
     </section>
@@ -401,10 +401,10 @@ function WorkflowActionButtons({ product, trendScore, contentPack }: { product: 
 
   return (
     <div className="flex flex-wrap gap-2">
-      <ActionLink href="#story-engine" label="Kirim ke Story Engine" onClick={() => save("Kirim ke Story Engine")} />
-      <ActionLink href="#multi-video-engine" label="Buat Multi Video" onClick={() => save("Buat Multi Video")} />
+      <ActionLink href="/story-engine" label="Kirim ke Story Engine" onClick={() => save("Kirim ke Story Engine")} />
+      <ActionLink href="/multi-video-engine" label="Buat Multi Video" onClick={() => save("Buat Multi Video")} />
       <ActionLink href="/content-library" label="Simpan ke Content Library" onClick={() => save("Simpan ke Content Library")} />
-      <ActionLink href="#campaign-planner" label="Jadwalkan" onClick={() => save("Jadwalkan")} />
+      <ActionLink href="/rencana-posting" label="Jadwalkan" onClick={() => save("Jadwalkan")} />
     </div>
   );
 }

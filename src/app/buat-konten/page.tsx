@@ -1,5 +1,7 @@
-import { redirect } from "next/navigation";
+import { AffiliateWorkspacePage } from "@/modules/affiliate/affiliate-workspace-page";
 
-export default function BuatKontenAliasPage() {
-  redirect("/#content-factory");
+export const dynamic = "force-dynamic";
+
+export default function BuatKontenPage() {
+  return <AffiliateWorkspacePage activePage="content-factory" />;
 }

@@ -81,7 +81,7 @@ export function SettingsPanel({
     { label: "AI Provider", value: aiProviderConfigured ? "Configured" : "Template Mode" },
     { label: "Product Source Mode", value: status.productDataSource },
     { label: "Product count from database", value: String(counts.totalProducts) },
-    { label: "Demo Data Count", value: String(counts.demoProducts) },
+    { label: "Data Contoh Count", value: String(counts.demoProducts) },
     { label: "Manual product count", value: String(counts.manualProducts) },
     { label: "CSV product count", value: String(counts.csvProducts) },
     { label: "Health check status", value: healthStatus }
@@ -156,7 +156,7 @@ export function SettingsPanel({
       <div className="mt-4 flex flex-wrap gap-2">
         <button onClick={clearDemoData} className="inline-flex items-center gap-2 rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold text-ink">
           <Trash2 className="h-4 w-4" />
-          Hapus Demo Data
+          Hapus Data Contoh
         </button>
         <a
           href={`data:text/csv;charset=utf-8,${encodeURIComponent(SAMPLE_PRODUCT_CSV)}`}

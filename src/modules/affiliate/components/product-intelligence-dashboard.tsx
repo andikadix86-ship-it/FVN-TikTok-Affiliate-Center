@@ -387,9 +387,9 @@ function TopSellerTable({ sellers, compact = false }: { sellers: SellerRow[]; co
               {!compact ? <td className="px-3 py-3">{formatRupiah(seller.videoRevenue)}</td> : null}
               <td className="rounded-r-2xl px-3 py-3">
                 <div className="flex flex-wrap gap-2">
-                  <SmallAction href="#product-detail" label="Analisa Toko" />
-                  {!compact ? <SmallAction href="#product-hunter" label="Cari Produk Dari Toko Ini" /> : null}
-                  {!compact ? <SmallAction href="#content-factory" label="Generate Strategi Konten" dark /> : null}
+                  <SmallAction href="/produk-affiliate#product-detail" label="Analisa Toko" />
+                  {!compact ? <SmallAction href="/produk-affiliate" label="Cari Produk Dari Toko Ini" /> : null}
+                  {!compact ? <SmallAction href="/buat-konten" label="Generate Strategi Konten" dark /> : null}
                 </div>
               </td>
             </tr>
@@ -433,7 +433,7 @@ function TopAffiliatorTable({ affiliators, compact = false }: { affiliators: Aff
               {!compact ? <td className="px-3 py-3">{creator.sales} pcs</td> : null}
               {!compact ? <td className="px-3 py-3">{creator.engagement.toFixed(1)}%</td> : null}
               {!compact ? <td className="px-3 py-3">{creator.topVideo}</td> : null}
-              <td className="rounded-r-2xl px-3 py-3"><SmallAction href="#content-factory" label="Analisa Kreator" dark /></td>
+              <td className="rounded-r-2xl px-3 py-3"><SmallAction href="/buat-konten" label="Analisa Kreator" dark /></td>
             </tr>
           ))}
         </tbody>
@@ -539,7 +539,7 @@ function AiRecommendationPanel({
           </div>
         </div>
         <a
-          href="#content-factory"
+          href="/buat-konten"
           onClick={() => product ? onSelectProduct(product.id) : undefined}
           className="inline-flex items-center justify-center rounded-full bg-white px-5 py-3 text-sm font-black text-violet-700"
         >
@@ -565,12 +565,12 @@ function ProductActionButtons({
 
   return (
     <div className={`mt-4 flex flex-wrap gap-2 ${compact ? "" : "min-w-[220px]"}`}>
-      <SmallAction href="#product-detail" label="Analisa Produk" onClick={() => click("Analisa Produk")} />
-      <SmallAction href="#content-factory" label="Generate Konten" onClick={() => click("Generate Konten")} dark />
-      {!compact ? <SmallAction href="#story-engine" label="Buat Story" onClick={() => click("Buat Story")} /> : null}
-      {!compact ? <SmallAction href="#multi-video-engine" label="Buat Video" onClick={() => click("Buat Video")} /> : null}
+      <SmallAction href="/produk-affiliate#product-detail" label="Analisa Produk" onClick={() => click("Analisa Produk")} />
+      <SmallAction href="/buat-konten" label="Generate Konten" onClick={() => click("Generate Konten")} dark />
+      {!compact ? <SmallAction href="/story-engine" label="Buat Story" onClick={() => click("Buat Story")} /> : null}
+      {!compact ? <SmallAction href="/multi-video-engine" label="Buat Video" onClick={() => click("Buat Video")} /> : null}
       {!compact ? <SmallAction href="/content-library" label="Simpan Produk" onClick={() => click("Simpan Produk")} /> : null}
-      {!compact ? <SmallAction href="#campaign-planner" label="Jadwalkan" onClick={() => click("Jadwalkan")} /> : null}
+      {!compact ? <SmallAction href="/rencana-posting" label="Jadwalkan" onClick={() => click("Jadwalkan")} /> : null}
     </div>
   );
 }
