@@ -16,6 +16,7 @@ import {
   PlayCircle,
   Sparkles,
   TrendingUp,
+  UserPlus,
   Video,
   WandSparkles
 } from "lucide-react";
@@ -72,6 +73,8 @@ export function AffiliateDashboard({
   postedStats,
   analyticsStats,
   actionPlanStats,
+  tiktokConnected = false,
+  tiktokApiConfigured = false,
   onSelectProduct
 }: {
   products: AffiliateProduct[];
@@ -84,6 +87,8 @@ export function AffiliateDashboard({
   postedStats: PostedStats;
   analyticsStats: AnalyticsStats;
   actionPlanStats: ActionPlanStats;
+  tiktokConnected?: boolean;
+  tiktokApiConfigured?: boolean;
   onSelectProduct: (productId: string) => void;
 }) {
   const [agentMessage, setAgentMessage] = useState("");
@@ -162,6 +167,18 @@ export function AffiliateDashboard({
             <div className="mt-6 flex flex-wrap gap-3">
               <a href="/produk-affiliate" className="rounded-full bg-white px-5 py-3 text-sm font-black text-violet-700 shadow-soft">Mulai Cari Produk</a>
               <a href="/buat-konten" className="rounded-full border border-white/30 px-5 py-3 text-sm font-black text-white">Buat Konten</a>
+              <a href="/accounts?connect=tiktok" className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-5 py-3 text-sm font-black text-white">
+                <UserPlus className="h-4 w-4" />
+                Connect TikTok
+              </a>
+            </div>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <span className={`rounded-full px-3 py-1 text-xs font-black ${tiktokConnected && tiktokApiConfigured ? "bg-emerald-100 text-emerald-950" : "bg-amber-100 text-amber-950"}`}>
+                {tiktokConnected && tiktokApiConfigured ? "TikTok API Connected" : "TikTok API Not Connected"}
+              </span>
+              <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-black text-white">
+                {tiktokConnected ? "Connected" : tiktokApiConfigured ? "Not Connected" : "Connected (Demo)"}
+              </span>
             </div>
           </div>
           <div className="rounded-[1.5rem] border border-white/20 bg-white/15 p-4 backdrop-blur">

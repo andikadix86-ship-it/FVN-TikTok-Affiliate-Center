@@ -295,7 +295,8 @@ export function AffiliateWorkflow({
   actionPlanStats = {
     mainFocus: "Hari ini fokus menambah produk dan membuat konten pertama.",
     topActions: []
-  }
+  },
+  tiktokApiConfigured = false
 }: {
   activePage?: AffiliateActivePage;
   tiktokConnected: boolean;
@@ -326,6 +327,7 @@ export function AffiliateWorkflow({
     mainFocus: string;
     topActions: string[];
   };
+  tiktokApiConfigured?: boolean;
 }) {
   const [products, setProducts] = useState<AffiliateProduct[]>(initialProducts.length > 0 ? initialProducts : sampleProducts);
   const [selectedId, setSelectedId] = useState((initialProducts[0] ?? sampleProducts[0])?.id ?? "");
@@ -943,6 +945,8 @@ export function AffiliateWorkflow({
           postedStats={postedStats}
           analyticsStats={analyticsStats}
           actionPlanStats={actionPlanStats}
+          tiktokConnected={tiktokConnected}
+          tiktokApiConfigured={tiktokApiConfigured}
           onSelectProduct={setSelectedId}
         />
       ) : null}

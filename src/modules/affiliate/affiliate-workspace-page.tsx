@@ -54,12 +54,20 @@ export async function AffiliateWorkspacePage({ activePage }: { activePage: Affil
   const database = await getDatabaseSnapshot();
   const promptEngineMode = getPromptEngineMode(Boolean(env.GEMINI_API_KEY), Boolean(env.OPENAI_API_KEY));
   const tiktokConnected = cookies().get(TIKTOK_CONNECTED_COOKIE)?.value === "true";
+  const tiktokEnvStatus = getTikTokEnvStatus({
+    clientKey: env.TIKTOK_CLIENT_KEY,
+    clientSecret: env.TIKTOK_CLIENT_SECRET,
+    redirectUri: env.TIKTOK_REDIRECT_URI,
+    appUrl: env.NEXT_PUBLIC_APP_URL,
+    nodeEnv: process.env.NODE_ENV
+  });
 
   return (
     <AppShell>
       <AffiliateWorkflow
         activePage={activePage}
         tiktokConnected={tiktokConnected}
+        tiktokApiConfigured={tiktokEnvStatus.oauth === "Configured"}
         promptEngineMode={promptEngineMode}
         initialProducts={database.products}
         databaseConnected={database.databaseConnected}

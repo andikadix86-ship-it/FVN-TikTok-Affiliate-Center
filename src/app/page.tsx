@@ -8,6 +8,7 @@ import { mapDbProduct, sortProductsBySourcePriority } from "@/modules/database/p
 import { contentStatusLabels, mapDbContentDraft } from "@/modules/database/content-service";
 import { getPromptEngineMode } from "@/modules/prompt-engine/fallback";
 import { TIKTOK_CONNECTED_COOKIE } from "@/modules/tiktok/oauth";
+import { getTikTokEnvStatus } from "@/modules/tiktok/env-status";
 import { calculateAnalyticsSummary } from "@/modules/analytics/analytics";
 import { generateActionPlan } from "@/modules/action-plan/action-plan-engine";
 
@@ -259,6 +260,13 @@ export default async function Home() {
   const postedStats = await getPostedStats();
   const analyticsStats = await getDashboardAnalyticsStats();
   const promptEngineMode = getPromptEngineMode(Boolean(env.GEMINI_API_KEY), Boolean(env.OPENAI_API_KEY));
+  const tiktokEnvStatus = getTikTokEnvStatus({
+    clientKey: env.TIKTOK_CLIENT_KEY,
+    clientSecret: env.TIKTOK_CLIENT_SECRET,
+    redirectUri: env.TIKTOK_REDIRECT_URI,
+    appUrl: env.NEXT_PUBLIC_APP_URL,
+    nodeEnv: process.env.NODE_ENV
+  });
   const aiProviderConnected = promptEngineMode === "AI_CONNECTED";
   const actionPlanStats = await getDashboardActionPlanStats(tiktokConnected, aiProviderConnected);
 
@@ -269,6 +277,7 @@ export default async function Home() {
           <AffiliateWorkflow
             activePage="dashboard"
             tiktokConnected={tiktokConnected}
+            tiktokApiConfigured={tiktokEnvStatus.oauth === "Configured"}
             promptEngineMode={promptEngineMode}
             initialProducts={database.products}
             databaseConnected={database.databaseConnected}

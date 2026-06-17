@@ -31,6 +31,7 @@ const navItems = [
   { href: "/ai-agents", label: "AI Agents", icon: Bot },
   { href: "/profit-center", label: "Profit Center", icon: DollarSign },
   { href: "/analytics", label: "Analytics", icon: BarChart3 },
+  { href: "/accounts", label: "Accounts", icon: UserCircle },
   { href: "/tutorial-panduan", label: "Tutorial & Panduan", icon: GraduationCap },
   { href: "/pengaturan", label: "Pengaturan", icon: Settings }
 ];

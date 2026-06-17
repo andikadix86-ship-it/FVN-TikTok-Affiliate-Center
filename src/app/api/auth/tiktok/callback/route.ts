@@ -139,13 +139,7 @@ export async function GET(request: NextRequest) {
 
   const tokenWarning = buildTokenStorageWarning();
   const message = profileWarning ? `${profileWarning} ${tokenWarning}` : `TikTok account connected. ${tokenWarning}`;
-  const response = NextResponse.json({
-    connected: true,
-    provider: "tiktok",
-    state: parsed.state,
-    message,
-    tokenStatus: "not_stored"
-  });
+  const response = NextResponse.redirect(new URL("/accounts?oauth=success", request.url));
 
   response.cookies.delete(TIKTOK_STATE_COOKIE);
   response.cookies.delete(TIKTOK_CODE_VERIFIER_COOKIE);
