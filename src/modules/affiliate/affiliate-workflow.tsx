@@ -54,6 +54,14 @@ import { getSourceBadgeText, getSourceClassName, getSourceTrustText } from "./so
 import { AffiliateProduct, CompetitionLevel, ProductSource } from "./types";
 import { AffiliateDashboard } from "./components/affiliate-dashboard";
 import { ProductIntelligenceDashboard } from "./components/product-intelligence-dashboard";
+import {
+  AiAgentsDashboard,
+  ContentFactoryFlowPanel,
+  MultiVideoEngineDashboard,
+  ProfitCenterDashboard,
+  SchedulerDashboard,
+  StoryEngineDashboard
+} from "./components/workflow-dashboards";
 
 const sourcePriority: ProductSource[] = ["MANUAL", "CSV_IMPORT", "REAL_API", "DEMO"];
 
@@ -79,6 +87,17 @@ const initialForm = {
 
 function sourceBadge(source: ProductSource) {
   return `rounded-full px-3 py-1 text-[10px] font-black ${getSourceClassName(source)}`;
+}
+
+function userSourceLabel(source: ProductSource) {
+  const labels: Record<ProductSource, string> = {
+    DEMO: "Data Contoh",
+    MANUAL: "Data Tersimpan",
+    CSV_IMPORT: "Data Marketplace",
+    REAL_API: "Data Partner"
+  };
+
+  return labels[source];
 }
 
 type SaveTone = "info" | "success" | "error";
@@ -1317,7 +1336,7 @@ export function AffiliateWorkflow({
               <div className="flex aspect-[4/3] items-center justify-center text-sm font-bold text-muted">Belum ada gambar</div>
             )}
             <div className="p-4">
-              <span className={sourceBadge(selectedProduct.source)}>{getSourceBadgeText(selectedProduct.source)}</span>
+              <span className={sourceBadge(selectedProduct.source)}>{userSourceLabel(selectedProduct.source)}</span>
               <h2 className="mt-3 text-2xl font-black text-ink">{selectedProduct.productName}</h2>
               <p className="mt-1 text-sm text-muted">{selectedProduct.category}</p>
               <div className="mt-3 grid grid-cols-2 gap-2">
@@ -1401,24 +1420,30 @@ export function AffiliateWorkflow({
       <SectionCard id="content-factory" title="Content Factory" description="Buat konten affiliate, story engine, dan prompt video siap produksi dari produk terpilih." icon={Sparkles}>
         {promptEngineMode === "TEMPLATE_MODE" ? (
           <div className="mb-4 rounded-2xl border border-yellow-200 bg-yellow-50 p-4">
-            <p className="text-sm font-black text-yellow-900">Manual Prompt Template Mode</p>
-            <p className="mt-1 text-sm leading-6 text-yellow-900/80">AI Provider Not Connected - Template Mode. Package tetap dibuat dari template lokal, bukan data TikTok Shop asli.</p>
+            <p className="text-sm font-black text-yellow-900">Template Siap Pakai</p>
+            <p className="mt-1 text-sm leading-6 text-yellow-900/80">Koneksi AI belum terhubung. Konten tetap bisa dibuat dari template lokal yang aman untuk draft awal.</p>
           </div>
         ) : (
           <div className="mb-4 rounded-2xl border border-teal-200 bg-teal-50 p-4">
-            <p className="text-sm font-black text-teal-900">AI Provider Connected</p>
-            <p className="mt-1 text-sm leading-6 text-teal-900/80">Provider aktif melalui layer AI yang tersedia. Jika provider gagal, app tetap aman dengan fallback template.</p>
+            <p className="text-sm font-black text-teal-900">AI Siap Dipakai</p>
+            <p className="mt-1 text-sm leading-6 text-teal-900/80">Konten bisa dibuat lebih cepat. Jika koneksi AI bermasalah, app tetap memakai template cadangan.</p>
           </div>
         )}
         {selectedProduct.source === "DEMO" ? (
           <div className="mb-4 rounded-2xl border border-orange-200 bg-orange-50 p-4">
-            <p className="text-sm font-black text-orange-900">Demo Mode</p>
-            <p className="mt-1 text-sm leading-6 text-orange-900/80">Produk ini DEMO DATA - Bukan dari TikTok Shop. Gunakan manual/CSV untuk prompt yang lebih sesuai produk kamu.</p>
+            <p className="text-sm font-black text-orange-900">Data Contoh</p>
+            <p className="mt-1 text-sm leading-6 text-orange-900/80">Produk ini masih contoh. Hubungkan marketplace atau simpan produk sendiri agar output lebih sesuai kebutuhan kamu.</p>
           </div>
         ) : null}
+        <ContentFactoryFlowPanel
+          product={selectedProduct}
+          trendScore={selectedScore.total}
+          contentPack={editorPack}
+          onGenerate={() => generatePack("full")}
+        />
         <div className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
           <div className="rounded-2xl bg-ink p-5 text-white">
-            <span className={sourceBadge(selectedProduct.source)}>{selectedProduct.source}</span>
+            <span className={sourceBadge(selectedProduct.source)}>{userSourceLabel(selectedProduct.source)}</span>
             <h2 className="mt-3 text-2xl font-bold">{selectedProduct.productName}</h2>
             <p className="mt-2 text-sm leading-6 text-white/70">{selectedProduct.notes}</p>
             <div className="mt-5 grid grid-cols-2 gap-2">
@@ -1554,7 +1579,12 @@ export function AffiliateWorkflow({
         </div>
       </SectionCard>
 
+      <StoryEngineDashboard product={selectedProduct} trendScore={selectedScore.total} contentPack={editorPack} />
+
+      <MultiVideoEngineDashboard product={selectedProduct} trendScore={selectedScore.total} contentPack={editorPack} />
+
       <SectionCard id="campaign-planner" title="Scheduler" description="Buat rencana posting 7 atau 14 hari dari produk terpilih dan isi performa manual per hari." icon={CalendarDays}>
+        <SchedulerDashboard product={selectedProduct} contentStats={contentStats} />
         <div className="mb-4 grid gap-3 sm:grid-cols-3">
           <label className="rounded-2xl border border-line p-4">
             <span className="text-xs font-bold uppercase tracking-wide text-muted">Durasi campaign</span>
@@ -1667,6 +1697,10 @@ export function AffiliateWorkflow({
           )}
         </div>
       </SectionCard>
+
+      <ProfitCenterDashboard analyticsStats={analyticsStats} performanceSummary={performanceSummary} contentStats={contentStats} />
+
+      <AiAgentsDashboard product={selectedProduct} analyticsStats={analyticsStats} />
     </>
   );
 }

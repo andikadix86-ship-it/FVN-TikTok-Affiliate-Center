@@ -107,7 +107,7 @@ export function AffiliateDashboard({
     {
       title: "Story Engine",
       description: "Buat story selling yang menjual & viral",
-      href: "#content-factory",
+      href: "#story-engine",
       icon: PlayCircle,
       gradient: "from-purple-500 to-rose-500"
     },
@@ -303,7 +303,7 @@ export function AffiliateDashboard({
               )}
             </div>
 
-            <div id="ai-agents" className="rounded-[2rem] border border-white bg-white p-5 shadow-soft">
+            <div id="ai-agents-widget" className="rounded-[2rem] border border-white bg-white p-5 shadow-soft">
               <h2 className="text-xl font-black text-ink">AI Agents</h2>
               <p className="mt-1 text-sm text-muted">Gunakan rekomendasi sederhana dulu sampai agent penuh siap.</p>
               <div className="mt-4 grid gap-3">
@@ -368,7 +368,7 @@ function AffiliateRightPanel({
 
   return (
     <aside className="space-y-5 xl:sticky xl:top-24 xl:self-start">
-      <section id="profit-center" className="rounded-[2rem] border border-white bg-white p-5 shadow-soft">
+      <section id="profit-center-widget" className="rounded-[2rem] border border-white bg-white p-5 shadow-soft">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-black text-ink">Ringkasan Profit</h2>
           <span className="rounded-full bg-violet-50 px-3 py-1 text-xs font-black text-violet-700">7 Hari Terakhir</span>

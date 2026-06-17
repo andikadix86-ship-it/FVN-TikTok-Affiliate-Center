@@ -31,6 +31,8 @@ describe("AppShell navigation", () => {
     expect(html).toContain("Andika");
     expect(html).toContain("/#product-hunter");
     expect(html).toContain("/analytics");
+    expect(html).toContain("/#story-engine");
+    expect(html).toContain("/#multi-video-engine");
     expect(html).toContain("/#ai-agents");
     expect(html).toContain("/#profit-center");
     expect(html).toContain("/#tutorial-panduan");

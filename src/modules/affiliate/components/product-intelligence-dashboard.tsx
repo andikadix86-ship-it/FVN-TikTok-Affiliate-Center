@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { getRecommendationLabel } from "@/modules/scoring/recommendation-label";
 import { scoreProduct } from "@/modules/scoring/score-product";
+import { saveProductWorkflowContext } from "../workflow-context";
 import { AffiliateProduct, ProductSource } from "../types";
 
 type MainTab = "trending-list" | "top-seller" | "top-affiliator" | "trending-product";
@@ -114,6 +115,10 @@ export function ProductIntelligenceDashboard({
     ["Top Affiliator", String(topAffiliators.length), "#top-affiliator-table", Crown],
     ["Produk Affiliate Potensial", String(rankedProducts.filter((item) => item.score.total >= 70).length), "#trending-products", PackageCheck]
   ];
+  const handleProductAction = (product: AffiliateProduct, trendScore: number, action: string) => {
+    saveProductWorkflowContext(product, trendScore, action);
+    onSelectProduct(product.id);
+  };
 
   return (
     <section id="product-hunter" className="space-y-5">
@@ -193,7 +198,7 @@ export function ProductIntelligenceDashboard({
           topAffiliators={topAffiliators.slice(0, 5)}
           topSellers={topSellers.slice(0, 5)}
           selectedProductId={selectedProductId}
-          onSelectProduct={onSelectProduct}
+          onProductAction={handleProductAction}
         />
       ) : null}
 
@@ -241,7 +246,7 @@ export function ProductIntelligenceDashboard({
           <TrendingProductTable
             products={filterProductTab(topProducts, productSubTab)}
             selectedProductId={selectedProductId}
-            onSelectProduct={onSelectProduct}
+            onProductAction={handleProductAction}
           />
         </section>
       ) : null}
@@ -254,13 +259,13 @@ function TrendingOverview({
   topAffiliators,
   topSellers,
   selectedProductId,
-  onSelectProduct
+  onProductAction
 }: {
   topProducts: Array<{ product: AffiliateProduct; score: ReturnType<typeof scoreProduct> }>;
   topAffiliators: AffiliatorRow[];
   topSellers: SellerRow[];
   selectedProductId: string;
-  onSelectProduct: (productId: string) => void;
+  onProductAction: (product: AffiliateProduct, trendScore: number, action: string) => void;
 }) {
   return (
     <div className="space-y-5">
@@ -290,7 +295,7 @@ function TrendingOverview({
                 <StatBox label="Penjualan" value={`${estimateSales(product, score.total, index)} pcs`} />
                 <StatBox label="Trend Score" value={`${score.total}/100`} />
               </div>
-              <ProductActionButtons productId={product.id} onSelectProduct={onSelectProduct} compact />
+              <ProductActionButtons product={product} trendScore={score.total} onProductAction={onProductAction} compact />
             </article>
           ))}
         </div>
@@ -410,11 +415,11 @@ function TopAffiliatorTable({ affiliators, compact = false }: { affiliators: Aff
 function TrendingProductTable({
   products,
   selectedProductId,
-  onSelectProduct
+  onProductAction
 }: {
   products: Array<{ product: AffiliateProduct; score: ReturnType<typeof scoreProduct> }>;
   selectedProductId: string;
-  onSelectProduct: (productId: string) => void;
+  onProductAction: (product: AffiliateProduct, trendScore: number, action: string) => void;
 }) {
   return (
     <div className="mt-4 overflow-x-auto">
@@ -468,7 +473,7 @@ function TrendingProductTable({
                 <td className="px-3 py-3">{Math.max(3, Math.round(score.total / 8))}</td>
                 <td className="px-3 py-3">{Math.max(1.2, score.total / 18).toFixed(1)}%</td>
                 <td className="rounded-r-2xl px-3 py-3">
-                  <ProductActionButtons productId={product.id} onSelectProduct={onSelectProduct} />
+                  <ProductActionButtons product={product} trendScore={score.total} onProductAction={onProductAction} />
                 </td>
               </tr>
             );
@@ -515,16 +520,27 @@ function AiRecommendationPanel({
   );
 }
 
-function ProductActionButtons({ productId, onSelectProduct, compact = false }: { productId: string; onSelectProduct: (productId: string) => void; compact?: boolean }) {
-  const click = () => onSelectProduct(productId);
+function ProductActionButtons({
+  product,
+  trendScore,
+  onProductAction,
+  compact = false
+}: {
+  product: AffiliateProduct;
+  trendScore: number;
+  onProductAction: (product: AffiliateProduct, trendScore: number, action: string) => void;
+  compact?: boolean;
+}) {
+  const click = (action: string) => onProductAction(product, trendScore, action);
 
   return (
     <div className={`mt-4 flex flex-wrap gap-2 ${compact ? "" : "min-w-[220px]"}`}>
-      <SmallAction href="#product-detail" label="Analisa Produk" onClick={click} />
-      <SmallAction href="#content-factory" label="Generate Konten" onClick={click} dark />
-      {!compact ? <SmallAction href="#content-factory" label="Buat Story" onClick={click} /> : null}
-      {!compact ? <SmallAction href="#content-factory" label="Buat Video" onClick={click} /> : null}
-      {!compact ? <SmallAction href="#campaign-planner" label="Jadwalkan" onClick={click} /> : null}
+      <SmallAction href="#product-detail" label="Analisa Produk" onClick={() => click("Analisa Produk")} />
+      <SmallAction href="#content-factory" label="Generate Konten" onClick={() => click("Generate Konten")} dark />
+      {!compact ? <SmallAction href="#story-engine" label="Buat Story" onClick={() => click("Buat Story")} /> : null}
+      {!compact ? <SmallAction href="#multi-video-engine" label="Buat Video" onClick={() => click("Buat Video")} /> : null}
+      {!compact ? <SmallAction href="/content-library" label="Simpan Produk" onClick={() => click("Simpan Produk")} /> : null}
+      {!compact ? <SmallAction href="#campaign-planner" label="Jadwalkan" onClick={() => click("Jadwalkan")} /> : null}
     </div>
   );
 }

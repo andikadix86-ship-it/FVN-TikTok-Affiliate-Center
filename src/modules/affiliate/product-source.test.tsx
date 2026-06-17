@@ -86,9 +86,13 @@ describe("Product Hunter sources", () => {
       />
     );
 
-    expect(html).toContain("AI Provider Not Connected - Template Mode");
+    expect(html).toContain("Template Siap Pakai");
+    expect(html).toContain("Koneksi AI belum terhubung");
     expect(html).toContain("Belum ada konten. Pilih produk lalu buat script konten.");
-    expect(html).toContain("Data ini disimpan sebagai MANUAL DATA");
+    expect(html).toContain("Story Engine");
+    expect(html).toContain("Multi Video Engine");
+    expect(html).toContain("Analytics / Profit Center");
+    expect(html).toContain("AI Agents Optimization");
     expect(html).toContain("Copy Hook");
     expect(html).toContain("Copy Script");
     expect(html).toContain("Copy Caption");
