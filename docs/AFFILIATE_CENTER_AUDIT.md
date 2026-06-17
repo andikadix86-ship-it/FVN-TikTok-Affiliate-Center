@@ -20,11 +20,12 @@ Date: 2026-06-17
 - Ranking tab aktif: Top Hari Ini, Top Minggu Ini, Top Bulan Ini, Opportunity Score.
 - Source indicator memakai label eksplisit DEMO, MANUAL, CSV_IMPORT, REAL_API.
 - Action produk sekarang mencakup Save Opportunity, Create Content, Create Campaign, dan Add to TikTok Showcase.
-- Add to TikTok Showcase mengembalikan status NOT_CONNECTED jika TikTok OAuth/account belum connected.
+- Add to TikTok Showcase memakai handler `addProductToTikTokShowcase(productId, accountId)` dan mengembalikan status `NOT_CONNECTED` jika TikTok Shop/Affiliate API belum connected.
 - Content Factory memakai template berbeda untuk Product Review, Problem Solution, Comparison, UGC Script, Short Video, dan Live Selling Script.
 - Story Engine memakai struktur berbeda untuk Kids Animation, Education, Business Story, Affiliate Story, Islamic Story, dan Motivational Story.
-- Multi Video Engine menghasilkan 1 sampai 30 variasi video dengan title, duration, platform, hook, scene list, image prompt, video prompt, voice over, subtitle, caption, CTA, placeholder image/video, dan status.
-- Save All to Library dan Schedule menyimpan item ke local generated Content Library fallback dengan source label Multi Video Engine.
+- Multi Video Engine menghasilkan 1 sampai 30 variasi video dengan aspect ratio, resolution, duration, video generator, title, platform, hook, scene list, image prompt, video prompt, caption, hashtag, CTA, mock preview image/video, dan status.
+- Save All to Library menyimpan item ke local generated Content Library fallback dengan `sourceCode = MULTI_VIDEO_ENGINE` dan `statusCode = DRAFT`.
+- Caption di Content Factory, Story Engine, Multi Video Engine, dan Content Library bisa diklik untuk membuka modal detail caption, copy, edit, dan save to library.
 
 ## Tombol yang sudah aktif
 
@@ -49,17 +50,18 @@ Date: 2026-06-17
 2. User klik Add to TikTok Showcase.
 3. Sistem menyimpan konteks produk.
 4. Jika TikTok account belum connected, sistem menampilkan:
-   `TikTok account is not connected yet. Connect account first to add product to showcase.`
+   `TikTok Shop API belum terhubung. Produk belum bisa ditambahkan ke Showcase.`
 5. Status showcase menjadi NOT_CONNECTED sampai OAuth/API TikTok tersedia.
 
 ## Flow Multi Video -> Content Library
 
 1. User memilih jumlah video 1 sampai 30.
 2. User klik Generate Multi Video.
-3. Sistem membuat preview card untuk tiap video.
-4. User klik Save All to Library atau Schedule.
-5. Sistem menyimpan item dengan source label Multi Video Engine dan status Saved/Scheduled.
+3. Sistem membuat preview card untuk tiap video berdasarkan aspect ratio, resolution, duration, dan generator.
+4. User klik Save All to Library untuk menyimpan item video draft.
+5. Sistem menyimpan item dengan source label Multi Video Engine, source code MULTI_VIDEO_ENGINE, dan status DRAFT.
 6. Content Library membaca generated library fallback dari browser storage dan menampilkan item tanpa menu baru.
+7. User klik Schedule untuk membuka modal schedule draft dengan platform, akun, tanggal, dan jam. Scheduler tetap fallback sampai API posting aktif.
 
 ## Menu isolation
 
@@ -73,8 +75,8 @@ Date: 2026-06-17
 ## Status provider image/video
 
 - Provider real image/video belum dianggap connected.
-- UI menampilkan placeholder preview dan badge:
-  `Preview generated from prompt only - real media provider not connected.`
+- UI Multi Video Engine menampilkan preview video besar, thumbnail placeholder, product title, duration, platform badge, aspect ratio, resolution, generator, status Draft/Generating/Ready/Failed, dan progress bar saat generating.
+- Jika provider image/video production sudah mengirim `imageThumbnailUrl` atau `videoThumbnailUrl`, preview card akan menampilkan thumbnail asli/frame video.
 - Prompt image dan video tetap tersedia agar siap dikirim ke Nano Banana/Veo 3 ketika provider aktif.
 
 ## Known limitations

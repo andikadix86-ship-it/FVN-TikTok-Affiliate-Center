@@ -22,8 +22,13 @@ import {
   createContentFactoryOutput,
   createMultiVideoVariants,
   createStoryEngineOutput,
+  MultiVideoVariant,
   saveGeneratedLibraryItems,
   StoryMode,
+  VideoAspectRatio,
+  VideoDuration,
+  VideoGenerator,
+  VideoResolution,
   videosToLibraryItems
 } from "../affiliate-center-core";
 import { AffiliateProduct } from "../types";
@@ -65,6 +70,21 @@ type ContentStats = {
   latestDrafts: Array<{ id: string; productName: string; status: string; hook: string }>;
 };
 
+type CaptionDetail = {
+  title: string;
+  caption: string;
+  hashtags?: string[];
+  productName: string;
+  sourceLabel: "Content Factory" | "Story Engine" | "Multi Video Engine" | "Content Library";
+};
+
+type ScheduleDraft = {
+  platform: string;
+  account: string;
+  date: string;
+  time: string;
+};
+
 export function ProductContextCard({ product, trendScore }: { product: AffiliateProduct; trendScore: number }) {
   return (
     <div className="rounded-[1.5rem] border border-violet-100 bg-violet-50/70 p-4">
@@ -103,6 +123,7 @@ export function ContentFactoryFlowPanel({
   const [contentType, setContentType] = useState<ContentFactoryType>("Product Review");
   const [scriptOutput, setScriptOutput] = useState(() => createContentFactoryOutput(product, "Product Review"));
   const [message, setMessage] = useState("");
+  const [captionDetail, setCaptionDetail] = useState<CaptionDetail | null>(null);
 
   function changeContentType(nextType: ContentFactoryType) {
     setContentType(nextType);
@@ -169,7 +190,13 @@ export function ContentFactoryFlowPanel({
         <OutputCard title="Opening" value={scriptOutput.opening} />
         <OutputCard title="Main Script" value={scriptOutput.mainScript} />
         <OutputCard title="CTA" value={scriptOutput.cta} />
-        <OutputCard title="Caption" value={scriptOutput.caption} />
+        <OutputCard title="Caption" value={scriptOutput.caption} onClick={() => setCaptionDetail({
+          title: `${product.productName} - ${contentType}`,
+          caption: scriptOutput.caption,
+          hashtags: scriptOutput.hashtag,
+          productName: product.productName,
+          sourceLabel: "Content Factory"
+        })} />
         <OutputCard title="Hashtag" value={scriptOutput.hashtag.join(" ")} />
       </div>
       <div className="flex flex-wrap gap-2">
@@ -179,6 +206,7 @@ export function ContentFactoryFlowPanel({
         <a href="/campaigns" onClick={() => setMessage("Create Campaign siap memakai produk terpilih.")} className="rounded-full border border-line bg-white px-4 py-2 text-sm font-black text-ink">Create Campaign</a>
       </div>
       {message ? <Notice message={message} /> : null}
+      {captionDetail ? <CaptionDetailModal detail={captionDetail} onClose={() => setCaptionDetail(null)} onMessage={setMessage} /> : null}
       <WorkflowActionButtons product={product} trendScore={trendScore} contentPack={contentPack} />
     </div>
   );
@@ -188,6 +216,7 @@ export function StoryEngineDashboard({ product, trendScore, contentPack }: { pro
   const storyModes: StoryMode[] = ["Kids Animation", "Education", "Business Story", "Affiliate Story", "Islamic Story", "Motivational Story"];
   const [mode, setMode] = useState<StoryMode>("Affiliate Story");
   const [message, setMessage] = useState("");
+  const [captionDetail, setCaptionDetail] = useState<CaptionDetail | null>(null);
   const storyOutput = createStoryEngineOutput(product, mode);
 
   function saveStory(action: string) {
@@ -264,7 +293,13 @@ export function StoryEngineDashboard({ product, trendScore, contentPack }: { pro
         <OutputCard title="Video prompt" value={storyOutput.videoPrompt} />
         <OutputCard title="Voice over" value={storyOutput.voiceOver} />
         <OutputCard title="Subtitle draft" value={storyOutput.subtitle} />
-        <OutputCard title="Caption" value={storyOutput.caption} />
+        <OutputCard title="Caption" value={storyOutput.caption} onClick={() => setCaptionDetail({
+          title: `${product.productName} - ${mode}`,
+          caption: storyOutput.caption,
+          hashtags: storyOutput.hashtag,
+          productName: product.productName,
+          sourceLabel: "Story Engine"
+        })} />
         <OutputCard title="CTA & Hashtag" value={`${storyOutput.cta}\n${storyOutput.hashtag.join(" ")}`} />
       </div>
       <div className="mt-4 flex flex-wrap gap-2">
@@ -276,6 +311,7 @@ export function StoryEngineDashboard({ product, trendScore, contentPack }: { pro
         <ActionLink href="/rencana-posting" label="Jadwalkan" onClick={() => saveStory("Jadwalkan")} />
       </div>
       {message ? <Notice message={message} /> : null}
+      {captionDetail ? <CaptionDetailModal detail={captionDetail} onClose={() => setCaptionDetail(null)} onMessage={setMessage} /> : null}
     </section>
   );
 }
@@ -283,93 +319,140 @@ export function StoryEngineDashboard({ product, trendScore, contentPack }: { pro
 export function MultiVideoEngineDashboard({ product, trendScore, contentPack }: { product: AffiliateProduct; trendScore: number; contentPack: ContentPack }) {
   const [count, setCount] = useState(5);
   const [format, setFormat] = useState("Problem Solution");
+  const [aspectRatio, setAspectRatio] = useState<VideoAspectRatio>("9:16");
+  const [resolution, setResolution] = useState<VideoResolution>("1080x1920");
+  const [duration, setDuration] = useState<VideoDuration>("30 detik");
+  const [generator, setGenerator] = useState<VideoGenerator>("Mock Preview");
   const [message, setMessage] = useState("");
-  const [editMode, setEditMode] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [captionDetail, setCaptionDetail] = useState<CaptionDetail | null>(null);
+  const [editingPlan, setEditingPlan] = useState<MultiVideoVariant | null>(null);
+  const [scheduleOpen, setScheduleOpen] = useState(false);
+  const [scheduleDraft, setScheduleDraft] = useState<ScheduleDraft>({ platform: "TikTok", account: "NOT_CONNECTED", date: "", time: "" });
   const formats = ["Review", "Problem Solution", "Before After", "Testimoni", "Edukasi", "Komedi Ringan", "Perbandingan", "Fakta Menarik", "Soft Selling", "CTA Hard Selling"];
-  const [videoPlans, setVideoPlans] = useState(() => createMultiVideoVariants(product, count));
+  const aspectOptions: VideoAspectRatio[] = ["9:16", "1:1", "16:9", "4:5"];
+  const resolutionOptions: VideoResolution[] = ["720x1280", "1080x1920", "1080x1080", "1920x1080", "1080x1350"];
+  const durationOptions: VideoDuration[] = ["15 detik", "30 detik", "45 detik", "60 detik", "90 detik"];
+  const generatorOptions: VideoGenerator[] = ["Veo 3", "Banana Pro", "Gemini Video", "Kling", "Runway", "Mock Preview"];
+  const [videoPlans, setVideoPlans] = useState(() => createMultiVideoVariants(product, count, undefined, { aspectRatio, resolution, duration, generator }));
+
+  const activeSettings = { aspectRatio, resolution, duration, generator };
 
   function generateVideos() {
-    const variants = createMultiVideoVariants(product, count).map((variant, index) => ({
+    const variants = createMultiVideoVariants(product, count, undefined, activeSettings).map((variant, index) => ({
       ...variant,
-      title: `${format} #${index + 1} - ${product.productName}`
+      title: `${format} #${index + 1} - ${product.productName} (${variant.platform} ${variant.duration})`,
+      hook: `${variant.platform} ${variant.duration}: ${product.productName} untuk angle ${format}.`,
+      script: `${format} untuk ${product.productName}. Gunakan format ${variant.aspectRatio}, resolusi ${variant.resolution}, generator ${variant.generator}, lalu tutup dengan CTA jelas.`,
+      status: "Draft" as const,
+      generationStatus: "GENERATING" as const,
+      generationProgress: 38
     }));
     setVideoPlans(variants);
-    saveAffiliateWorkflowContext({
-      product: productToWorkflowContext(product, trendScore),
-      videoPlans: variants.map((plan) => ({ title: plan.title, hook: plan.hook, status: "Draft" })),
-      lastAction: "Generate Multi Video",
-      updatedAt: new Date().toISOString()
-    });
-    setMessage(`Generate Semua siap. ${variants.length} rencana video dibuat dengan preview prompt.`);
+    setIsGenerating(true);
+    setMessage(`Generating ${variants.length} preview card. Media provider belum terkoneksi, output akan memakai visual DEMO.`);
+
+    window.setTimeout(() => {
+      const completed = variants.map((variant) => ({
+        ...variant,
+        status: "Generated" as const,
+        generationStatus: "DEMO" as const,
+        generationProgress: 100
+      }));
+      setVideoPlans(completed);
+      setIsGenerating(false);
+      saveAffiliateWorkflowContext({
+        product: productToWorkflowContext(product, trendScore),
+        videoPlans: completed.map((plan) => ({ title: plan.title, hook: plan.hook, status: "Draft" })),
+        lastAction: "Generate Multi Video",
+        updatedAt: new Date().toISOString()
+      });
+      setMessage(`Generate Batch siap. ${completed.length} draft video dibuat sebagai Mock Preview. Preview generated from prompt only - real media provider not connected.`);
+    }, 700);
   }
 
   function saveVideos(action: string) {
-    const status = action === "Schedule" ? "Scheduled" : "Saved";
-    const saved = videoPlans.map((plan) => ({ ...plan, status: status as "Saved" | "Scheduled" }));
+    if (isGenerating) {
+      setMessage("Tunggu generation selesai sebelum menyimpan atau menjadwalkan.");
+      return;
+    }
+    const status = "Draft";
+    const saved = videoPlans.map((plan) => ({ ...plan, status: "Draft" as const }));
     setVideoPlans(saved);
     saveGeneratedLibraryItems(videosToLibraryItems(product, saved, status));
     saveAffiliateWorkflowContext({
       product: productToWorkflowContext(product, trendScore),
-      videoPlans: saved.map((plan) => ({ title: plan.title, hook: plan.hook, status: status === "Saved" ? "Ready" : "Scheduled" })),
+      videoPlans: saved.map((plan) => ({ title: plan.title, hook: plan.hook, status: "Draft" })),
       lastAction: action,
       updatedAt: new Date().toISOString()
     });
-    setMessage(`${action} selesai. ${saved.length} video masuk Content Library dengan source label Multi Video Engine.`);
+    setMessage(`${action} selesai. ${saved.length} video masuk Content Library dengan source MULTI_VIDEO_ENGINE dan status DRAFT.`);
+  }
+
+  function saveEditedPlan(nextPlan: MultiVideoVariant) {
+    setVideoPlans((current) => current.map((plan) => plan.id === nextPlan.id ? nextPlan : plan));
+    setEditingPlan(null);
+    setMessage(`Edit tersimpan untuk ${nextPlan.title}.`);
+  }
+
+  function saveScheduleDraft(next: ScheduleDraft) {
+    setScheduleDraft(next);
+    setScheduleOpen(false);
+    saveAffiliateWorkflowContext({
+      product: productToWorkflowContext(product, trendScore),
+      videoPlans: videoPlans.map((plan) => ({ title: plan.title, hook: plan.hook, status: "Scheduled" })),
+      lastAction: "Schedule Draft",
+      updatedAt: new Date().toISOString()
+    });
+    setMessage("Schedule draft tersimpan. Scheduler belum connected, upload/posting tetap manual sampai API scheduler aktif.");
   }
 
   return (
     <section id="multi-video-engine" className="rounded-[2rem] border border-white bg-white p-5 shadow-soft">
       <Header icon={Video} title="Multi Video Engine" subtitle="Buat banyak variasi video dari satu produk, story, atau script yang sudah dibuat." />
       <div className="mt-4"><ProductContextCard product={product} trendScore={trendScore} /></div>
-      <div className="mt-4 grid gap-3 md:grid-cols-2">
+      <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-6">
         <SelectCard label="Jumlah video" value={String(count)} options={Array.from({ length: 30 }, (_, index) => String(index + 1))} onChange={(value) => setCount(Math.min(30, Math.max(1, Number(value) || 1)))} />
         <SelectCard label="Format video" value={format} options={formats} onChange={setFormat} />
+        <SelectCard label="Aspect Ratio" value={aspectRatio} options={aspectOptions} onChange={(value) => setAspectRatio(value as VideoAspectRatio)} />
+        <SelectCard label="Resolution" value={resolution} options={resolutionOptions} onChange={(value) => setResolution(value as VideoResolution)} />
+        <SelectCard label="Duration" value={duration} options={durationOptions} onChange={(value) => setDuration(value as VideoDuration)} />
+        <SelectCard label="Video Generator" value={generator} options={generatorOptions} onChange={(value) => setGenerator(value as VideoGenerator)} />
       </div>
       <div className="mt-4 flex flex-wrap gap-2">
-        <button onClick={generateVideos} className="rounded-full bg-violet-600 px-4 py-2 text-sm font-black text-white">Generate Batch</button>
-        <button onClick={() => saveVideos("Save All to Library")} className="rounded-full border border-line bg-white px-4 py-2 text-sm font-black text-ink">Save All to Library</button>
-        <a href="/rencana-posting" onClick={() => saveVideos("Schedule")} className="rounded-full border border-line bg-white px-4 py-2 text-sm font-black text-ink">Schedule</a>
-        <button onClick={() => { setEditMode(true); setMessage("Edit aktif. Ubah prompt melalui preview card sebelum menyimpan."); }} className="rounded-full border border-line bg-white px-4 py-2 text-sm font-black text-ink">Edit</button>
+        <button disabled={isGenerating} onClick={generateVideos} className="rounded-full bg-violet-600 px-4 py-2 text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-60">
+          {isGenerating ? "Generating..." : "Generate Batch"}
+        </button>
+        <button disabled={isGenerating || videoPlans.length === 0} onClick={() => saveVideos("Save All to Library")} className="rounded-full border border-line bg-white px-4 py-2 text-sm font-black text-ink disabled:cursor-not-allowed disabled:opacity-60">Save All to Library</button>
+        <button disabled={isGenerating || videoPlans.length === 0} onClick={() => setScheduleOpen(true)} className="rounded-full border border-line bg-white px-4 py-2 text-sm font-black text-ink disabled:cursor-not-allowed disabled:opacity-60">Schedule</button>
+        <button disabled={videoPlans.length === 0} onClick={() => setEditingPlan(videoPlans[0])} className="rounded-full border border-line bg-white px-4 py-2 text-sm font-black text-ink disabled:cursor-not-allowed disabled:opacity-60">Edit</button>
       </div>
-      <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4">
-        <p className="text-sm font-black text-amber-950">Preview generated from prompt only - real media provider not connected.</p>
+      <div className="mt-4 flex flex-wrap items-center gap-2 rounded-2xl border border-line bg-white p-3">
+        <span className="rounded-full bg-slate-950 px-3 py-1 text-xs font-black text-white">Media Provider: DEMO</span>
+        <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-black text-amber-950">Provider belum terkoneksi</span>
+        <span className="text-sm font-bold text-muted">Preview generated from prompt only - real media provider not connected.</span>
       </div>
-      <div className="mt-4 grid gap-3 lg:grid-cols-2">
+      <div className="mt-4 grid gap-3 xl:grid-cols-2">
         {videoPlans.map((plan) => (
-          <article key={plan.title} className="rounded-[1.5rem] border border-line bg-slate-50 p-4">
-            <div className="flex items-start justify-between gap-3">
-              <h3 className="text-sm font-black text-ink">{plan.title}</h3>
-              <span className="rounded-full bg-white px-3 py-1 text-[10px] font-black text-violet-700">{plan.status}</span>
-            </div>
-            <div className="mt-3 grid gap-3 sm:grid-cols-2">
-              <div className="grid min-h-36 place-items-center rounded-2xl border border-violet-100 bg-white p-3 text-center">
-                <p className="text-xs font-black text-violet-700">Preview Image</p>
-                <p className="mt-2 text-xs leading-5 text-muted">{plan.previewImagePlaceholder}</p>
-              </div>
-              <div className="grid min-h-36 place-items-center rounded-2xl border border-violet-100 bg-white p-3 text-center">
-                <p className="text-xs font-black text-violet-700">Preview Video</p>
-                <p className="mt-2 text-xs leading-5 text-muted">{plan.previewVideoPlaceholder}</p>
-              </div>
-            </div>
-            <div className="mt-3 grid gap-2">
-              <p className="text-sm leading-6 text-muted"><strong>Duration:</strong> {plan.duration}</p>
-              <p className="text-sm leading-6 text-muted"><strong>Platform:</strong> {plan.platform}</p>
-              <p className="text-sm leading-6 text-muted"><strong>Hook:</strong> {plan.hook}</p>
-              <p className="text-sm leading-6 text-muted"><strong>Script:</strong> {plan.script}</p>
-              <p className="text-sm leading-6 text-muted"><strong>Scene list:</strong> {plan.sceneList.join(" | ")}</p>
-              <p className="text-sm leading-6 text-muted"><strong>Image prompt:</strong> {plan.imagePrompt}</p>
-              <p className="text-sm leading-6 text-muted"><strong>Video prompt:</strong> {plan.videoPrompt}</p>
-              <p className="text-sm leading-6 text-muted"><strong>Voice over:</strong> {plan.voiceOver}</p>
-              <p className="text-sm leading-6 text-muted"><strong>Subtitle:</strong> {plan.subtitle}</p>
-              <p className="text-sm leading-6 text-muted"><strong>Caption:</strong> {plan.caption}</p>
-              <p className="text-sm leading-6 text-muted"><strong>Hashtag:</strong> {plan.hashtag.join(" ")}</p>
-              <p className="text-sm leading-6 text-muted"><strong>CTA:</strong> {plan.cta}</p>
-              {editMode ? <textarea defaultValue={plan.videoPrompt} className="min-h-24 rounded-xl border border-line p-3 text-sm" /> : null}
-            </div>
-          </article>
+          <MultiVideoPreviewCard
+            key={plan.id}
+            plan={plan}
+            product={product}
+            onEdit={() => setEditingPlan(plan)}
+            onCaptionClick={() => setCaptionDetail({
+              title: plan.title,
+              caption: plan.caption,
+              hashtags: plan.hashtag,
+              productName: product.productName,
+              sourceLabel: "Multi Video Engine"
+            })}
+          />
         ))}
       </div>
       {message ? <Notice message={message} /> : null}
+      {captionDetail ? <CaptionDetailModal detail={captionDetail} onClose={() => setCaptionDetail(null)} onMessage={setMessage} /> : null}
+      {editingPlan ? <EditVideoModal plan={editingPlan} onClose={() => setEditingPlan(null)} onSave={saveEditedPlan} /> : null}
+      {scheduleOpen ? <ScheduleModal draft={scheduleDraft} onClose={() => setScheduleOpen(false)} onSave={saveScheduleDraft} /> : null}
     </section>
   );
 }
@@ -491,6 +574,297 @@ export function AiAgentsDashboard({ product, analyticsStats }: { product: Affili
   );
 }
 
+function MultiVideoPreviewCard({ plan, product, onEdit, onCaptionClick }: { plan: MultiVideoVariant; product: AffiliateProduct; onEdit: () => void; onCaptionClick: () => void }) {
+  const thumbnailUrl = plan.videoThumbnailUrl ?? plan.imageThumbnailUrl;
+  const thumbnailLabel = plan.videoThumbnailUrl ? "Video frame" : plan.imageThumbnailUrl ? "Image thumbnail" : "Demo thumbnail";
+  const isGenerating = plan.generationStatus === "GENERATING";
+  const previewStatus = isGenerating ? "Generating" : plan.status === "Generated" ? "Ready" : plan.status;
+
+  return (
+    <article className="overflow-hidden rounded-[1.5rem] border border-line bg-white shadow-sm">
+      <div className="bg-slate-950 p-3">
+        <div className="grid gap-3 md:grid-cols-[1fr_180px]">
+          <div className="relative aspect-video min-h-[260px] overflow-hidden rounded-[1.25rem] bg-gradient-to-br from-slate-950 via-cyan-950 to-rose-900 text-white">
+            {thumbnailUrl ? (
+              <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${thumbnailUrl})` }} aria-label={thumbnailLabel} />
+            ) : (
+              <div className="absolute inset-0">
+                <div className="absolute inset-x-4 top-4 flex items-center justify-between">
+                  <span className="rounded-full bg-white/15 px-3 py-1 text-[10px] font-black backdrop-blur">{plan.platform}</span>
+                  <span className={`rounded-full px-3 py-1 text-[10px] font-black ${previewStatusClass(previewStatus)}`}>{previewStatus}</span>
+                </div>
+                <div className="absolute inset-x-5 top-16 rounded-2xl border border-white/15 bg-white/10 p-3 shadow-2xl backdrop-blur">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-slate-950">
+                      <PlaySquare className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-black uppercase">Content Preview</p>
+                      <p className="text-[10px] font-bold text-white/75">Mock Preview</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="absolute inset-x-5 bottom-24">
+                  <p className="line-clamp-2 text-2xl font-black leading-7">{product.productName}</p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-black text-white backdrop-blur">{plan.duration}</span>
+                    <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-black text-white backdrop-blur">{plan.aspectRatio}</span>
+                    <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-black text-white backdrop-blur">{plan.resolution}</span>
+                    <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-black text-white backdrop-blur">{plan.generator}</span>
+                  </div>
+                </div>
+                <div className="absolute inset-x-5 bottom-5 rounded-2xl bg-white p-3 text-slate-950">
+                  <p className="line-clamp-2 text-sm font-black">{plan.hook}</p>
+                  <div className="mt-2 flex items-center gap-2 text-[10px] font-black text-slate-500">
+                    <span>{plan.status}</span>
+                    <span className="h-1 w-1 rounded-full bg-slate-300" />
+                    <span>{plan.platform}</span>
+                  </div>
+                  {isGenerating ? <PreviewProgress progress={plan.generationProgress} /> : null}
+                </div>
+              </div>
+            )}
+            {thumbnailUrl ? (
+              <div className="absolute inset-x-4 bottom-4 rounded-2xl bg-slate-950/70 p-3 text-white backdrop-blur">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="line-clamp-2 text-sm font-black">{product.productName}</p>
+                    <p className="mt-1 text-xs font-bold text-white/75">{plan.duration}</p>
+                  </div>
+                  <span className={`shrink-0 rounded-full px-3 py-1 text-[10px] font-black ${previewStatusClass(previewStatus)}`}>{previewStatus}</span>
+                </div>
+                {isGenerating ? <PreviewProgress progress={plan.generationProgress} dark /> : null}
+              </div>
+            ) : null}
+          </div>
+          <div className="relative min-h-[220px] overflow-hidden rounded-[1.25rem] bg-gradient-to-br from-slate-100 to-violet-200 p-4 text-slate-950">
+            {plan.imageThumbnailUrl ? <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${plan.imageThumbnailUrl})` }} aria-label="Image thumbnail" /> : null}
+            <div className="relative z-10 flex h-full min-h-[188px] flex-col justify-between rounded-2xl border border-white/70 bg-white/75 p-3 backdrop-blur">
+              <div className="flex items-center justify-between gap-2">
+                <span className="rounded-full bg-slate-950 px-2.5 py-1 text-[10px] font-black text-white">Thumbnail</span>
+                <span className="rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-black text-amber-950">Mock Preview</span>
+              </div>
+              <div>
+                <p className="line-clamp-3 text-base font-black">{product.productName}</p>
+                <p className="mt-2 text-xs font-bold text-slate-600">{plan.platform} - {plan.duration}</p>
+              </div>
+              <PlaySquare className="h-8 w-8 text-violet-700" />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="p-4">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h3 className="text-base font-black text-ink">{plan.title}</h3>
+            <p className="mt-1 text-sm font-bold text-muted">{thumbnailLabel}</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <span className={`rounded-full px-3 py-1 text-[10px] font-black ${previewStatusClass(previewStatus)}`}>{previewStatus}</span>
+            <span className="rounded-full bg-violet-100 px-3 py-1 text-[10px] font-black text-violet-800">{plan.platform}</span>
+            <span className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-black text-ink">{plan.duration}</span>
+            <span className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-black text-ink">{plan.aspectRatio}</span>
+            <span className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-black text-ink">{plan.resolution}</span>
+            <span className="rounded-full bg-amber-100 px-3 py-1 text-[10px] font-black text-amber-950">{plan.generator}</span>
+          </div>
+        </div>
+        <div className="mt-4 grid gap-2">
+          <PreviewLine label="Hook" value={plan.hook} />
+          <PreviewLine label="Script" value={plan.script} />
+          <PreviewLine label="Scene list" value={plan.sceneList.join(" | ")} />
+          <PreviewLine label="Image prompt" value={plan.imagePrompt} />
+          <PreviewLine label="Video prompt" value={plan.videoPrompt} />
+          <button type="button" onClick={onCaptionClick} className="rounded-xl border border-violet-100 bg-violet-50 p-3 text-left text-sm leading-6 text-violet-950 transition hover:border-violet-300 hover:bg-violet-100">
+            <strong>Caption:</strong> {plan.caption}
+          </button>
+          <PreviewLine label="Hashtag" value={plan.hashtag.join(" ")} />
+          <PreviewLine label="CTA" value={plan.cta} />
+        </div>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button onClick={onEdit} className="rounded-full border border-line bg-white px-4 py-2 text-sm font-black text-ink">Edit item</button>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function PreviewProgress({ progress, dark = false }: { progress: number; dark?: boolean }) {
+  return (
+    <div className="mt-3">
+      <div className={`h-2 overflow-hidden rounded-full ${dark ? "bg-white/20" : "bg-slate-200"}`}>
+        <div className={`h-full rounded-full transition-all ${dark ? "bg-white" : "bg-slate-950"}`} style={{ width: `${progress}%` }} />
+      </div>
+      <p className={`mt-2 text-[10px] font-black ${dark ? "text-white" : "text-slate-600"}`}>Generating preview {progress}%</p>
+    </div>
+  );
+}
+
+function CaptionDetailModal({ detail, onClose, onMessage }: { detail: CaptionDetail; onClose: () => void; onMessage: (message: string) => void }) {
+  const [caption, setCaption] = useState(detail.caption);
+  const [editing, setEditing] = useState(false);
+  const hashtagText = detail.hashtags?.join(" ") ?? "";
+
+  async function copyCaption() {
+    try {
+      await navigator.clipboard.writeText(`${caption}${hashtagText ? `\n${hashtagText}` : ""}`);
+      onMessage("Copied.");
+    } catch {
+      onMessage("Caption belum bisa disalin otomatis. Salin manual dari modal.");
+    }
+  }
+
+  function saveCaption() {
+    saveGeneratedLibraryItems([{
+      id: `caption-${detail.sourceLabel.toLowerCase().replace(/\s+/g, "-")}-${Date.now()}`,
+      title: `${detail.title} Caption`,
+      sourceLabel: detail.sourceLabel === "Content Library" ? "Content Factory" : detail.sourceLabel,
+      sourceCode: detail.sourceLabel === "Multi Video Engine" ? "MULTI_VIDEO_ENGINE" : detail.sourceLabel === "Story Engine" ? "STORY_ENGINE" : "CONTENT_FACTORY",
+      status: "Saved",
+      statusCode: "SAVED",
+      type: "TEXT",
+      productName: detail.productName,
+      platform: "TikTok",
+      preview: `${caption}${hashtagText ? `\n${hashtagText}` : ""}`,
+      tags: ["caption", detail.sourceLabel, ...(detail.hashtags ?? [])],
+      createdAt: new Date().toISOString()
+    }]);
+    onMessage("Caption saved to Content Library.");
+    onClose();
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/50 p-4">
+      <div className="w-full max-w-xl rounded-[1.5rem] bg-white p-5 shadow-2xl">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-xs font-black uppercase tracking-wide text-violet-700">{detail.sourceLabel}</p>
+            <h3 className="mt-1 text-xl font-black text-ink">{detail.title}</h3>
+          </div>
+          <button onClick={onClose} className="rounded-full border border-line px-3 py-1 text-sm font-black text-ink">Close</button>
+        </div>
+        {editing ? (
+          <textarea value={caption} onChange={(event) => setCaption(event.target.value)} className="mt-4 min-h-36 w-full rounded-2xl border border-line p-3 text-sm leading-6" />
+        ) : (
+          <button type="button" onClick={() => setEditing(true)} className="mt-4 w-full cursor-pointer rounded-2xl border border-violet-100 bg-violet-50 p-4 text-left text-sm leading-6 text-ink transition hover:border-violet-300 hover:bg-violet-100">
+            {caption}
+          </button>
+        )}
+        {hashtagText ? <p className="mt-3 text-sm font-bold text-violet-700">{hashtagText}</p> : null}
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button onClick={copyCaption} className="rounded-full bg-violet-600 px-4 py-2 text-sm font-black text-white">Copy Caption</button>
+          <button onClick={() => setEditing(true)} className="rounded-full border border-line bg-white px-4 py-2 text-sm font-black text-ink">Edit Caption</button>
+          <button onClick={saveCaption} className="rounded-full border border-line bg-white px-4 py-2 text-sm font-black text-ink">Save to Library</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EditVideoModal({ plan, onClose, onSave }: { plan: MultiVideoVariant; onClose: () => void; onSave: (plan: MultiVideoVariant) => void }) {
+  const [draft, setDraft] = useState({
+    title: plan.title,
+    hook: plan.hook,
+    script: plan.script,
+    caption: plan.caption,
+    hashtag: plan.hashtag.join(" "),
+    imagePrompt: plan.imagePrompt,
+    videoPrompt: plan.videoPrompt,
+    duration: plan.duration,
+    aspectRatio: plan.aspectRatio,
+    resolution: plan.resolution,
+    generator: plan.generator
+  });
+  const aspectOptions: VideoAspectRatio[] = ["9:16", "1:1", "16:9", "4:5"];
+  const resolutionOptions: VideoResolution[] = ["720x1280", "1080x1920", "1080x1080", "1920x1080", "1080x1350"];
+  const durationOptions: VideoDuration[] = ["15 detik", "30 detik", "45 detik", "60 detik", "90 detik"];
+  const generatorOptions: VideoGenerator[] = ["Veo 3", "Banana Pro", "Gemini Video", "Kling", "Runway", "Mock Preview"];
+
+  function save() {
+    onSave({
+      ...plan,
+      ...draft,
+      hashtag: draft.hashtag.split(/\s+/).filter(Boolean),
+      previewImagePlaceholder: `Mock visual placeholder for ${draft.title}, ${draft.aspectRatio}, ${draft.resolution}.`,
+      previewVideoPlaceholder: `Mock Preview for ${draft.title}, ${draft.generator}.`,
+      generationStatus: "DEMO",
+      generationProgress: 100
+    });
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/50 p-4">
+      <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-[1.5rem] bg-white p-5 shadow-2xl">
+        <div className="flex items-start justify-between gap-4">
+          <h3 className="text-xl font-black text-ink">Edit Video Item</h3>
+          <button onClick={onClose} className="rounded-full border border-line px-3 py-1 text-sm font-black text-ink">Close</button>
+        </div>
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
+          <EditInput label="Title" value={draft.title} onChange={(value) => setDraft((current) => ({ ...current, title: value }))} />
+          <SelectCard label="Duration" value={draft.duration} options={durationOptions} onChange={(value) => setDraft((current) => ({ ...current, duration: value as VideoDuration }))} />
+          <SelectCard label="Aspect Ratio" value={draft.aspectRatio} options={aspectOptions} onChange={(value) => setDraft((current) => ({ ...current, aspectRatio: value as VideoAspectRatio }))} />
+          <SelectCard label="Resolution" value={draft.resolution} options={resolutionOptions} onChange={(value) => setDraft((current) => ({ ...current, resolution: value as VideoResolution }))} />
+          <SelectCard label="Generator" value={draft.generator} options={generatorOptions} onChange={(value) => setDraft((current) => ({ ...current, generator: value as VideoGenerator }))} />
+          <EditInput label="Hashtag" value={draft.hashtag} onChange={(value) => setDraft((current) => ({ ...current, hashtag: value }))} />
+        </div>
+        <div className="mt-3 grid gap-3">
+          <EditArea label="Hook" value={draft.hook} onChange={(value) => setDraft((current) => ({ ...current, hook: value }))} />
+          <EditArea label="Script" value={draft.script} onChange={(value) => setDraft((current) => ({ ...current, script: value }))} />
+          <EditArea label="Caption" value={draft.caption} onChange={(value) => setDraft((current) => ({ ...current, caption: value }))} />
+          <EditArea label="Image Prompt" value={draft.imagePrompt} onChange={(value) => setDraft((current) => ({ ...current, imagePrompt: value }))} />
+          <EditArea label="Video Prompt" value={draft.videoPrompt} onChange={(value) => setDraft((current) => ({ ...current, videoPrompt: value }))} />
+        </div>
+        <button onClick={save} className="mt-4 rounded-full bg-violet-600 px-4 py-2 text-sm font-black text-white">Save Edit</button>
+      </div>
+    </div>
+  );
+}
+
+function ScheduleModal({ draft, onClose, onSave }: { draft: ScheduleDraft; onClose: () => void; onSave: (draft: ScheduleDraft) => void }) {
+  const [form, setForm] = useState(draft);
+
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/50 p-4">
+      <div className="w-full max-w-lg rounded-[1.5rem] bg-white p-5 shadow-2xl">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h3 className="text-xl font-black text-ink">Schedule Batch</h3>
+            <p className="mt-1 text-sm font-bold text-amber-700">Scheduler belum connected. Draft jadwal disimpan lokal untuk workflow manual.</p>
+          </div>
+          <button onClick={onClose} className="rounded-full border border-line px-3 py-1 text-sm font-black text-ink">Close</button>
+        </div>
+        <div className="mt-4 grid gap-3">
+          <SelectCard label="Platform" value={form.platform} options={["TikTok", "Reels", "Shorts", "Instagram", "YouTube"]} onChange={(value) => setForm((current) => ({ ...current, platform: value }))} />
+          <SelectCard label="Akun" value={form.account} options={["NOT_CONNECTED", "TikTok Account 1", "Instagram Account 1", "YouTube Account 1"]} onChange={(value) => setForm((current) => ({ ...current, account: value }))} />
+          <label className="rounded-[1.5rem] border border-line bg-white p-4">
+            <span className="text-xs font-black uppercase tracking-wide text-muted">Tanggal</span>
+            <input type="date" value={form.date} onChange={(event) => setForm((current) => ({ ...current, date: event.target.value }))} className="mt-2 min-h-11 w-full rounded-xl border border-line px-3 text-sm font-bold" />
+          </label>
+          <label className="rounded-[1.5rem] border border-line bg-white p-4">
+            <span className="text-xs font-black uppercase tracking-wide text-muted">Jam</span>
+            <input type="time" value={form.time} onChange={(event) => setForm((current) => ({ ...current, time: event.target.value }))} className="mt-2 min-h-11 w-full rounded-xl border border-line px-3 text-sm font-bold" />
+          </label>
+        </div>
+        <button onClick={() => onSave(form)} className="mt-4 rounded-full bg-violet-600 px-4 py-2 text-sm font-black text-white">Save Schedule Draft</button>
+      </div>
+    </div>
+  );
+}
+
+function PreviewLine({ label, value }: { label: string; value: string }) {
+  return (
+    <p className="text-sm leading-6 text-muted">
+      <strong className="text-ink">{label}:</strong> {value}
+    </p>
+  );
+}
+
+function previewStatusClass(status: string) {
+  if (status === "Ready" || status === "Generated") return "bg-emerald-100 text-emerald-950";
+  if (status === "Generating") return "bg-sky-100 text-sky-950";
+  if (status === "Failed") return "bg-rose-100 text-rose-950";
+  return "bg-slate-100 text-slate-950";
+}
+
 function Header({ icon: Icon, title, subtitle }: { icon: typeof Sparkles; title: string; subtitle: string }) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-3">
@@ -531,12 +905,40 @@ function WorkflowActionButtons({ product, trendScore, contentPack }: { product: 
   );
 }
 
-function OutputCard({ title, value }: { title: string; value: string }) {
+function OutputCard({ title, value, onClick }: { title: string; value: string; onClick?: () => void }) {
+  const clickable = Boolean(onClick);
+
   return (
-    <div className="rounded-[1.25rem] border border-line bg-white p-4">
+    <div
+      role={clickable ? "button" : undefined}
+      tabIndex={clickable ? 0 : undefined}
+      onClick={onClick}
+      onKeyDown={(event) => {
+        if (clickable && (event.key === "Enter" || event.key === " ")) onClick?.();
+      }}
+      className={`rounded-[1.25rem] border border-line bg-white p-4 ${clickable ? "cursor-pointer transition hover:border-violet-300 hover:bg-violet-50" : ""}`}
+    >
       <p className="text-xs font-black uppercase tracking-wide text-muted">{title}</p>
       <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-ink">{value || "Belum ada output."}</p>
     </div>
+  );
+}
+
+function EditInput({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) {
+  return (
+    <label className="rounded-[1.5rem] border border-line bg-white p-4">
+      <span className="text-xs font-black uppercase tracking-wide text-muted">{label}</span>
+      <input value={value} onChange={(event) => onChange(event.target.value)} className="mt-2 min-h-11 w-full rounded-xl border border-line px-3 text-sm font-bold outline-none focus:border-violet-400" />
+    </label>
+  );
+}
+
+function EditArea({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) {
+  return (
+    <label className="rounded-[1.5rem] border border-line bg-white p-4">
+      <span className="text-xs font-black uppercase tracking-wide text-muted">{label}</span>
+      <textarea value={value} onChange={(event) => onChange(event.target.value)} className="mt-2 min-h-24 w-full rounded-xl border border-line p-3 text-sm font-bold leading-6 outline-none focus:border-violet-400" />
+    </label>
   );
 }
 

@@ -11,13 +11,20 @@ import {
 } from "@/modules/database/content-service";
 import { ProductSource } from "@/modules/affiliate/types";
 import { getSourceClassName } from "@/modules/affiliate/source-badge";
-import { GeneratedLibraryItem, readGeneratedLibraryItems } from "@/modules/affiliate/affiliate-center-core";
+import { GeneratedLibraryItem, saveGeneratedLibraryItems, readGeneratedLibraryItems } from "@/modules/affiliate/affiliate-center-core";
 
 const statusOptions: Array<ContentStatus | "ALL"> = ["ALL", "DRAFT", "READY", "POSTED", "ARCHIVED"];
 const sourceOptions: Array<ProductSource | "ALL"> = ["ALL", "DEMO", "MANUAL", "CSV_IMPORT", "REAL_API"];
 const generatedSourceOptions = ["ALL", "Content Factory", "Story Engine", "Multi Video Engine", "Creative Studio"];
 const typeOptions = ["ALL", "TEXT", "IMAGE", "VIDEO"];
 const platformOptions = ["ALL", "TikTok", "Reels", "Shorts"];
+
+type CaptionDetail = {
+  title: string;
+  caption: string;
+  productName: string;
+  hashtags?: string[];
+};
 
 function statusLabel(status: ContentStatus | "ALL") {
   return status === "ALL" ? "Semua" : contentStatusLabels[status];
@@ -68,6 +75,7 @@ export function ContentDraftList({ initialDrafts }: { initialDrafts: ContentDraf
   const [createdDate, setCreatedDate] = useState("");
   const [message, setMessage] = useState("");
   const [generatedItems, setGeneratedItems] = useState<GeneratedLibraryItem[]>([]);
+  const [captionDetail, setCaptionDetail] = useState<CaptionDetail | null>(null);
   const contentModes = useMemo(() => Array.from(new Set(drafts.map((draft) => draft.contentMode).filter(Boolean))), [drafts]);
   const targetAudiences = useMemo(() => Array.from(new Set(drafts.map((draft) => draft.targetAudience).filter(Boolean))), [drafts]);
   const filteredDrafts = useMemo(
@@ -217,7 +225,13 @@ export function ContentDraftList({ initialDrafts }: { initialDrafts: ContentDraf
               </div>
               <h2 className="mt-3 text-base font-black text-ink">{item.title}</h2>
               <p className="mt-1 text-xs font-semibold text-muted">{item.productName}</p>
-              <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-muted">{item.preview}</p>
+              <button
+                type="button"
+                onClick={() => setCaptionDetail({ title: item.title, caption: item.preview, productName: item.productName, hashtags: item.tags.filter((tag) => tag.startsWith("#")) })}
+                className="mt-3 w-full cursor-pointer whitespace-pre-wrap rounded-2xl border border-violet-100 bg-violet-50 p-3 text-left text-sm leading-6 text-muted transition hover:border-violet-300 hover:bg-violet-100"
+              >
+                {item.preview}
+              </button>
               {item.imagePrompt ? <p className="mt-3 text-xs leading-5 text-violet-700"><strong>Image prompt:</strong> {item.imagePrompt}</p> : null}
               {item.videoPrompt ? <p className="mt-2 text-xs leading-5 text-violet-700"><strong>Video prompt:</strong> {item.videoPrompt}</p> : null}
               <div className="mt-3 flex flex-wrap gap-2">
@@ -256,7 +270,13 @@ export function ContentDraftList({ initialDrafts }: { initialDrafts: ContentDraf
               <Badge label="Tone" value={draft.tone} />
             </div>
             <p className="mt-3 line-clamp-2 text-sm leading-6 text-muted">{draft.selectedHook || draft.hooks[0]}</p>
-            <p className="mt-2 line-clamp-2 text-sm leading-6 text-muted">{draft.captionShort || draft.caption}</p>
+            <button
+              type="button"
+              onClick={() => setCaptionDetail({ title: `${draft.product.productName} Caption`, caption: draft.captionShort || draft.caption, productName: draft.product.productName, hashtags: draft.hashtags })}
+              className="mt-2 w-full cursor-pointer rounded-xl border border-violet-100 bg-violet-50 p-3 text-left text-sm leading-6 text-muted transition hover:border-violet-300 hover:bg-violet-100"
+            >
+              {draft.captionShort || draft.caption}
+            </button>
             <p className="mt-2 text-xs font-semibold text-muted">{new Date(draft.createdAt).toLocaleDateString()}</p>
             <div className="mt-4 flex flex-wrap gap-2">
               <a href={`/content-library/${draft.id}`} className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white">View Detail</a>
@@ -271,6 +291,68 @@ export function ContentDraftList({ initialDrafts }: { initialDrafts: ContentDraf
             </div>
           </article>
         ))}
+      </div>
+      {captionDetail ? <CaptionDetailModal detail={captionDetail} onClose={() => setCaptionDetail(null)} onMessage={setMessage} /> : null}
+    </div>
+  );
+}
+
+function CaptionDetailModal({ detail, onClose, onMessage }: { detail: CaptionDetail; onClose: () => void; onMessage: (message: string) => void }) {
+  const [caption, setCaption] = useState(detail.caption);
+  const [editing, setEditing] = useState(false);
+  const hashtagText = detail.hashtags?.join(" ") ?? "";
+
+  async function copyCaption() {
+    try {
+      await navigator.clipboard.writeText(`${caption}${hashtagText ? `\n${hashtagText}` : ""}`);
+      onMessage("Copied.");
+    } catch {
+      onMessage("Caption belum bisa disalin otomatis. Salin manual dari modal.");
+    }
+  }
+
+  function saveCaption() {
+    saveGeneratedLibraryItems([{
+      id: `content-library-caption-${Date.now()}`,
+      title: detail.title,
+      sourceLabel: "Content Factory",
+      sourceCode: "CONTENT_FACTORY",
+      status: "Saved",
+      statusCode: "SAVED",
+      type: "TEXT",
+      productName: detail.productName,
+      platform: "TikTok",
+      preview: `${caption}${hashtagText ? `\n${hashtagText}` : ""}`,
+      tags: ["caption", "content-library", ...(detail.hashtags ?? [])],
+      createdAt: new Date().toISOString()
+    }]);
+    onMessage("Caption saved to Content Library.");
+    onClose();
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/50 p-4">
+      <div className="w-full max-w-xl rounded-[1.5rem] bg-white p-5 shadow-2xl">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-xs font-black uppercase tracking-wide text-violet-700">Content Library</p>
+            <h3 className="mt-1 text-xl font-black text-ink">{detail.title}</h3>
+          </div>
+          <button onClick={onClose} className="rounded-full border border-line px-3 py-1 text-sm font-black text-ink">Close</button>
+        </div>
+        {editing ? (
+          <textarea value={caption} onChange={(event) => setCaption(event.target.value)} className="mt-4 min-h-36 w-full rounded-2xl border border-line p-3 text-sm leading-6" />
+        ) : (
+          <button type="button" onClick={() => setEditing(true)} className="mt-4 w-full cursor-pointer rounded-2xl border border-violet-100 bg-violet-50 p-4 text-left text-sm leading-6 text-ink transition hover:border-violet-300 hover:bg-violet-100">
+            {caption}
+          </button>
+        )}
+        {hashtagText ? <p className="mt-3 text-sm font-bold text-violet-700">{hashtagText}</p> : null}
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button onClick={copyCaption} className="rounded-full bg-violet-600 px-4 py-2 text-sm font-black text-white">Copy Caption</button>
+          <button onClick={() => setEditing(true)} className="rounded-full border border-line bg-white px-4 py-2 text-sm font-black text-ink">Edit Caption</button>
+          <button onClick={saveCaption} className="rounded-full border border-line bg-white px-4 py-2 text-sm font-black text-ink">Save to Library</button>
+        </div>
       </div>
     </div>
   );

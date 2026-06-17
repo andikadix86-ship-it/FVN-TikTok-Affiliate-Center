@@ -73,23 +73,37 @@ describe("affiliate center core workflows", () => {
     expect(createMultiVideoVariants(product, 1)).toHaveLength(1);
     expect(createMultiVideoVariants(product, 30)).toHaveLength(30);
     expect(createMultiVideoVariants(product, 99)).toHaveLength(30);
-    const [variant] = createMultiVideoVariants(product, 1);
+    const [variant] = createMultiVideoVariants(product, 1, undefined, {
+      aspectRatio: "16:9",
+      resolution: "1920x1080",
+      duration: "45 detik",
+      generator: "Veo 3"
+    });
     expect(variant.imagePrompt).toBeTruthy();
     expect(variant.videoPrompt).toBeTruthy();
-    expect(variant.previewImagePlaceholder).toContain("real media provider not connected");
+    expect(variant.aspectRatio).toBe("16:9");
+    expect(variant.resolution).toBe("1920x1080");
+    expect(variant.duration).toBe("45 detik");
+    expect(variant.generator).toBe("Veo 3");
+    expect(variant.videoPrompt).toContain("Veo 3");
+    expect(variant.generationStatus).toBe("DEMO");
+    expect(variant.generationProgress).toBe(100);
+    expect(variant.previewImagePlaceholder).toContain(product.productName);
   });
 
   it("maps saved videos to Content Library items", () => {
     const variants = createMultiVideoVariants(product, 3);
-    const items = videosToLibraryItems(product, variants, "Saved");
+    const items = videosToLibraryItems(product, variants, "Draft");
     expect(items).toHaveLength(3);
     expect(items.every((item) => item.sourceLabel === "Multi Video Engine")).toBe(true);
-    expect(items.every((item) => item.status === "Saved")).toBe(true);
+    expect(items.every((item) => item.sourceCode === "MULTI_VIDEO_ENGINE")).toBe(true);
+    expect(items.every((item) => item.status === "Draft")).toBe(true);
+    expect(items.every((item) => item.statusCode === "DRAFT")).toBe(true);
   });
 
   it("returns NOT_CONNECTED for TikTok Showcase without OAuth/account", () => {
-    const result = addProductToTikTokShowcase({ productId: product.id, connected: false });
+    const result = addProductToTikTokShowcase(product.id, undefined, false);
     expect(result.showcaseStatus).toBe("NOT_CONNECTED");
-    expect(result.message).toMatch(/not connected/i);
+    expect(result.message).toBe("TikTok Shop API belum terhubung. Produk belum bisa ditambahkan ke Showcase.");
   });
 });

@@ -3,7 +3,22 @@ import { AffiliateProduct } from "./types";
 export type ContentFactoryType = "Product Review" | "Problem Solution" | "Comparison" | "UGC Script" | "Short Video" | "Live Selling Script";
 export type StoryMode = "Kids Animation" | "Education" | "Business Story" | "Affiliate Story" | "Islamic Story" | "Motivational Story";
 export type GeneratedStatus = "Draft" | "Generated" | "Saved" | "Scheduled";
+export type MediaGenerationStatus = "DEMO" | "GENERATING" | "READY" | "FAILED";
 export type GeneratedSourceLabel = "Content Factory" | "Story Engine" | "Creative Studio" | "Multi Video Engine";
+export type GeneratedSourceCode = "CONTENT_FACTORY" | "STORY_ENGINE" | "CREATIVE_STUDIO" | "MULTI_VIDEO_ENGINE";
+export type GeneratedStatusCode = "DRAFT" | "GENERATED" | "SAVED" | "SCHEDULED";
+export type ShowcaseStatus = "NOT_CONNECTED" | "PENDING" | "ADDED_TO_SHOWCASE" | "FAILED";
+export type VideoAspectRatio = "9:16" | "1:1" | "16:9" | "4:5";
+export type VideoResolution = "720x1280" | "1080x1920" | "1080x1080" | "1920x1080" | "1080x1350";
+export type VideoDuration = "15 detik" | "30 detik" | "45 detik" | "60 detik" | "90 detik";
+export type VideoGenerator = "Veo 3" | "Banana Pro" | "Gemini Video" | "Kling" | "Runway" | "Mock Preview";
+
+export type MultiVideoSettings = {
+  aspectRatio: VideoAspectRatio;
+  resolution: VideoResolution;
+  duration: VideoDuration;
+  generator: VideoGenerator;
+};
 
 export type ContentFactoryOutput = {
   contentType: ContentFactoryType;
@@ -33,8 +48,11 @@ export type StoryEngineOutput = {
 export type MultiVideoVariant = {
   id: string;
   title: string;
-  duration: "15 detik" | "30 detik" | "60 detik";
+  duration: VideoDuration;
   platform: "TikTok" | "Reels" | "Shorts";
+  aspectRatio: VideoAspectRatio;
+  resolution: VideoResolution;
+  generator: VideoGenerator;
   hook: string;
   sceneList: string[];
   imagePrompt: string;
@@ -47,6 +65,10 @@ export type MultiVideoVariant = {
   cta: string;
   previewImagePlaceholder: string;
   previewVideoPlaceholder: string;
+  imageThumbnailUrl?: string;
+  videoThumbnailUrl?: string;
+  generationStatus: MediaGenerationStatus;
+  generationProgress: number;
   status: GeneratedStatus;
 };
 
@@ -54,7 +76,9 @@ export type GeneratedLibraryItem = {
   id: string;
   title: string;
   sourceLabel: GeneratedSourceLabel;
+  sourceCode?: GeneratedSourceCode;
   status: GeneratedStatus;
+  statusCode?: GeneratedStatusCode;
   type: "TEXT" | "IMAGE" | "VIDEO";
   productName: string;
   platform?: string;
@@ -69,7 +93,7 @@ export type TikTokShowcaseEntry = {
   productId: string;
   accountId: string;
   platform: "TIKTOK";
-  showcaseStatus: "PENDING" | "ADDED" | "FAILED" | "NOT_CONNECTED";
+  showcaseStatus: ShowcaseStatus;
   message: string;
 };
 
@@ -79,23 +103,27 @@ export function productDisplayLimit(expanded: boolean) {
   return expanded ? 25 : 10;
 }
 
-export function addProductToTikTokShowcase(input: { productId: string; accountId?: string; connected?: boolean }): TikTokShowcaseEntry {
-  if (!input.accountId || !input.connected) {
+export function addProductToTikTokShowcase(productId: string, accountId?: string, connected?: boolean): TikTokShowcaseEntry;
+export function addProductToTikTokShowcase(input: { productId: string; accountId?: string; connected?: boolean }): TikTokShowcaseEntry;
+export function addProductToTikTokShowcase(input: string | { productId: string; accountId?: string; connected?: boolean }, accountId?: string, connected?: boolean): TikTokShowcaseEntry {
+  const payload = typeof input === "string" ? { productId: input, accountId, connected } : input;
+
+  if (!payload.accountId || !payload.connected) {
     return {
-      productId: input.productId,
-      accountId: input.accountId ?? "",
+      productId: payload.productId,
+      accountId: payload.accountId ?? "",
       platform: "TIKTOK",
       showcaseStatus: "NOT_CONNECTED",
-      message: "TikTok account is not connected yet. Connect account first to add product to showcase."
+      message: "TikTok Shop API belum terhubung. Produk belum bisa ditambahkan ke Showcase."
     };
   }
 
   return {
-    productId: input.productId,
-    accountId: input.accountId,
+    productId: payload.productId,
+    accountId: payload.accountId,
     platform: "TIKTOK",
     showcaseStatus: "PENDING",
-    message: "Product queued for TikTok Showcase."
+    message: "Produk masuk antrean Showcase. Siap diarahkan ke TikTok Shop / Affiliate Showcase API saat koneksi real aktif."
   };
 }
 
@@ -239,23 +267,29 @@ export function createStoryEngineOutput(product: AffiliateProduct, mode: StoryMo
   };
 }
 
-export function createMultiVideoVariants(product: AffiliateProduct, count: number, story?: StoryEngineOutput): MultiVideoVariant[] {
+export function createMultiVideoVariants(product: AffiliateProduct, count: number, story?: StoryEngineOutput, settings?: Partial<MultiVideoSettings>): MultiVideoVariant[] {
   const bounded = Math.min(30, Math.max(1, Math.floor(count)));
-  const durations: MultiVideoVariant["duration"][] = ["15 detik", "30 detik", "60 detik"];
+  const durations: VideoDuration[] = settings?.duration ? [settings.duration] : ["15 detik", "30 detik", "45 detik", "60 detik", "90 detik"];
   const platforms: MultiVideoVariant["platform"][] = ["TikTok", "Reels", "Shorts"];
+  const aspectRatio = settings?.aspectRatio ?? "9:16";
+  const resolution = settings?.resolution ?? "1080x1920";
+  const generator = settings?.generator ?? "Mock Preview";
   const scenes = story?.scenePlan?.length ? story.scenePlan : ["Hook", "Problem", "Demo product", "Benefit", "CTA"];
 
   return Array.from({ length: bounded }, (_, index) => {
     const duration = durations[index % durations.length];
     const platform = platforms[index % platforms.length];
-    const title = `${product.productName} - ${platform} ${duration} #${index + 1}`;
-    const imagePrompt = `Preview image for ${title}, vertical 9:16, product focal point, clean text-safe composition.`;
-    const videoPrompt = `Generate ${duration} ${platform} video for ${product.productName}. Scenes: ${scenes.join(" | ")}.`;
+    const title = `${product.productName} - ${platform} ${duration} ${aspectRatio} #${index + 1}`;
+    const imagePrompt = `Preview image for ${title}, aspect ratio ${aspectRatio}, resolution ${resolution}, product focal point, clean text-safe composition, generator ${generator}.`;
+    const videoPrompt = `Generate ${duration} ${platform} video for ${product.productName} using ${generator}. Aspect ratio ${aspectRatio}, resolution ${resolution}. Scenes: ${scenes.join(" | ")}.`;
     return {
       id: `multi-video-${product.id}-${index + 1}`,
       title,
       duration,
       platform,
+      aspectRatio,
+      resolution,
+      generator,
       hook: story?.hook ?? `${product.productName}: lihat solusi singkat sebelum checkout.`,
       sceneList: scenes,
       imagePrompt,
@@ -266,8 +300,10 @@ export function createMultiVideoVariants(product: AffiliateProduct, count: numbe
       caption: story?.caption ?? `Konsep ${duration} untuk ${product.productName}.`,
       hashtag: story?.hashtag ?? ["#FVNAffiliate", "#TikTokAffiliate"],
       cta: story?.cta ?? "Cek detail produk sebelum membeli.",
-      previewImagePlaceholder: "Preview generated from prompt only - real media provider not connected.",
-      previewVideoPlaceholder: "Preview generated from prompt only - real media provider not connected.",
+      previewImagePlaceholder: `Mock visual placeholder for ${product.productName}, ${platform}, ${duration}, ${aspectRatio}, ${resolution}.`,
+      previewVideoPlaceholder: `Mock Preview for ${product.productName}, ${platform}, ${duration}, ${generator}.`,
+      generationStatus: "DEMO",
+      generationProgress: 100,
       status: "Draft"
     };
   });
@@ -275,18 +311,26 @@ export function createMultiVideoVariants(product: AffiliateProduct, count: numbe
 
 export function videosToLibraryItems(product: AffiliateProduct, variants: MultiVideoVariant[], status: GeneratedStatus): GeneratedLibraryItem[] {
   const now = new Date().toISOString();
+  const statusCode: Record<GeneratedStatus, GeneratedStatusCode> = {
+    Draft: "DRAFT",
+    Generated: "GENERATED",
+    Saved: "SAVED",
+    Scheduled: "SCHEDULED"
+  };
   return variants.map((variant) => ({
     id: `${variant.id}-${status.toLowerCase()}`,
     title: variant.title,
     sourceLabel: "Multi Video Engine",
+    sourceCode: "MULTI_VIDEO_ENGINE",
     status,
+    statusCode: statusCode[status],
     type: "VIDEO",
     productName: product.productName,
     platform: variant.platform,
-    preview: `${variant.hook}\n${variant.script}\n${variant.sceneList.join("\n")}\n${variant.caption}`,
+    preview: `${variant.hook}\n${variant.script}\n${variant.sceneList.join("\n")}\n${variant.caption}\n${variant.aspectRatio} ${variant.resolution} ${variant.generator}`,
     imagePrompt: variant.imagePrompt,
     videoPrompt: variant.videoPrompt,
-    tags: [variant.platform, variant.duration, "multi-video", ...variant.hashtag],
+    tags: [variant.platform, variant.duration, variant.aspectRatio, variant.resolution, variant.generator, "multi-video", ...variant.hashtag],
     createdAt: now
   }));
 }

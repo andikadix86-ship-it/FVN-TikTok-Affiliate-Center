@@ -155,6 +155,13 @@ describe("Product Hunter sources", () => {
     expect(contentFactoryHtml).toContain("Copy Full Pack");
     expect(storyHtml).toContain("Story Engine");
     expect(multiVideoHtml).toContain("Multi Video Engine");
+    expect(multiVideoHtml).toContain("Aspect Ratio");
+    expect(multiVideoHtml).toContain("Resolution");
+    expect(multiVideoHtml).toContain("Video Generator");
+    expect(multiVideoHtml).toContain("Mock Preview");
+    expect(multiVideoHtml).toContain("Preview generated from prompt only - real media provider not connected.");
+    expect(multiVideoHtml).toContain("<strong>Caption:</strong>");
+    expect(multiVideoHtml).toContain("hover:bg-violet-100");
     expect(schedulerHtml).toContain("Belum ada rencana posting. Buat campaign 7 hari dari produk terbaik kamu.");
     expect(aiAgentsHtml).toContain("AI Agents Optimization");
   });

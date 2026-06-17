@@ -18,6 +18,8 @@ describe("ContentDraftList", () => {
     expect(html).toContain("Mini Mic");
     expect(html).toContain("Siap Posting");
     expect(html).toContain("Salin Caption");
+    expect(html).toContain("cursor-pointer");
+    expect(html).toContain("hover:bg-violet-100");
     expect(html).toContain("Copy Hashtag");
     expect(html).toContain("Salin Semua");
     expect(html).toContain("Duplikat Draft");

@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { getRecommendationLabel } from "@/modules/scoring/recommendation-label";
 import { scoreProduct } from "@/modules/scoring/score-product";
-import { addProductToTikTokShowcase, productDisplayLimit } from "../affiliate-center-core";
+import { addProductToTikTokShowcase, productDisplayLimit, ShowcaseStatus } from "../affiliate-center-core";
 import { saveProductWorkflowContext } from "../workflow-context";
 import { AffiliateProduct, ProductSource } from "../types";
 
@@ -89,6 +89,7 @@ export function ProductIntelligenceDashboard({
   const [rankingTab, setRankingTab] = useState<RankingTab>("Top Hari Ini");
   const [expandedProducts, setExpandedProducts] = useState(false);
   const [notice, setNotice] = useState("");
+  const [showcaseStatuses, setShowcaseStatuses] = useState<Record<string, ShowcaseStatus>>({});
   const hasDemoData = products.some((product) => product.source === "DEMO");
   const categoryOptions = ["Semua kategori", ...fixedCategories];
   const rankedProducts = useMemo(
@@ -150,7 +151,8 @@ export function ProductIntelligenceDashboard({
   ];
   const handleProductAction = (product: AffiliateProduct, trendScore: number, action: string) => {
     if (action === "Add to TikTok Showcase") {
-      const result = addProductToTikTokShowcase({ productId: product.id, accountId: tiktokConnected ? "active-tiktok-account" : undefined, connected: tiktokConnected });
+      const result = addProductToTikTokShowcase(product.id, tiktokConnected ? "active-tiktok-account" : undefined, tiktokConnected);
+      setShowcaseStatuses((current) => ({ ...current, [product.id]: result.showcaseStatus }));
       setNotice(result.message);
     } else {
       setNotice(`${action} siap untuk ${product.productName}.`);
@@ -312,6 +314,7 @@ export function ProductIntelligenceDashboard({
           topSellers={topSellers}
           selectedProductId={selectedProductId}
           onProductAction={handleProductAction}
+          showcaseStatuses={showcaseStatuses}
         />
       ) : null}
 
@@ -360,6 +363,7 @@ export function ProductIntelligenceDashboard({
             products={filterProductTab(topProducts, productSubTab)}
             selectedProductId={selectedProductId}
             onProductAction={handleProductAction}
+            showcaseStatuses={showcaseStatuses}
           />
           <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl border border-violet-100 bg-violet-50 p-3">
             <p className="text-sm font-bold text-violet-900">Menampilkan {Math.min(topProducts.length, rankedProducts.length)} dari {rankedProducts.length} produk.</p>
@@ -386,13 +390,15 @@ function TrendingOverview({
   topAffiliators,
   topSellers,
   selectedProductId,
-  onProductAction
+  onProductAction,
+  showcaseStatuses
 }: {
   topProducts: Array<{ product: AffiliateProduct; score: ReturnType<typeof scoreProduct> }>;
   topAffiliators: AffiliatorRow[];
   topSellers: SellerRow[];
   selectedProductId: string;
   onProductAction: (product: AffiliateProduct, trendScore: number, action: string) => void;
+  showcaseStatuses: Record<string, ShowcaseStatus>;
 }) {
   return (
     <div className="space-y-5">
@@ -422,7 +428,7 @@ function TrendingOverview({
                 <StatBox label="Penjualan" value={`${estimateSales(product, score.total, index)} pcs`} />
                 <StatBox label="Trend Score" value={`${score.total}/100`} />
               </div>
-              <ProductActionButtons product={product} trendScore={score.total} onProductAction={onProductAction} compact />
+              <ProductActionButtons product={product} trendScore={score.total} onProductAction={onProductAction} compact showcaseStatus={showcaseStatuses[product.id]} />
             </article>
           ))}
         </div>
@@ -542,11 +548,13 @@ function TopAffiliatorTable({ affiliators, compact = false }: { affiliators: Aff
 function TrendingProductTable({
   products,
   selectedProductId,
-  onProductAction
+  onProductAction,
+  showcaseStatuses
 }: {
   products: Array<{ product: AffiliateProduct; score: ReturnType<typeof scoreProduct> }>;
   selectedProductId: string;
   onProductAction: (product: AffiliateProduct, trendScore: number, action: string) => void;
+  showcaseStatuses: Record<string, ShowcaseStatus>;
 }) {
   return (
     <div className="mt-4 w-full max-w-full overflow-x-auto">
@@ -600,7 +608,7 @@ function TrendingProductTable({
                 <td className="px-3 py-3">{Math.max(3, Math.round(score.total / 8))}</td>
                 <td className="px-3 py-3">{Math.max(1.2, score.total / 18).toFixed(1)}%</td>
                 <td className="rounded-r-2xl px-3 py-3">
-                  <ProductActionButtons product={product} trendScore={score.total} onProductAction={onProductAction} />
+                  <ProductActionButtons product={product} trendScore={score.total} onProductAction={onProductAction} showcaseStatus={showcaseStatuses[product.id]} />
                 </td>
               </tr>
             );
@@ -651,12 +659,14 @@ function ProductActionButtons({
   product,
   trendScore,
   onProductAction,
-  compact = false
+  compact = false,
+  showcaseStatus
 }: {
   product: AffiliateProduct;
   trendScore: number;
   onProductAction: (product: AffiliateProduct, trendScore: number, action: string) => void;
   compact?: boolean;
+  showcaseStatus?: ShowcaseStatus;
 }) {
   const click = (action: string) => onProductAction(product, trendScore, action);
 
@@ -667,11 +677,23 @@ function ProductActionButtons({
       <SmallAction href="/buat-konten" label="Create Content" onClick={() => click("Create Content")} dark />
       <SmallAction href="/campaigns" label="Create Campaign" onClick={() => click("Create Campaign")} />
       <SmallAction href="/produk-affiliate#product-detail" label="Add to TikTok Showcase" onClick={() => click("Add to TikTok Showcase")} />
+      {showcaseStatus ? <ShowcaseBadge status={showcaseStatus} /> : null}
       {!compact ? <SmallAction href="/story-engine" label="Buat Story" onClick={() => click("Buat Story")} /> : null}
       {!compact ? <SmallAction href="/multi-video-engine" label="Buat Video" onClick={() => click("Buat Video")} /> : null}
       {!compact ? <SmallAction href="/rencana-posting" label="Jadwalkan" onClick={() => click("Jadwalkan")} /> : null}
     </div>
   );
+}
+
+function ShowcaseBadge({ status }: { status: ShowcaseStatus }) {
+  const classes: Record<ShowcaseStatus, string> = {
+    NOT_CONNECTED: "bg-amber-100 text-amber-950",
+    PENDING: "bg-sky-100 text-sky-950",
+    ADDED_TO_SHOWCASE: "bg-emerald-100 text-emerald-950",
+    FAILED: "bg-rose-100 text-rose-950"
+  };
+
+  return <span className={`inline-flex items-center rounded-full px-3 py-1.5 text-xs font-black ${classes[status]}`}>Showcase: {status}</span>;
 }
 
 function SmallAction({ href, label, onClick, dark = false }: { href: string; label: string; onClick?: () => void; dark?: boolean }) {
