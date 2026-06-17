@@ -53,6 +53,7 @@ import { sampleProducts } from "./sample-products";
 import { getSourceBadgeText, getSourceClassName, getSourceTrustText } from "./source-badge";
 import { AffiliateProduct, CompetitionLevel, ProductSource } from "./types";
 import { AffiliateDashboard } from "./components/affiliate-dashboard";
+import { ProductIntelligenceDashboard } from "./components/product-intelligence-dashboard";
 
 const sourcePriority: ProductSource[] = ["MANUAL", "CSV_IMPORT", "REAL_API", "DEMO"];
 
@@ -1080,7 +1081,14 @@ export function AffiliateWorkflow({
         </div>
       </section>
 
-      <SectionCard id="product-hunter" title="Product Intelligence" description="Cari, input, import, dan nilai peluang produk affiliate dengan bahasa sederhana." icon={PackageSearch}>
+      <ProductIntelligenceDashboard
+        products={sortedProducts}
+        selectedProductId={selectedProduct.id}
+        onSelectProduct={setSelectedId}
+      />
+
+      <div className="hidden">
+      <SectionCard id="product-hunter-admin" title="Product Intelligence Admin Tools" description="Form input manual dan CSV disimpan untuk mode admin/dev." icon={PackageSearch}>
         {isDemoOnly ? (
           <div className="mb-4 rounded-2xl border border-orange-200 bg-orange-50 p-4">
             <div className="flex gap-3">
@@ -1298,6 +1306,7 @@ export function AffiliateWorkflow({
           })}
         </div>
       </SectionCard>
+      </div>
 
       <SectionCard id="product-detail" title="Detail Produk" description="Cek ringkasan produk sebelum membuat konten." icon={PackageSearch}>
         <div className="grid gap-4 lg:grid-cols-[0.8fr_1.2fr]">
