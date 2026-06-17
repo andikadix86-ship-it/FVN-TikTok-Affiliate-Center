@@ -28,6 +28,7 @@ import {
   VideoAspectRatio,
   VideoDuration,
   VideoGenerator,
+  VideoPlatform,
   VideoResolution,
   videosToLibraryItems
 } from "../affiliate-center-core";
@@ -319,6 +320,7 @@ export function StoryEngineDashboard({ product, trendScore, contentPack }: { pro
 export function MultiVideoEngineDashboard({ product, trendScore, contentPack }: { product: AffiliateProduct; trendScore: number; contentPack: ContentPack }) {
   const [count, setCount] = useState(5);
   const [format, setFormat] = useState("Problem Solution");
+  const [platform, setPlatform] = useState<VideoPlatform>("TikTok");
   const [aspectRatio, setAspectRatio] = useState<VideoAspectRatio>("9:16");
   const [resolution, setResolution] = useState<VideoResolution>("1080x1920");
   const [duration, setDuration] = useState<VideoDuration>("30 detik");
@@ -330,13 +332,30 @@ export function MultiVideoEngineDashboard({ product, trendScore, contentPack }: 
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const [scheduleDraft, setScheduleDraft] = useState<ScheduleDraft>({ platform: "TikTok", account: "NOT_CONNECTED", date: "", time: "" });
   const formats = ["Review", "Problem Solution", "Before After", "Testimoni", "Edukasi", "Komedi Ringan", "Perbandingan", "Fakta Menarik", "Soft Selling", "CTA Hard Selling"];
+  const platformOptions: VideoPlatform[] = ["TikTok", "Reels", "Shorts", "Instagram Feed", "YouTube Landscape"];
   const aspectOptions: VideoAspectRatio[] = ["9:16", "1:1", "16:9", "4:5"];
   const resolutionOptions: VideoResolution[] = ["720x1280", "1080x1920", "1080x1080", "1920x1080", "1080x1350"];
   const durationOptions: VideoDuration[] = ["15 detik", "30 detik", "45 detik", "60 detik", "90 detik"];
   const generatorOptions: VideoGenerator[] = ["Veo 3", "Banana Pro", "Gemini Video", "Kling", "Runway", "Mock Preview"];
-  const [videoPlans, setVideoPlans] = useState(() => createMultiVideoVariants(product, count, undefined, { aspectRatio, resolution, duration, generator }));
+  const [videoPlans, setVideoPlans] = useState(() => createMultiVideoVariants(product, count, undefined, { platform, aspectRatio, resolution, duration, generator }));
 
-  const activeSettings = { aspectRatio, resolution, duration, generator };
+  const activeSettings = { platform, aspectRatio, resolution, duration, generator };
+
+  function applyPlatformDefaults(nextPlatform: VideoPlatform) {
+    setPlatform(nextPlatform);
+    if (nextPlatform === "Instagram Feed") {
+      setAspectRatio("4:5");
+      setResolution("1080x1350");
+      return;
+    }
+    if (nextPlatform === "YouTube Landscape") {
+      setAspectRatio("16:9");
+      setResolution("1920x1080");
+      return;
+    }
+    setAspectRatio("9:16");
+    setResolution("1080x1920");
+  }
 
   function generateVideos() {
     const variants = createMultiVideoVariants(product, count, undefined, activeSettings).map((variant, index) => ({
@@ -411,13 +430,25 @@ export function MultiVideoEngineDashboard({ product, trendScore, contentPack }: 
     <section id="multi-video-engine" className="rounded-[2rem] border border-white bg-white p-5 shadow-soft">
       <Header icon={Video} title="Multi Video Engine" subtitle="Buat banyak variasi video dari satu produk, story, atau script yang sudah dibuat." />
       <div className="mt-4"><ProductContextCard product={product} trendScore={trendScore} /></div>
-      <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-6">
-        <SelectCard label="Jumlah video" value={String(count)} options={Array.from({ length: 30 }, (_, index) => String(index + 1))} onChange={(value) => setCount(Math.min(30, Math.max(1, Number(value) || 1)))} />
-        <SelectCard label="Format video" value={format} options={formats} onChange={setFormat} />
-        <SelectCard label="Aspect Ratio" value={aspectRatio} options={aspectOptions} onChange={(value) => setAspectRatio(value as VideoAspectRatio)} />
-        <SelectCard label="Resolution" value={resolution} options={resolutionOptions} onChange={(value) => setResolution(value as VideoResolution)} />
-        <SelectCard label="Duration" value={duration} options={durationOptions} onChange={(value) => setDuration(value as VideoDuration)} />
-        <SelectCard label="Video Generator" value={generator} options={generatorOptions} onChange={(value) => setGenerator(value as VideoGenerator)} />
+      <div className="mt-4 rounded-[1.5rem] border border-line bg-white p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-black text-ink">Video Settings</p>
+            <p className="mt-1 text-sm text-muted">Default: TikTok/Reels/Shorts memakai 9:16 dan 1080x1920. Preset berubah otomatis saat platform diganti.</p>
+          </div>
+          <span className="rounded-full bg-violet-50 px-3 py-1 text-xs font-black text-violet-700">{platform} - {aspectRatio} - {resolution}</span>
+        </div>
+        <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-6">
+          <SelectCard label="Platform" value={platform} options={platformOptions} onChange={(value) => applyPlatformDefaults(value as VideoPlatform)} />
+          <SelectCard label="Jumlah Video" value={String(count)} options={Array.from({ length: 30 }, (_, index) => String(index + 1))} onChange={(value) => setCount(Math.min(30, Math.max(1, Number(value) || 1)))} />
+          <SelectCard label="Duration" value={duration} options={durationOptions} onChange={(value) => setDuration(value as VideoDuration)} />
+          <SelectCard label="Aspect Ratio" value={aspectRatio} options={aspectOptions} onChange={(value) => setAspectRatio(value as VideoAspectRatio)} />
+          <SelectCard label="Resolution" value={resolution} options={resolutionOptions} onChange={(value) => setResolution(value as VideoResolution)} />
+          <SelectCard label="Video Generator" value={generator} options={generatorOptions} onChange={(value) => setGenerator(value as VideoGenerator)} />
+        </div>
+        <div className="mt-3">
+          <SelectCard label="Format video" value={format} options={formats} onChange={setFormat} />
+        </div>
       </div>
       <div className="mt-4 flex flex-wrap gap-2">
         <button disabled={isGenerating} onClick={generateVideos} className="rounded-full bg-violet-600 px-4 py-2 text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-60">
@@ -432,7 +463,7 @@ export function MultiVideoEngineDashboard({ product, trendScore, contentPack }: 
         <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-black text-amber-950">Provider belum terkoneksi</span>
         <span className="text-sm font-bold text-muted">Preview generated from prompt only - real media provider not connected.</span>
       </div>
-      <div className="mt-4 grid gap-3 xl:grid-cols-2">
+      <div className="mt-4 grid min-w-0 gap-3 lg:grid-cols-2">
         {videoPlans.map((plan) => (
           <MultiVideoPreviewCard
             key={plan.id}
@@ -581,82 +612,51 @@ function MultiVideoPreviewCard({ plan, product, onEdit, onCaptionClick }: { plan
   const previewStatus = isGenerating ? "Generating" : plan.status === "Generated" ? "Ready" : plan.status;
 
   return (
-    <article className="overflow-hidden rounded-[1.5rem] border border-line bg-white shadow-sm">
+    <article className="min-w-0 overflow-hidden rounded-[1.5rem] border border-line bg-white shadow-sm">
       <div className="bg-slate-950 p-3">
-        <div className="grid gap-3 md:grid-cols-[1fr_180px]">
-          <div className="relative aspect-video min-h-[260px] overflow-hidden rounded-[1.25rem] bg-gradient-to-br from-slate-950 via-cyan-950 to-rose-900 text-white">
-            {thumbnailUrl ? (
-              <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${thumbnailUrl})` }} aria-label={thumbnailLabel} />
-            ) : (
-              <div className="absolute inset-0">
-                <div className="absolute inset-x-4 top-4 flex items-center justify-between">
-                  <span className="rounded-full bg-white/15 px-3 py-1 text-[10px] font-black backdrop-blur">{plan.platform}</span>
-                  <span className={`rounded-full px-3 py-1 text-[10px] font-black ${previewStatusClass(previewStatus)}`}>{previewStatus}</span>
+        <div className={`relative mx-auto w-full max-w-full ${previewFrameClass(plan.aspectRatio)} min-h-[260px] overflow-hidden rounded-[1.25rem] bg-gradient-to-br from-slate-950 via-cyan-950 to-rose-900 text-white`}>
+          {thumbnailUrl ? (
+            <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${thumbnailUrl})` }} aria-label={thumbnailLabel} />
+          ) : (
+            <div className="absolute inset-0">
+              <div className="absolute inset-x-4 top-4 flex items-center justify-between gap-3">
+                <span className="rounded-full bg-white/15 px-3 py-1 text-[10px] font-black backdrop-blur">{plan.platform}</span>
+                <span className={`rounded-full px-3 py-1 text-[10px] font-black ${previewStatusClass(previewStatus)}`}>{previewStatus}</span>
+              </div>
+              <div className="absolute left-5 top-16 flex items-center gap-2 rounded-2xl border border-white/15 bg-white/10 p-3 shadow-2xl backdrop-blur">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-slate-950">
+                  <PlaySquare className="h-5 w-5" />
                 </div>
-                <div className="absolute inset-x-5 top-16 rounded-2xl border border-white/15 bg-white/10 p-3 shadow-2xl backdrop-blur">
-                  <div className="flex items-center gap-2">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-slate-950">
-                      <PlaySquare className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <p className="text-[11px] font-black uppercase">Content Preview</p>
-                      <p className="text-[10px] font-bold text-white/75">Mock Preview</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="absolute inset-x-5 bottom-24">
-                  <p className="line-clamp-2 text-2xl font-black leading-7">{product.productName}</p>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-black text-white backdrop-blur">{plan.duration}</span>
-                    <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-black text-white backdrop-blur">{plan.aspectRatio}</span>
-                    <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-black text-white backdrop-blur">{plan.resolution}</span>
-                    <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-black text-white backdrop-blur">{plan.generator}</span>
-                  </div>
-                </div>
-                <div className="absolute inset-x-5 bottom-5 rounded-2xl bg-white p-3 text-slate-950">
-                  <p className="line-clamp-2 text-sm font-black">{plan.hook}</p>
-                  <div className="mt-2 flex items-center gap-2 text-[10px] font-black text-slate-500">
-                    <span>{plan.status}</span>
-                    <span className="h-1 w-1 rounded-full bg-slate-300" />
-                    <span>{plan.platform}</span>
-                  </div>
-                  {isGenerating ? <PreviewProgress progress={plan.generationProgress} /> : null}
+                <div>
+                  <p className="text-[11px] font-black uppercase">Mock Preview</p>
+                  <p className="text-[10px] font-bold text-white/75">{plan.aspectRatio} - {plan.resolution}</p>
                 </div>
               </div>
-            )}
-            {thumbnailUrl ? (
-              <div className="absolute inset-x-4 bottom-4 rounded-2xl bg-slate-950/70 p-3 text-white backdrop-blur">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="line-clamp-2 text-sm font-black">{product.productName}</p>
-                    <p className="mt-1 text-xs font-bold text-white/75">{plan.duration}</p>
-                  </div>
-                  <span className={`shrink-0 rounded-full px-3 py-1 text-[10px] font-black ${previewStatusClass(previewStatus)}`}>{previewStatus}</span>
-                </div>
-                {isGenerating ? <PreviewProgress progress={plan.generationProgress} dark /> : null}
+              <div className="absolute inset-x-5 bottom-5 rounded-2xl bg-white/95 p-4 text-slate-950 shadow-xl backdrop-blur">
+                <p className="line-clamp-2 text-lg font-black leading-6">{product.productName}</p>
+                <p className="mt-2 line-clamp-2 text-xs font-bold text-slate-600">{plan.hook}</p>
+                {isGenerating ? <PreviewProgress progress={plan.generationProgress} /> : null}
               </div>
-            ) : null}
-          </div>
-          <div className="relative min-h-[220px] overflow-hidden rounded-[1.25rem] bg-gradient-to-br from-slate-100 to-violet-200 p-4 text-slate-950">
-            {plan.imageThumbnailUrl ? <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${plan.imageThumbnailUrl})` }} aria-label="Image thumbnail" /> : null}
-            <div className="relative z-10 flex h-full min-h-[188px] flex-col justify-between rounded-2xl border border-white/70 bg-white/75 p-3 backdrop-blur">
-              <div className="flex items-center justify-between gap-2">
-                <span className="rounded-full bg-slate-950 px-2.5 py-1 text-[10px] font-black text-white">Thumbnail</span>
-                <span className="rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-black text-amber-950">Mock Preview</span>
-              </div>
-              <div>
-                <p className="line-clamp-3 text-base font-black">{product.productName}</p>
-                <p className="mt-2 text-xs font-bold text-slate-600">{plan.platform} - {plan.duration}</p>
-              </div>
-              <PlaySquare className="h-8 w-8 text-violet-700" />
             </div>
-          </div>
+          )}
+          {thumbnailUrl ? (
+            <div className="absolute inset-x-4 bottom-4 rounded-2xl bg-slate-950/70 p-3 text-white backdrop-blur">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="line-clamp-2 text-sm font-black">{product.productName}</p>
+                  <p className="mt-1 text-xs font-bold text-white/75">{plan.duration} - {plan.aspectRatio}</p>
+                </div>
+                <span className={`shrink-0 rounded-full px-3 py-1 text-[10px] font-black ${previewStatusClass(previewStatus)}`}>{previewStatus}</span>
+              </div>
+              {isGenerating ? <PreviewProgress progress={plan.generationProgress} dark /> : null}
+            </div>
+          ) : null}
         </div>
       </div>
       <div className="p-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h3 className="text-base font-black text-ink">{plan.title}</h3>
+            <h3 className="line-clamp-2 text-base font-black text-ink">{plan.title}</h3>
             <p className="mt-1 text-sm font-bold text-muted">{thumbnailLabel}</p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -668,24 +668,35 @@ function MultiVideoPreviewCard({ plan, product, onEdit, onCaptionClick }: { plan
             <span className="rounded-full bg-amber-100 px-3 py-1 text-[10px] font-black text-amber-950">{plan.generator}</span>
           </div>
         </div>
-        <div className="mt-4 grid gap-2">
-          <PreviewLine label="Hook" value={plan.hook} />
-          <PreviewLine label="Script" value={plan.script} />
-          <PreviewLine label="Scene list" value={plan.sceneList.join(" | ")} />
-          <PreviewLine label="Image prompt" value={plan.imagePrompt} />
-          <PreviewLine label="Video prompt" value={plan.videoPrompt} />
-          <button type="button" onClick={onCaptionClick} className="rounded-xl border border-violet-100 bg-violet-50 p-3 text-left text-sm leading-6 text-violet-950 transition hover:border-violet-300 hover:bg-violet-100">
-            <strong>Caption:</strong> {plan.caption}
-          </button>
-          <PreviewLine label="Hashtag" value={plan.hashtag.join(" ")} />
-          <PreviewLine label="CTA" value={plan.cta} />
-        </div>
         <div className="mt-4 flex flex-wrap gap-2">
+          <button type="button" onClick={onCaptionClick} className="rounded-full border border-violet-200 bg-violet-50 px-4 py-2 text-sm font-black text-violet-800 transition hover:bg-violet-100">
+            Lihat Caption
+          </button>
           <button onClick={onEdit} className="rounded-full border border-line bg-white px-4 py-2 text-sm font-black text-ink">Edit item</button>
         </div>
+        <details className="mt-4 rounded-2xl border border-line bg-slate-50">
+          <summary className="cursor-pointer px-4 py-3 text-sm font-black text-ink">Detail script, prompt, hashtag, dan CTA</summary>
+          <div className="grid gap-3 border-t border-line p-4">
+            <PreviewLine label="Hook" value={plan.hook} />
+            <PreviewLine label="Script" value={plan.script} />
+            <PreviewLine label="Scene list" value={plan.sceneList.join(" | ")} />
+            <PreviewLine label="Image prompt" value={plan.imagePrompt} />
+            <PreviewLine label="Video prompt" value={plan.videoPrompt} />
+            <PreviewLine label="Caption" value={plan.caption} />
+            <PreviewLine label="Hashtag" value={plan.hashtag.join(" ")} />
+            <PreviewLine label="CTA" value={plan.cta} />
+          </div>
+        </details>
       </div>
     </article>
   );
+}
+
+function previewFrameClass(aspectRatio: VideoAspectRatio) {
+  if (aspectRatio === "1:1") return "aspect-square max-h-[520px] max-w-[520px]";
+  if (aspectRatio === "16:9") return "aspect-video";
+  if (aspectRatio === "4:5") return "aspect-[4/5] max-h-[560px] max-w-[448px]";
+  return "aspect-[9/16] max-h-[620px] max-w-[360px]";
 }
 
 function PreviewProgress({ progress, dark = false }: { progress: number; dark?: boolean }) {
@@ -769,11 +780,13 @@ function EditVideoModal({ plan, onClose, onSave }: { plan: MultiVideoVariant; on
     hashtag: plan.hashtag.join(" "),
     imagePrompt: plan.imagePrompt,
     videoPrompt: plan.videoPrompt,
+    platform: plan.platform,
     duration: plan.duration,
     aspectRatio: plan.aspectRatio,
     resolution: plan.resolution,
     generator: plan.generator
   });
+  const platformOptions: VideoPlatform[] = ["TikTok", "Reels", "Shorts", "Instagram Feed", "YouTube Landscape"];
   const aspectOptions: VideoAspectRatio[] = ["9:16", "1:1", "16:9", "4:5"];
   const resolutionOptions: VideoResolution[] = ["720x1280", "1080x1920", "1080x1080", "1920x1080", "1080x1350"];
   const durationOptions: VideoDuration[] = ["15 detik", "30 detik", "45 detik", "60 detik", "90 detik"];
@@ -800,6 +813,7 @@ function EditVideoModal({ plan, onClose, onSave }: { plan: MultiVideoVariant; on
         </div>
         <div className="mt-4 grid gap-3 md:grid-cols-2">
           <EditInput label="Title" value={draft.title} onChange={(value) => setDraft((current) => ({ ...current, title: value }))} />
+          <SelectCard label="Platform" value={draft.platform} options={platformOptions} onChange={(value) => setDraft((current) => ({ ...current, platform: value as VideoPlatform }))} />
           <SelectCard label="Duration" value={draft.duration} options={durationOptions} onChange={(value) => setDraft((current) => ({ ...current, duration: value as VideoDuration }))} />
           <SelectCard label="Aspect Ratio" value={draft.aspectRatio} options={aspectOptions} onChange={(value) => setDraft((current) => ({ ...current, aspectRatio: value as VideoAspectRatio }))} />
           <SelectCard label="Resolution" value={draft.resolution} options={resolutionOptions} onChange={(value) => setDraft((current) => ({ ...current, resolution: value as VideoResolution }))} />

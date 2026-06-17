@@ -74,6 +74,7 @@ describe("affiliate center core workflows", () => {
     expect(createMultiVideoVariants(product, 30)).toHaveLength(30);
     expect(createMultiVideoVariants(product, 99)).toHaveLength(30);
     const [variant] = createMultiVideoVariants(product, 1, undefined, {
+      platform: "YouTube Landscape",
       aspectRatio: "16:9",
       resolution: "1920x1080",
       duration: "45 detik",
@@ -81,6 +82,7 @@ describe("affiliate center core workflows", () => {
     });
     expect(variant.imagePrompt).toBeTruthy();
     expect(variant.videoPrompt).toBeTruthy();
+    expect(variant.platform).toBe("YouTube Landscape");
     expect(variant.aspectRatio).toBe("16:9");
     expect(variant.resolution).toBe("1920x1080");
     expect(variant.duration).toBe("45 detik");

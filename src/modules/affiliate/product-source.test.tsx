@@ -158,9 +158,14 @@ describe("Product Hunter sources", () => {
     expect(multiVideoHtml).toContain("Aspect Ratio");
     expect(multiVideoHtml).toContain("Resolution");
     expect(multiVideoHtml).toContain("Video Generator");
+    expect(multiVideoHtml).toContain("Video Settings");
+    expect(multiVideoHtml).toContain("Platform");
+    expect(multiVideoHtml).toContain("TikTok - 9:16 - 1080x1920");
     expect(multiVideoHtml).toContain("Mock Preview");
     expect(multiVideoHtml).toContain("Preview generated from prompt only - real media provider not connected.");
-    expect(multiVideoHtml).toContain("<strong>Caption:</strong>");
+    expect(multiVideoHtml).toContain("Lihat Caption");
+    expect(multiVideoHtml).toContain("Detail script, prompt, hashtag, dan CTA");
+    expect(multiVideoHtml).toContain("Caption:");
     expect(multiVideoHtml).toContain("hover:bg-violet-100");
     expect(schedulerHtml).toContain("Belum ada rencana posting. Buat campaign 7 hari dari produk terbaik kamu.");
     expect(aiAgentsHtml).toContain("AI Agents Optimization");

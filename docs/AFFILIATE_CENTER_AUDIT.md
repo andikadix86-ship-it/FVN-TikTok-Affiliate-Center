@@ -23,7 +23,9 @@ Date: 2026-06-17
 - Add to TikTok Showcase memakai handler `addProductToTikTokShowcase(productId, accountId)` dan mengembalikan status `NOT_CONNECTED` jika TikTok Shop/Affiliate API belum connected.
 - Content Factory memakai template berbeda untuk Product Review, Problem Solution, Comparison, UGC Script, Short Video, dan Live Selling Script.
 - Story Engine memakai struktur berbeda untuk Kids Animation, Education, Business Story, Affiliate Story, Islamic Story, dan Motivational Story.
-- Multi Video Engine menghasilkan 1 sampai 30 variasi video dengan aspect ratio, resolution, duration, video generator, title, platform, hook, scene list, image prompt, video prompt, caption, hashtag, CTA, mock preview image/video, dan status.
+- Multi Video Engine menghasilkan 1 sampai 30 variasi video dengan panel setting Platform, Jumlah Video, Duration, Aspect Ratio, Resolution, dan Video Generator.
+- Default TikTok/Reels/Shorts memakai `9:16` dan `1080x1920`, Instagram Feed memakai `4:5` dan `1080x1350`, YouTube Landscape memakai `16:9` dan `1920x1080`.
+- Preview card Multi Video Engine memakai satu preview utama dan detail hook/script/prompt/caption/hashtag/CTA masuk ke accordion agar card tidak penuh.
 - Save All to Library menyimpan item ke local generated Content Library fallback dengan `sourceCode = MULTI_VIDEO_ENGINE` dan `statusCode = DRAFT`.
 - Caption di Content Factory, Story Engine, Multi Video Engine, dan Content Library bisa diklik untuk membuka modal detail caption, copy, edit, dan save to library.
 
@@ -75,7 +77,7 @@ Date: 2026-06-17
 ## Status provider image/video
 
 - Provider real image/video belum dianggap connected.
-- UI Multi Video Engine menampilkan preview video besar, thumbnail placeholder, product title, duration, platform badge, aspect ratio, resolution, generator, status Draft/Generating/Ready/Failed, dan progress bar saat generating.
+- UI Multi Video Engine menampilkan satu preview video besar, product title, duration, platform badge, aspect ratio, resolution, generator, status Draft/Generating/Ready/Failed, dan progress bar saat generating.
 - Jika provider image/video production sudah mengirim `imageThumbnailUrl` atau `videoThumbnailUrl`, preview card akan menampilkan thumbnail asli/frame video.
 - Prompt image dan video tetap tersedia agar siap dikirim ke Nano Banana/Veo 3 ketika provider aktif.
 

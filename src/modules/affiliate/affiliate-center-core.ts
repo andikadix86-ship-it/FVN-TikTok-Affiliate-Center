@@ -12,8 +12,10 @@ export type VideoAspectRatio = "9:16" | "1:1" | "16:9" | "4:5";
 export type VideoResolution = "720x1280" | "1080x1920" | "1080x1080" | "1920x1080" | "1080x1350";
 export type VideoDuration = "15 detik" | "30 detik" | "45 detik" | "60 detik" | "90 detik";
 export type VideoGenerator = "Veo 3" | "Banana Pro" | "Gemini Video" | "Kling" | "Runway" | "Mock Preview";
+export type VideoPlatform = "TikTok" | "Reels" | "Shorts" | "Instagram Feed" | "YouTube Landscape";
 
 export type MultiVideoSettings = {
+  platform: VideoPlatform;
   aspectRatio: VideoAspectRatio;
   resolution: VideoResolution;
   duration: VideoDuration;
@@ -49,7 +51,7 @@ export type MultiVideoVariant = {
   id: string;
   title: string;
   duration: VideoDuration;
-  platform: "TikTok" | "Reels" | "Shorts";
+  platform: VideoPlatform;
   aspectRatio: VideoAspectRatio;
   resolution: VideoResolution;
   generator: VideoGenerator;
@@ -270,7 +272,7 @@ export function createStoryEngineOutput(product: AffiliateProduct, mode: StoryMo
 export function createMultiVideoVariants(product: AffiliateProduct, count: number, story?: StoryEngineOutput, settings?: Partial<MultiVideoSettings>): MultiVideoVariant[] {
   const bounded = Math.min(30, Math.max(1, Math.floor(count)));
   const durations: VideoDuration[] = settings?.duration ? [settings.duration] : ["15 detik", "30 detik", "45 detik", "60 detik", "90 detik"];
-  const platforms: MultiVideoVariant["platform"][] = ["TikTok", "Reels", "Shorts"];
+  const platforms: VideoPlatform[] = settings?.platform ? [settings.platform] : ["TikTok", "Reels", "Shorts"];
   const aspectRatio = settings?.aspectRatio ?? "9:16";
   const resolution = settings?.resolution ?? "1080x1920";
   const generator = settings?.generator ?? "Mock Preview";
