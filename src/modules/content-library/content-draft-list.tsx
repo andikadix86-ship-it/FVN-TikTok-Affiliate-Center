@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Archive, Copy, FilePlus2, Search, Trash2 } from "lucide-react";
 import {
   ContentDraft,
@@ -11,6 +11,7 @@ import {
 } from "@/modules/database/content-service";
 import { ProductSource } from "@/modules/affiliate/types";
 import { getSourceClassName } from "@/modules/affiliate/source-badge";
+import { GeneratedLibraryItem, readGeneratedLibraryItems } from "@/modules/affiliate/affiliate-center-core";
 
 const statusOptions: Array<ContentStatus | "ALL"> = ["ALL", "DRAFT", "READY", "POSTED", "ARCHIVED"];
 const sourceOptions: Array<ProductSource | "ALL"> = ["ALL", "DEMO", "MANUAL", "CSV_IMPORT", "REAL_API"];
@@ -60,12 +61,28 @@ export function ContentDraftList({ initialDrafts }: { initialDrafts: ContentDraf
   const [targetAudience, setTargetAudience] = useState("ALL");
   const [createdDate, setCreatedDate] = useState("");
   const [message, setMessage] = useState("");
+  const [generatedItems, setGeneratedItems] = useState<GeneratedLibraryItem[]>([]);
   const contentModes = useMemo(() => Array.from(new Set(drafts.map((draft) => draft.contentMode).filter(Boolean))), [drafts]);
   const targetAudiences = useMemo(() => Array.from(new Set(drafts.map((draft) => draft.targetAudience).filter(Boolean))), [drafts]);
   const filteredDrafts = useMemo(
     () => filterContentDrafts(drafts, { query, status, source, contentMode, targetAudience, createdDate }),
     [contentMode, createdDate, drafts, query, source, status, targetAudience]
   );
+  const filteredGeneratedItems = useMemo(() => {
+    const term = query.trim().toLowerCase();
+    return generatedItems.filter((item) => {
+      const matchesQuery = !term || `${item.title} ${item.productName} ${item.preview} ${item.tags.join(" ")}`.toLowerCase().includes(term);
+      const matchesStatus = status === "ALL" || (status === "READY" && ["Generated", "Saved"].includes(item.status)) || (status === "DRAFT" && item.status === "Draft") || (status === "POSTED" && item.status === "Scheduled");
+      return matchesQuery && matchesStatus;
+    });
+  }, [generatedItems, query, status]);
+
+  useEffect(() => {
+    const loadGeneratedItems = () => setGeneratedItems(readGeneratedLibraryItems());
+    loadGeneratedItems();
+    window.addEventListener("fvn-content-library-updated", loadGeneratedItems);
+    return () => window.removeEventListener("fvn-content-library-updated", loadGeneratedItems);
+  }, []);
 
   async function runDraftAction(id: string, action: "archive" | "duplicate" | "delete") {
     if (action === "delete" && !window.confirm("Hapus draft konten ini? Produk dan campaign tidak akan dihapus.")) {
@@ -135,10 +152,32 @@ export function ContentDraftList({ initialDrafts }: { initialDrafts: ContentDraf
 
       {message ? <div className="rounded-2xl border border-line bg-slate-50 p-4 text-sm font-bold text-ink">{message}</div> : null}
 
-      {filteredDrafts.length === 0 ? (
+      {filteredDrafts.length === 0 && filteredGeneratedItems.length === 0 ? (
         <div className="rounded-[2rem] border border-dashed border-line bg-white p-8 text-center">
           <p className="text-lg font-black text-ink">Belum ada draft konten. Pilih produk di Produk Affiliate, lalu buat konten pertama kamu.</p>
           <a href="/#content-factory" className="mt-4 inline-flex rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white">Buat Konten Sekarang</a>
+        </div>
+      ) : null}
+
+      {filteredGeneratedItems.length ? (
+        <div className="grid gap-3 lg:grid-cols-2">
+          {filteredGeneratedItems.map((item) => (
+            <article key={item.id} className="rounded-[1.5rem] border border-violet-100 bg-white p-4">
+              <div className="flex flex-wrap gap-2">
+                <span className="rounded-full bg-violet-100 px-3 py-1 text-[10px] font-black text-violet-700">{item.sourceLabel}</span>
+                <span className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-black text-ink">{item.status}</span>
+                <span className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-black text-ink">{item.type}</span>
+              </div>
+              <h2 className="mt-3 text-base font-black text-ink">{item.title}</h2>
+              <p className="mt-1 text-xs font-semibold text-muted">{item.productName}</p>
+              <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-muted">{item.preview}</p>
+              {item.imagePrompt ? <p className="mt-3 text-xs leading-5 text-violet-700"><strong>Image prompt:</strong> {item.imagePrompt}</p> : null}
+              {item.videoPrompt ? <p className="mt-2 text-xs leading-5 text-violet-700"><strong>Video prompt:</strong> {item.videoPrompt}</p> : null}
+              <div className="mt-3 flex flex-wrap gap-2">
+                {item.tags.map((tag) => <span key={tag} className="rounded-full bg-slate-50 px-2 py-1 text-[10px] font-bold text-muted">{tag}</span>)}
+              </div>
+            </article>
+          ))}
         </div>
       ) : null}
 

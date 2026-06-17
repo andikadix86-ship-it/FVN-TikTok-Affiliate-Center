@@ -1,0 +1,280 @@
+import { AffiliateProduct } from "./types";
+
+export type ContentFactoryType = "Video Review" | "Story Selling" | "Edukasi" | "Testimoni";
+export type StoryMode = "Affiliate Story" | "Education Story" | "Business Story" | "Islamic Story" | "Kids Animation Story" | "Motivational Story";
+export type GeneratedStatus = "Draft" | "Generated" | "Saved" | "Scheduled";
+export type GeneratedSourceLabel = "Content Factory" | "Story Engine" | "Creative Studio" | "Multi Video Engine";
+
+export type ContentFactoryOutput = {
+  contentType: ContentFactoryType;
+  hook: string;
+  opening: string;
+  mainScript: string;
+  cta: string;
+  caption: string;
+  hashtag: string[];
+};
+
+export type StoryEngineOutput = {
+  mode: StoryMode;
+  structure: string;
+  hook: string;
+  shortScript: string;
+  scenePlan: string[];
+  imagePrompt: string;
+  videoPrompt: string;
+  voiceOver: string;
+  subtitle: string;
+  caption: string;
+  hashtag: string[];
+  cta: string;
+};
+
+export type MultiVideoVariant = {
+  id: string;
+  title: string;
+  duration: "15 detik" | "30 detik" | "60 detik";
+  platform: "TikTok" | "Reels" | "Shorts";
+  hook: string;
+  sceneList: string[];
+  imagePrompt: string;
+  videoPrompt: string;
+  voiceOver: string;
+  subtitle: string;
+  caption: string;
+  cta: string;
+  previewImagePlaceholder: string;
+  previewVideoPlaceholder: string;
+  status: GeneratedStatus;
+};
+
+export type GeneratedLibraryItem = {
+  id: string;
+  title: string;
+  sourceLabel: GeneratedSourceLabel;
+  status: GeneratedStatus;
+  type: "TEXT" | "IMAGE" | "VIDEO";
+  productName: string;
+  preview: string;
+  imagePrompt?: string;
+  videoPrompt?: string;
+  tags: string[];
+  createdAt: string;
+};
+
+export type TikTokShowcaseEntry = {
+  productId: string;
+  accountId: string;
+  platform: "TIKTOK";
+  showcaseStatus: "PENDING" | "ADDED" | "FAILED" | "NOT_CONNECTED";
+  message: string;
+};
+
+export const generatedContentLibraryKey = "fvn-generated-content-library";
+
+export function productDisplayLimit(expanded: boolean) {
+  return expanded ? 25 : 10;
+}
+
+export function addProductToTikTokShowcase(input: { productId: string; accountId?: string; connected?: boolean }): TikTokShowcaseEntry {
+  if (!input.accountId || !input.connected) {
+    return {
+      productId: input.productId,
+      accountId: input.accountId ?? "",
+      platform: "TIKTOK",
+      showcaseStatus: "NOT_CONNECTED",
+      message: "TikTok account is not connected yet. Connect account first to add product to showcase."
+    };
+  }
+
+  return {
+    productId: input.productId,
+    accountId: input.accountId,
+    platform: "TIKTOK",
+    showcaseStatus: "PENDING",
+    message: "Product queued for TikTok Showcase."
+  };
+}
+
+export function createContentFactoryOutput(product: AffiliateProduct, contentType: ContentFactoryType): ContentFactoryOutput {
+  const benefit = product.mainBenefit || "membantu aktivitas harian jadi lebih praktis";
+  const cta = "Cek detail produk dan bandingkan sebelum checkout.";
+
+  if (contentType === "Story Selling") {
+    return {
+      contentType,
+      hook: `Awalnya saya tidak yakin ${product.productName} bakal kepakai.`,
+      opening: "Mulai dari masalah kecil sehari-hari yang sering dialami target audience.",
+      mainScript: `Ceritakan kondisi sebelum memakai ${product.productName}, momen menemukan produk, lalu perubahan yang terasa. Tekankan manfaat: ${benefit}.`,
+      cta,
+      caption: `${product.productName} dalam cerita singkat: problem, discovery, benefit, dan CTA.`,
+      hashtag: ["#StorySelling", "#AffiliateTikTok", "#ReviewJujur"]
+    };
+  }
+
+  if (contentType === "Edukasi") {
+    return {
+      contentType,
+      hook: `Sebelum beli ${product.productName}, pahami dulu cara memilih yang benar.`,
+      opening: "Buka dengan pertanyaan edukatif dan kesalahan umum pembeli.",
+      mainScript: `Jelaskan 3 poin: fungsi utama, cara pakai, dan indikator produk layak dibeli. Masukkan ${product.productName} sebagai contoh tanpa klaim berlebihan.`,
+      cta,
+      caption: `Panduan singkat memilih ${product.productName}. Simpan sebelum checkout.`,
+      hashtag: ["#EdukasiProduk", "#TipsBelanja", "#AffiliateTikTok"]
+    };
+  }
+
+  if (contentType === "Testimoni") {
+    return {
+      contentType,
+      hook: `Saya coba ${product.productName}, ini bagian yang paling terasa.`,
+      opening: "Mulai dari konteks pemakaian nyata dan ekspektasi awal.",
+      mainScript: `Sampaikan pengalaman sebelum dan sesudah memakai ${product.productName}. Jelaskan yang membantu, yang perlu diperhatikan, dan siapa yang cocok memakai produk ini.`,
+      cta,
+      caption: `Testimoni singkat ${product.productName}: cocok untuk yang butuh solusi praktis.`,
+      hashtag: ["#TestimoniProduk", "#ReviewProduk", "#AffiliateTikTok"]
+    };
+  }
+
+  return {
+    contentType,
+    hook: `${product.productName} ini layak dicek kalau kamu butuh solusi praktis.`,
+    opening: "Tampilkan produk di 3 detik pertama dan sebutkan masalah yang diselesaikan.",
+    mainScript: `Review fitur utama ${product.productName}, tunjukkan cara pakai, jelaskan manfaat ${benefit}, lalu beri catatan objektif agar review terasa kredibel.`,
+    cta,
+    caption: `Review cepat ${product.productName}. Cek manfaat, cara pakai, dan pertimbangkan sebelum membeli.`,
+    hashtag: ["#VideoReview", "#ReviewProduk", "#AffiliateTikTok"]
+  };
+}
+
+export function createStoryEngineOutput(product: AffiliateProduct, mode: StoryMode): StoryEngineOutput {
+  const cta = mode === "Affiliate Story" ? "Cek detail produk lewat showcase atau link affiliate." : "Simpan dan lanjutkan kalau insight ini relevan.";
+  const structures: Record<StoryMode, Pick<StoryEngineOutput, "structure" | "hook" | "shortScript" | "scenePlan" | "voiceOver" | "subtitle">> = {
+    "Affiliate Story": {
+      structure: "Problem -> Product Discovery -> Benefit -> Proof -> CTA",
+      hook: `Masalah kecil ini sering bikin orang butuh ${product.productName}.`,
+      shortScript: `Problem: ${product.problemSolved}. Product Discovery: ${product.productName}. Benefit: ${product.mainBenefit}. Proof: demo ringan. CTA: cek detail.`,
+      scenePlan: ["Problem audience", "Product discovery", "Benefit demo", "Proof visual", "CTA"],
+      voiceOver: `Awalnya masalah ini terasa sepele. Lalu ${product.productName} muncul sebagai solusi praktis. Lihat manfaatnya, cek buktinya, lalu putuskan dengan bijak.`,
+      subtitle: "Problem -> Product Discovery -> Benefit -> Proof -> CTA"
+    },
+    "Education Story": {
+      structure: "Question -> Explanation -> Example -> Lesson -> CTA",
+      hook: `Kenapa ${product.category} seperti ${product.productName} sering dibutuhkan?`,
+      shortScript: `Question: apa masalahnya? Explanation: jelaskan konsepnya. Example: pakai ${product.productName}. Lesson: prinsip memilih. CTA: simpan.`,
+      scenePlan: ["Question", "Explanation", "Example", "Lesson", "CTA"],
+      voiceOver: `Pernah bertanya kenapa produk ini penting? Mulai dari konsepnya, lihat contoh sederhana, ambil pelajarannya, lalu cek detail.`,
+      subtitle: "Question -> Explanation -> Example -> Lesson -> CTA"
+    },
+    "Business Story": {
+      structure: "Problem Market -> Opportunity -> Strategy -> Result -> CTA",
+      hook: "Masalah market kecil bisa jadi peluang kalau dibaca dengan benar.",
+      shortScript: `Problem Market: gap kategori ${product.category}. Opportunity: kebutuhan audience. Strategy: konten produk. Result: testing realistis. CTA: evaluasi.`,
+      scenePlan: ["Problem Market", "Opportunity", "Strategy", "Result", "CTA"],
+      voiceOver: "Di balik masalah market selalu ada sinyal. Baca peluangnya, susun strategi, ukur hasilnya, lalu ambil langkah berikutnya.",
+      subtitle: "Problem Market -> Opportunity -> Strategy -> Result -> CTA"
+    },
+    "Islamic Story": {
+      structure: "Opening Wisdom -> Story Lesson -> Moral Value -> Soft CTA",
+      hook: "Keputusan yang baik dimulai dari manfaat dan amanah.",
+      shortScript: `Opening Wisdom: pilih dengan bijak. Story Lesson: hubungkan kebutuhan. Moral Value: manfaat tanpa berlebihan. Soft CTA: cek detail.`,
+      scenePlan: ["Opening Wisdom", "Story Lesson", "Moral Value", "Soft CTA"],
+      voiceOver: "Dalam memilih sesuatu, lihat manfaat dan niatnya. Jangan berlebihan, pahami kebutuhannya, lalu ambil keputusan dengan bijak.",
+      subtitle: "Opening Wisdom -> Story Lesson -> Moral Value -> Soft CTA"
+    },
+    "Kids Animation Story": {
+      structure: "Character -> Problem -> Adventure -> Lesson -> Happy Ending",
+      hook: "Ada karakter kecil yang punya masalah besar hari ini.",
+      shortScript: `Character: tokoh kecil. Problem: bingung. Adventure: mencari solusi. Lesson: belajar. Happy Ending: tutup ceria.`,
+      scenePlan: ["Character", "Problem", "Adventure", "Lesson", "Happy Ending"],
+      voiceOver: "Hari ini si kecil punya tantangan. Ia mencoba, belajar, dan akhirnya menemukan cara yang lebih baik dengan hati gembira.",
+      subtitle: "Character -> Problem -> Adventure -> Lesson -> Happy Ending"
+    },
+    "Motivational Story": {
+      structure: "Pain Point -> Struggle -> Turning Point -> Lesson -> Motivation CTA",
+      hook: "Kadang perubahan dimulai dari satu langkah kecil.",
+      shortScript: `Pain Point: akui masalah. Struggle: proses. Turning Point: temukan cara. Lesson: ambil pelajaran. Motivation CTA: mulai.`,
+      scenePlan: ["Pain Point", "Struggle", "Turning Point", "Lesson", "Motivation CTA"],
+      voiceOver: "Tidak semua perubahan datang cepat. Mulai dari masalah, lewati prosesnya, temukan titik balik, dan ambil satu langkah hari ini.",
+      subtitle: "Pain Point -> Struggle -> Turning Point -> Lesson -> Motivation CTA"
+    }
+  };
+  const base = structures[mode];
+
+  return {
+    mode,
+    ...base,
+    imagePrompt: `Vertical 9:16 image prompt for ${product.productName}, ${mode}, clean focal point, readable subtitle space.`,
+    videoPrompt: `Vertical short video for ${product.productName}. Use ${base.structure}. Natural motion, product-safe claims, subtitle-safe framing.`,
+    caption: `${product.productName}: ${base.structure}.`,
+    hashtag: [`#${product.category.replace(/[^a-z0-9]+/gi, "") || "Affiliate"}`, "#FVNAffiliate", "#TikTokAffiliate"],
+    cta
+  };
+}
+
+export function createMultiVideoVariants(product: AffiliateProduct, count: number, story?: StoryEngineOutput): MultiVideoVariant[] {
+  const bounded = Math.min(30, Math.max(1, Math.floor(count)));
+  const durations: MultiVideoVariant["duration"][] = ["15 detik", "30 detik", "60 detik"];
+  const platforms: MultiVideoVariant["platform"][] = ["TikTok", "Reels", "Shorts"];
+  const scenes = story?.scenePlan?.length ? story.scenePlan : ["Hook", "Problem", "Demo product", "Benefit", "CTA"];
+
+  return Array.from({ length: bounded }, (_, index) => {
+    const duration = durations[index % durations.length];
+    const platform = platforms[index % platforms.length];
+    const title = `${product.productName} - ${platform} ${duration} #${index + 1}`;
+    const imagePrompt = `Preview image for ${title}, vertical 9:16, product focal point, clean text-safe composition.`;
+    const videoPrompt = `Generate ${duration} ${platform} video for ${product.productName}. Scenes: ${scenes.join(" | ")}.`;
+    return {
+      id: `multi-video-${product.id}-${index + 1}`,
+      title,
+      duration,
+      platform,
+      hook: story?.hook ?? `${product.productName}: lihat solusi singkat sebelum checkout.`,
+      sceneList: scenes,
+      imagePrompt,
+      videoPrompt,
+      voiceOver: story?.voiceOver ?? `${product.productName}. Mulai dari masalah, tunjukkan solusi, beri contoh singkat, lalu arahkan penonton untuk bertindak.`,
+      subtitle: story?.subtitle ?? `${product.productName} | ${duration} | ${platform}`,
+      caption: story?.caption ?? `Konsep ${duration} untuk ${product.productName}.`,
+      cta: story?.cta ?? "Cek detail produk sebelum membeli.",
+      previewImagePlaceholder: "Preview generated from prompt only - real media provider not connected.",
+      previewVideoPlaceholder: "Preview generated from prompt only - real media provider not connected.",
+      status: "Draft"
+    };
+  });
+}
+
+export function videosToLibraryItems(product: AffiliateProduct, variants: MultiVideoVariant[], status: GeneratedStatus): GeneratedLibraryItem[] {
+  const now = new Date().toISOString();
+  return variants.map((variant) => ({
+    id: `${variant.id}-${status.toLowerCase()}`,
+    title: variant.title,
+    sourceLabel: "Multi Video Engine",
+    status,
+    type: "VIDEO",
+    productName: product.productName,
+    preview: `${variant.hook}\n${variant.sceneList.join("\n")}\n${variant.caption}`,
+    imagePrompt: variant.imagePrompt,
+    videoPrompt: variant.videoPrompt,
+    tags: [variant.platform, variant.duration, "multi-video"],
+    createdAt: now
+  }));
+}
+
+export function readGeneratedLibraryItems(): GeneratedLibraryItem[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(generatedContentLibraryKey) ?? "[]");
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveGeneratedLibraryItems(items: GeneratedLibraryItem[]) {
+  if (typeof window === "undefined") return [];
+  const next = [...items, ...readGeneratedLibraryItems()];
+  window.localStorage.setItem(generatedContentLibraryKey, JSON.stringify(next));
+  window.dispatchEvent(new CustomEvent("fvn-content-library-updated"));
+  return next;
+}

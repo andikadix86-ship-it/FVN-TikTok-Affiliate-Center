@@ -1123,6 +1123,7 @@ export function AffiliateWorkflow({
         products={sortedProducts}
         selectedProductId={selectedProduct.id}
         onSelectProduct={setSelectedId}
+        tiktokConnected={tiktokConnected}
       />
 
       <div className="hidden">

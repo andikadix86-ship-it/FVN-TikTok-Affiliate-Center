@@ -1,0 +1,93 @@
+import { describe, expect, it } from "vitest";
+import {
+  addProductToTikTokShowcase,
+  createContentFactoryOutput,
+  createMultiVideoVariants,
+  createStoryEngineOutput,
+  productDisplayLimit,
+  videosToLibraryItems
+} from "./affiliate-center-core";
+import { AffiliateProduct } from "./types";
+
+const product: AffiliateProduct = {
+  id: "product-1",
+  source: "MANUAL",
+  productName: "Portable Blender",
+  platform: "TikTok",
+  category: "Kitchen Tools",
+  price: 149000,
+  commissionRate: 12,
+  soldCount: 1000,
+  salesScore: 88,
+  rating: 4.8,
+  reviewCount: 210,
+  competitionLevel: "medium",
+  productUrl: "https://example.com/product",
+  imageUrl: "",
+  targetAudience: "Affiliate pemula",
+  problemSolved: "Sulit membuat jus saat bepergian",
+  mainBenefit: "praktis untuk minuman sehat harian",
+  demoIdea: "Demo blender di meja dapur",
+  notes: "Manual product",
+  contentPotential: 86,
+  beginnerFriendliness: 82,
+  createdAt: "2026-06-17T00:00:00.000Z",
+  updatedAt: "2026-06-17T00:00:00.000Z"
+};
+
+describe("affiliate center core workflows", () => {
+  it("uses 10 products by default and 25 after show more", () => {
+    expect(productDisplayLimit(false)).toBe(10);
+    expect(productDisplayLimit(true)).toBe(25);
+  });
+
+  it("changes Content Factory script for each content type", () => {
+    const review = createContentFactoryOutput(product, "Video Review");
+    const story = createContentFactoryOutput(product, "Story Selling");
+    const education = createContentFactoryOutput(product, "Edukasi");
+    const testimonial = createContentFactoryOutput(product, "Testimoni");
+
+    expect(new Set([review.mainScript, story.mainScript, education.mainScript, testimonial.mainScript]).size).toBe(4);
+    for (const output of [review, story, education, testimonial]) {
+      expect(output.hook).toBeTruthy();
+      expect(output.opening).toBeTruthy();
+      expect(output.mainScript).toBeTruthy();
+      expect(output.cta).toBeTruthy();
+      expect(output.caption).toBeTruthy();
+      expect(output.hashtag.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("changes Story Engine structure for each mode", () => {
+    expect(createStoryEngineOutput(product, "Affiliate Story").structure).toContain("Product Discovery");
+    expect(createStoryEngineOutput(product, "Education Story").structure).toContain("Question");
+    expect(createStoryEngineOutput(product, "Business Story").structure).toContain("Problem Market");
+    expect(createStoryEngineOutput(product, "Islamic Story").structure).toContain("Opening Wisdom");
+    expect(createStoryEngineOutput(product, "Kids Animation Story").structure).toContain("Happy Ending");
+    expect(createStoryEngineOutput(product, "Motivational Story").structure).toContain("Turning Point");
+  });
+
+  it("generates flexible 1 to 30 Multi Video variants with prompts", () => {
+    expect(createMultiVideoVariants(product, 1)).toHaveLength(1);
+    expect(createMultiVideoVariants(product, 30)).toHaveLength(30);
+    expect(createMultiVideoVariants(product, 99)).toHaveLength(30);
+    const [variant] = createMultiVideoVariants(product, 1);
+    expect(variant.imagePrompt).toBeTruthy();
+    expect(variant.videoPrompt).toBeTruthy();
+    expect(variant.previewImagePlaceholder).toContain("real media provider not connected");
+  });
+
+  it("maps saved videos to Content Library items", () => {
+    const variants = createMultiVideoVariants(product, 3);
+    const items = videosToLibraryItems(product, variants, "Saved");
+    expect(items).toHaveLength(3);
+    expect(items.every((item) => item.sourceLabel === "Multi Video Engine")).toBe(true);
+    expect(items.every((item) => item.status === "Saved")).toBe(true);
+  });
+
+  it("returns NOT_CONNECTED for TikTok Showcase without OAuth/account", () => {
+    const result = addProductToTikTokShowcase({ productId: product.id, connected: false });
+    expect(result.showcaseStatus).toBe("NOT_CONNECTED");
+    expect(result.message).toMatch(/not connected/i);
+  });
+});

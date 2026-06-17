@@ -17,6 +17,15 @@ import {
 } from "lucide-react";
 import { MetricPill } from "@/components/metric-pill";
 import { ContentPack } from "@/modules/prompt-engine/types";
+import {
+  ContentFactoryType,
+  createContentFactoryOutput,
+  createMultiVideoVariants,
+  createStoryEngineOutput,
+  saveGeneratedLibraryItems,
+  StoryMode,
+  videosToLibraryItems
+} from "../affiliate-center-core";
 import { AffiliateProduct } from "../types";
 import { productToWorkflowContext, saveAffiliateWorkflowContext } from "../workflow-context";
 
@@ -90,7 +99,19 @@ export function ContentFactoryFlowPanel({
   contentPack: ContentPack;
   onGenerate: () => void;
 }) {
-  const templates = ["Video Review", "Story Selling", "Edukasi", "Testimoni", "Perbandingan", "Soft Selling", "Problem Solution", "Before After"];
+  const templates: ContentFactoryType[] = ["Video Review", "Story Selling", "Edukasi", "Testimoni"];
+  const [contentType, setContentType] = useState<ContentFactoryType>("Video Review");
+  const [scriptOutput, setScriptOutput] = useState(() => createContentFactoryOutput(product, "Video Review"));
+
+  function changeContentType(nextType: ContentFactoryType) {
+    setContentType(nextType);
+    setScriptOutput(createContentFactoryOutput(product, nextType));
+  }
+
+  function generateScript() {
+    setScriptOutput(createContentFactoryOutput(product, contentType));
+    onGenerate();
+  }
 
   return (
     <div className="mb-5 space-y-4">
@@ -101,21 +122,27 @@ export function ContentFactoryFlowPanel({
             <p className="text-sm font-black text-ink">Template konten</p>
             <p className="mt-1 text-sm text-muted">Pilih format awal, lalu generate script dan lanjut ke menu berikutnya.</p>
           </div>
-          <button onClick={onGenerate} className="rounded-full bg-violet-600 px-4 py-2 text-sm font-black text-white">Generate Script</button>
+          <button onClick={generateScript} className="rounded-full bg-violet-600 px-4 py-2 text-sm font-black text-white">Generate Script</button>
         </div>
         <div className="mt-4 flex gap-2 overflow-x-auto">
           {templates.map((template) => (
-            <button key={template} className="shrink-0 rounded-full bg-violet-50 px-4 py-2 text-sm font-black text-violet-700 hover:bg-violet-100">{template}</button>
+            <button
+              key={template}
+              onClick={() => changeContentType(template)}
+              className={`shrink-0 rounded-full px-4 py-2 text-sm font-black ${contentType === template ? "bg-violet-600 text-white" : "bg-violet-50 text-violet-700 hover:bg-violet-100"}`}
+            >
+              {template}
+            </button>
           ))}
         </div>
       </div>
       <div className="grid gap-3 lg:grid-cols-3">
-        <OutputCard title="Hook" value={contentPack.hooks[0] ?? "Generate untuk membuat hook."} />
-        <OutputCard title="Angle konten" value={contentPack.productInsight ?? "Angle akan muncul setelah konten dibuat."} />
-        <OutputCard title="Platform recommendation" value="TikTok Shop video pendek, format 9:16, posting manual." />
-        <OutputCard title="Posting difficulty" value={trendScore >= 75 ? "Mudah ditest pemula" : "Perlu testing hook dan CTA"} />
-        <OutputCard title="Testing plan" value="Buat 3 variasi hook, posting 3 hari, lalu cek views, klik, dan order." />
-        <OutputCard title="CTA" value={contentPack.ctaKeranjangKuning ?? contentPack.cta} />
+        <OutputCard title="Hook" value={scriptOutput.hook} />
+        <OutputCard title="Opening" value={scriptOutput.opening} />
+        <OutputCard title="Main Script" value={scriptOutput.mainScript} />
+        <OutputCard title="CTA" value={scriptOutput.cta} />
+        <OutputCard title="Caption" value={scriptOutput.caption} />
+        <OutputCard title="Hashtag" value={scriptOutput.hashtag.join(" ")} />
       </div>
       <WorkflowActionButtons product={product} trendScore={trendScore} contentPack={contentPack} />
     </div>
@@ -123,15 +150,10 @@ export function ContentFactoryFlowPanel({
 }
 
 export function StoryEngineDashboard({ product, trendScore, contentPack }: { product: AffiliateProduct; trendScore: number; contentPack: ContentPack }) {
-  const [mode, setMode] = useState("Affiliate Story");
+  const storyModes: StoryMode[] = ["Affiliate Story", "Education Story", "Business Story", "Islamic Story", "Kids Animation Story", "Motivational Story"];
+  const [mode, setMode] = useState<StoryMode>("Affiliate Story");
   const [message, setMessage] = useState("");
-  const structure = [
-    ["Problem", product.problemSolved || "Masalah harian yang relate dengan target audience."],
-    ["Emotion", "Tunjukkan rasa ribet, penasaran, atau ingin solusi cepat."],
-    ["Solution", product.mainBenefit || `Kenalkan ${product.productName} sebagai solusi praktis.`],
-    ["Proof", "Gunakan demo produk, before-after aman, atau pengalaman natural."],
-    ["CTA", contentPack.ctaKeranjangKuning ?? contentPack.cta]
-  ];
+  const storyOutput = createStoryEngineOutput(product, mode);
 
   function saveStory(action: string) {
     saveAffiliateWorkflowContext({
@@ -144,8 +166,8 @@ export function StoryEngineDashboard({ product, trendScore, contentPack }: { pro
       },
       story: {
         mode,
-        storyline: structure.map(([label, value]) => `${label}: ${value}`).join("\n"),
-        scenePlan: contentPack.scenePlan
+        storyline: storyOutput.shortScript,
+        scenePlan: storyOutput.scenePlan
       },
       lastAction: action,
       updatedAt: new Date().toISOString()
@@ -161,7 +183,7 @@ export function StoryEngineDashboard({ product, trendScore, contentPack }: { pro
         <div className="rounded-[1.5rem] border border-line p-4">
           <p className="text-sm font-black text-ink">Mode story</p>
           <div className="mt-3 grid gap-2">
-            {["Affiliate Story", "Education Story", "Business Story", "Islamic Story", "Motivational Story", "Kids Story"].map((item) => (
+            {storyModes.map((item) => (
               <button key={item} onClick={() => setMode(item)} className={`rounded-2xl px-4 py-3 text-left text-sm font-black ${mode === item ? "bg-violet-600 text-white" : "bg-violet-50 text-violet-700"}`}>{item}</button>
             ))}
           </div>
@@ -170,17 +192,19 @@ export function StoryEngineDashboard({ product, trendScore, contentPack }: { pro
         <div className="rounded-[1.5rem] border border-line p-4">
           <p className="text-sm font-black text-ink">Story Structure</p>
           <div className="mt-3 grid gap-3">
-            {structure.map(([label, value]) => <OutputCard key={label} title={label} value={value} />)}
+            {storyOutput.structure.split(" -> ").map((label, index) => <OutputCard key={label} title={label} value={storyOutput.scenePlan[index] ?? storyOutput.shortScript} />)}
           </div>
         </div>
       </div>
       <div className="mt-4 grid gap-3 lg:grid-cols-2">
-        <OutputCard title="Storyline" value={structure.map(([label, value]) => `${label}: ${value}`).join("\n")} />
-        <OutputCard title="Scene plan" value={contentPack.scenePlan.join("\n")} />
-        <OutputCard title="Voice over" value={contentPack.voiceOverDraft ?? contentPack.script15} />
-        <OutputCard title="Subtitle draft" value={contentPack.storyboard?.scenes.map((scene) => scene.subtitleText).join("\n") ?? contentPack.script15} />
-        <OutputCard title="Caption" value={contentPack.caption} />
-        <OutputCard title="CTA & Hashtag" value={`${contentPack.cta}\n${contentPack.hashtags.join(" ")}`} />
+        <OutputCard title="Storyline" value={storyOutput.shortScript} />
+        <OutputCard title="Scene plan" value={storyOutput.scenePlan.join("\n")} />
+        <OutputCard title="Image prompt" value={storyOutput.imagePrompt} />
+        <OutputCard title="Video prompt" value={storyOutput.videoPrompt} />
+        <OutputCard title="Voice over" value={storyOutput.voiceOver} />
+        <OutputCard title="Subtitle draft" value={storyOutput.subtitle} />
+        <OutputCard title="Caption" value={storyOutput.caption} />
+        <OutputCard title="CTA & Hashtag" value={`${storyOutput.cta}\n${storyOutput.hashtag.join(" ")}`} />
       </div>
       <div className="mt-4 flex flex-wrap gap-2">
         <ActionLink href="/multi-video-engine" label="Kirim ke Multi Video Engine" onClick={() => saveStory("Kirim ke Multi Video Engine")} />
@@ -196,27 +220,37 @@ export function MultiVideoEngineDashboard({ product, trendScore, contentPack }: 
   const [count, setCount] = useState(5);
   const [format, setFormat] = useState("Problem Solution");
   const [message, setMessage] = useState("");
+  const [editMode, setEditMode] = useState(false);
   const formats = ["Review", "Problem Solution", "Before After", "Testimoni", "Edukasi", "Komedi Ringan", "Perbandingan", "Fakta Menarik", "Soft Selling", "CTA Hard Selling"];
-  const videoPlans = Array.from({ length: count }, (_, index) => ({
-    title: `${format} #${index + 1} - ${product.productName}`,
-    hook: contentPack.hooks[index % contentPack.hooks.length] ?? contentPack.hooks[0] ?? "Hook produk",
-    script: index % 2 === 0 ? contentPack.script15 : contentPack.script30,
-    scene: contentPack.scenePlan[index % contentPack.scenePlan.length] ?? product.demoIdea,
-    voiceOver: contentPack.voiceOverDraft ?? contentPack.script15,
-    caption: contentPack.caption,
-    hashtag: contentPack.hashtags.join(" "),
-    cta: contentPack.cta,
-    status: "Draft"
-  }));
+  const [videoPlans, setVideoPlans] = useState(() => createMultiVideoVariants(product, count));
 
-  function saveVideos(action: string) {
+  function generateVideos() {
+    const variants = createMultiVideoVariants(product, count).map((variant, index) => ({
+      ...variant,
+      title: `${format} #${index + 1} - ${product.productName}`
+    }));
+    setVideoPlans(variants);
     saveAffiliateWorkflowContext({
       product: productToWorkflowContext(product, trendScore),
-      videoPlans: videoPlans.map((plan) => ({ title: plan.title, hook: plan.hook, status: "Draft" })),
+      videoPlans: variants.map((plan) => ({ title: plan.title, hook: plan.hook, status: "Draft" })),
+      lastAction: "Generate Multi Video",
+      updatedAt: new Date().toISOString()
+    });
+    setMessage(`Generate Semua siap. ${variants.length} rencana video dibuat dengan preview prompt.`);
+  }
+
+  function saveVideos(action: string) {
+    const status = action === "Jadwalkan Batch" ? "Scheduled" : "Saved";
+    const saved = videoPlans.map((plan) => ({ ...plan, status: status as "Saved" | "Scheduled" }));
+    setVideoPlans(saved);
+    saveGeneratedLibraryItems(videosToLibraryItems(product, saved, status));
+    saveAffiliateWorkflowContext({
+      product: productToWorkflowContext(product, trendScore),
+      videoPlans: saved.map((plan) => ({ title: plan.title, hook: plan.hook, status: status === "Saved" ? "Ready" : "Scheduled" })),
       lastAction: action,
       updatedAt: new Date().toISOString()
     });
-    setMessage(`${action} siap. ${videoPlans.length} rencana video tersimpan di workflow context.`);
+    setMessage(`${action} selesai. ${saved.length} video masuk Content Library dengan source label Multi Video Engine.`);
   }
 
   return (
@@ -224,26 +258,48 @@ export function MultiVideoEngineDashboard({ product, trendScore, contentPack }: 
       <Header icon={Video} title="Multi Video Engine" subtitle="Buat banyak variasi video dari satu produk, story, atau script yang sudah dibuat." />
       <div className="mt-4"><ProductContextCard product={product} trendScore={trendScore} /></div>
       <div className="mt-4 grid gap-3 md:grid-cols-2">
-        <SelectCard label="Jumlah video" value={String(count)} options={["3", "5", "10", "30"]} onChange={(value) => setCount(value === "30" ? 30 : Number(value))} />
+        <SelectCard label="Jumlah video" value={String(count)} options={Array.from({ length: 30 }, (_, index) => String(index + 1))} onChange={(value) => setCount(Math.min(30, Math.max(1, Number(value) || 1)))} />
         <SelectCard label="Format video" value={format} options={formats} onChange={setFormat} />
       </div>
       <div className="mt-4 flex flex-wrap gap-2">
-        <button onClick={() => saveVideos("Generate Semua")} className="rounded-full bg-violet-600 px-4 py-2 text-sm font-black text-white">Generate Semua</button>
+        <button onClick={generateVideos} className="rounded-full bg-violet-600 px-4 py-2 text-sm font-black text-white">Generate Multi Video</button>
         <button onClick={() => saveVideos("Simpan Semua ke Content Library")} className="rounded-full border border-line bg-white px-4 py-2 text-sm font-black text-ink">Simpan Semua ke Content Library</button>
         <a href="/rencana-posting" onClick={() => saveVideos("Jadwalkan Batch")} className="rounded-full border border-line bg-white px-4 py-2 text-sm font-black text-ink">Jadwalkan Batch</a>
-        <button onClick={() => saveVideos("Edit Satu-satu")} className="rounded-full border border-line bg-white px-4 py-2 text-sm font-black text-ink">Edit Satu-satu</button>
+        <button onClick={() => { setEditMode(true); setMessage("Edit Satu-Satu aktif. Ubah prompt melalui preview card sebelum menyimpan."); }} className="rounded-full border border-line bg-white px-4 py-2 text-sm font-black text-ink">Edit Satu-Satu</button>
+      </div>
+      <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+        <p className="text-sm font-black text-amber-950">Preview generated from prompt only - real media provider not connected.</p>
       </div>
       <div className="mt-4 grid gap-3 lg:grid-cols-2">
-        {videoPlans.slice(0, Math.min(count, 10)).map((plan) => (
+        {videoPlans.map((plan) => (
           <article key={plan.title} className="rounded-[1.5rem] border border-line bg-slate-50 p-4">
             <div className="flex items-start justify-between gap-3">
               <h3 className="text-sm font-black text-ink">{plan.title}</h3>
               <span className="rounded-full bg-white px-3 py-1 text-[10px] font-black text-violet-700">{plan.status}</span>
             </div>
-            <p className="mt-2 text-sm leading-6 text-muted"><strong>Hook:</strong> {plan.hook}</p>
-            <p className="mt-1 text-sm leading-6 text-muted"><strong>Script:</strong> {plan.script}</p>
-            <p className="mt-1 text-sm leading-6 text-muted"><strong>Scene:</strong> {plan.scene}</p>
-            <p className="mt-1 text-sm leading-6 text-muted"><strong>CTA:</strong> {plan.cta}</p>
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              <div className="grid min-h-36 place-items-center rounded-2xl border border-violet-100 bg-white p-3 text-center">
+                <p className="text-xs font-black text-violet-700">Preview Image</p>
+                <p className="mt-2 text-xs leading-5 text-muted">{plan.previewImagePlaceholder}</p>
+              </div>
+              <div className="grid min-h-36 place-items-center rounded-2xl border border-violet-100 bg-white p-3 text-center">
+                <p className="text-xs font-black text-violet-700">Preview Video</p>
+                <p className="mt-2 text-xs leading-5 text-muted">{plan.previewVideoPlaceholder}</p>
+              </div>
+            </div>
+            <div className="mt-3 grid gap-2">
+              <p className="text-sm leading-6 text-muted"><strong>Duration:</strong> {plan.duration}</p>
+              <p className="text-sm leading-6 text-muted"><strong>Platform:</strong> {plan.platform}</p>
+              <p className="text-sm leading-6 text-muted"><strong>Hook:</strong> {plan.hook}</p>
+              <p className="text-sm leading-6 text-muted"><strong>Scene list:</strong> {plan.sceneList.join(" | ")}</p>
+              <p className="text-sm leading-6 text-muted"><strong>Image prompt:</strong> {plan.imagePrompt}</p>
+              <p className="text-sm leading-6 text-muted"><strong>Video prompt:</strong> {plan.videoPrompt}</p>
+              <p className="text-sm leading-6 text-muted"><strong>Voice over:</strong> {plan.voiceOver}</p>
+              <p className="text-sm leading-6 text-muted"><strong>Subtitle:</strong> {plan.subtitle}</p>
+              <p className="text-sm leading-6 text-muted"><strong>Caption:</strong> {plan.caption}</p>
+              <p className="text-sm leading-6 text-muted"><strong>CTA:</strong> {plan.cta}</p>
+              {editMode ? <textarea defaultValue={plan.videoPrompt} className="min-h-24 rounded-xl border border-line p-3 text-sm" /> : null}
+            </div>
           </article>
         ))}
       </div>

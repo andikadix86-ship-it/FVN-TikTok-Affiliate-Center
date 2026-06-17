@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { getRecommendationLabel } from "@/modules/scoring/recommendation-label";
 import { scoreProduct } from "@/modules/scoring/score-product";
+import { addProductToTikTokShowcase, productDisplayLimit } from "../affiliate-center-core";
 import { saveProductWorkflowContext } from "../workflow-context";
 import { AffiliateProduct, ProductSource } from "../types";
 
@@ -67,11 +68,13 @@ const sourceClasses: Record<ProductSource, string> = {
 export function ProductIntelligenceDashboard({
   products,
   selectedProductId,
-  onSelectProduct
+  onSelectProduct,
+  tiktokConnected = false
 }: {
   products: AffiliateProduct[];
   selectedProductId: string;
   onSelectProduct: (productId: string) => void;
+  tiktokConnected?: boolean;
 }) {
   const [activeTab, setActiveTab] = useState<MainTab>("trending-list");
   const [sellerSubTab, setSellerSubTab] = useState<SellerSubTab>("all");
@@ -81,6 +84,8 @@ export function ProductIntelligenceDashboard({
   const [period, setPeriod] = useState("7 hari");
   const [category, setCategory] = useState("Semua kategori");
   const [sortBy, setSortBy] = useState("Trend Score");
+  const [expandedProducts, setExpandedProducts] = useState(false);
+  const [notice, setNotice] = useState("");
   const hasDemoData = products.some((product) => product.source === "DEMO");
   const categoryOptions = ["Semua kategori", ...Array.from(new Set(products.map((product) => product.category))).slice(0, 8)];
   const rankedProducts = useMemo(
@@ -105,7 +110,8 @@ export function ProductIntelligenceDashboard({
     },
     [category, platform, products, query, sortBy]
   );
-  const topProducts = rankedProducts.slice(0, 10);
+  const displayLimit = productDisplayLimit(expandedProducts);
+  const topProducts = rankedProducts.slice(0, displayLimit);
   const topSellers: SellerRow[] = rankedProducts.slice(0, 8).map(({ product, score }, index) => ({
     id: `seller-${product.id}`,
     rank: index + 1,
@@ -137,6 +143,12 @@ export function ProductIntelligenceDashboard({
     ["Produk Affiliate Potensial", String(rankedProducts.filter((item) => item.score.total >= 70).length), "#trending-products", PackageCheck]
   ];
   const handleProductAction = (product: AffiliateProduct, trendScore: number, action: string) => {
+    if (action === "Add to TikTok Showcase") {
+      const result = addProductToTikTokShowcase({ productId: product.id, accountId: tiktokConnected ? "active-tiktok-account" : undefined, connected: tiktokConnected });
+      setNotice(result.message);
+    } else {
+      setNotice(`${action} siap untuk ${product.productName}.`);
+    }
     saveProductWorkflowContext(product, trendScore, action);
     onSelectProduct(product.id);
   };
@@ -181,6 +193,12 @@ export function ProductIntelligenceDashboard({
         <div className="rounded-[1.5rem] border border-dashed border-violet-200 bg-white p-6 text-center">
           <p className="text-base font-black text-ink">Belum ada data sesuai filter.</p>
           <p className="mt-2 text-sm text-muted">Coba kosongkan pencarian, pilih kategori lain, atau ubah platform ke Semua.</p>
+        </div>
+      ) : null}
+
+      {notice ? (
+        <div className="rounded-[1.5rem] border border-violet-100 bg-white p-4">
+          <p className="text-sm font-black text-ink">{notice}</p>
         </div>
       ) : null}
 
@@ -278,6 +296,20 @@ export function ProductIntelligenceDashboard({
             selectedProductId={selectedProductId}
             onProductAction={handleProductAction}
           />
+          <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl border border-violet-100 bg-violet-50 p-3">
+            <p className="text-sm font-bold text-violet-900">Menampilkan {Math.min(topProducts.length, rankedProducts.length)} dari {rankedProducts.length} produk.</p>
+            <button
+              type="button"
+              onClick={() => {
+                setExpandedProducts(true);
+                setNotice("Lihat Lebih Banyak aktif. Minimal 25 produk ditampilkan jika data tersedia.");
+              }}
+              disabled={expandedProducts}
+              className="rounded-full bg-violet-600 px-4 py-2 text-sm font-black text-white disabled:opacity-50"
+            >
+              Lihat Lebih Banyak
+            </button>
+          </div>
         </section>
       ) : null}
     </section>
@@ -565,11 +597,12 @@ function ProductActionButtons({
 
   return (
     <div className={`mt-4 flex flex-wrap gap-2 ${compact ? "" : "min-w-[220px]"}`}>
-      <SmallAction href="/produk-affiliate#product-detail" label="Analisa Produk" onClick={() => click("Analisa Produk")} />
-      <SmallAction href="/buat-konten" label="Generate Konten" onClick={() => click("Generate Konten")} dark />
+      <SmallAction href="/produk-affiliate#product-detail" label="Save Opportunity" onClick={() => click("Save Opportunity")} />
+      <SmallAction href="/buat-konten" label="Create Content" onClick={() => click("Create Content")} dark />
+      <SmallAction href="/campaigns" label="Create Campaign" onClick={() => click("Create Campaign")} />
+      <SmallAction href="/produk-affiliate#product-detail" label="Add to TikTok Showcase" onClick={() => click("Add to TikTok Showcase")} />
       {!compact ? <SmallAction href="/story-engine" label="Buat Story" onClick={() => click("Buat Story")} /> : null}
       {!compact ? <SmallAction href="/multi-video-engine" label="Buat Video" onClick={() => click("Buat Video")} /> : null}
-      {!compact ? <SmallAction href="/content-library" label="Simpan Produk" onClick={() => click("Simpan Produk")} /> : null}
       {!compact ? <SmallAction href="/rencana-posting" label="Jadwalkan" onClick={() => click("Jadwalkan")} /> : null}
     </div>
   );
