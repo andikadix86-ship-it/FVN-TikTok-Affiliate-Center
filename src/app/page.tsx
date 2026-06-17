@@ -293,8 +293,8 @@ export default async function Home() {
 
   return (
     <AppShell>
-      <section className="px-4 pb-5 pt-5 sm:px-6 lg:px-8">
-        <div className="mx-auto flex max-w-6xl flex-col gap-4">
+      <section className="pb-5">
+        <div className="flex flex-col gap-4">
           <AffiliateWorkflow
             tiktokConnected={tiktokConnected}
             promptEngineMode={promptEngineMode}

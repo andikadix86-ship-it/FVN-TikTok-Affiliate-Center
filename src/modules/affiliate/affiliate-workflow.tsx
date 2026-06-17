@@ -52,6 +52,7 @@ import { SAMPLE_PRODUCT_CSV, validateAndParseCsv } from "./csv-import";
 import { sampleProducts } from "./sample-products";
 import { getSourceBadgeText, getSourceClassName, getSourceTrustText } from "./source-badge";
 import { AffiliateProduct, CompetitionLevel, ProductSource } from "./types";
+import { AffiliateDashboard } from "./components/affiliate-dashboard";
 
 const sourcePriority: ProductSource[] = ["MANUAL", "CSV_IMPORT", "REAL_API", "DEMO"];
 
@@ -382,7 +383,7 @@ export function AffiliateWorkflow({
   const topProducts = sortedProducts
     .map((product) => ({ product, score: scoreProduct(product) }))
     .sort((a, b) => b.score.total - a.score.total)
-    .slice(0, 5);
+    .slice(0, 10);
   const sourceCounts = products.reduce(
     (counts, product) => ({ ...counts, [product.source]: counts[product.source] + 1 }),
     { DEMO: 0, MANUAL: 0, CSV_IMPORT: 0, REAL_API: 0 } as Record<ProductSource, number>
@@ -899,7 +900,20 @@ export function AffiliateWorkflow({
 
   return (
     <>
-      <section id="dashboard" className="rounded-[2rem] border border-white bg-white/85 p-5 shadow-soft backdrop-blur sm:p-7">
+      <AffiliateDashboard
+        products={products}
+        topProducts={topProducts}
+        isDemoOnly={isDemoOnly}
+        sourceCounts={sourceCounts}
+        activeCampaigns={activeCampaigns}
+        contentStats={contentStats}
+        draftContentPacks={draftContentPacks}
+        postedStats={postedStats}
+        analyticsStats={analyticsStats}
+        actionPlanStats={actionPlanStats}
+        onSelectProduct={setSelectedId}
+      />
+      <section id="legacy-dashboard" className="hidden">
         <p className="text-sm font-semibold uppercase tracking-wide text-mint">Dashboard</p>
         <h1 className="mt-2 max-w-3xl text-3xl font-bold leading-tight text-ink sm:text-5xl">
           Kelola produk, konten, dan rencana posting affiliate TikTok dari satu tempat.
@@ -1055,7 +1069,18 @@ export function AffiliateWorkflow({
         </div>
       </section>
 
-      <SectionCard id="product-hunter" title="Produk Affiliate" description="Tambah produk manual, import CSV, atau simpan link produk untuk riset." icon={PackageSearch}>
+      <section id="tutorial-panduan" className="rounded-[2rem] border border-white bg-white p-5 shadow-soft">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-violet-600">Tutorial & Panduan</p>
+            <h2 className="mt-1 text-xl font-black text-ink">Alur cepat affiliate pemula</h2>
+            <p className="mt-1 text-sm leading-6 text-muted">Cari produk, buat konten, susun story engine, jadwalkan posting, lalu pantau profit dari input manual kamu.</p>
+          </div>
+          <a href="/onboarding" className="rounded-full bg-violet-600 px-4 py-2 text-sm font-black text-white">Buka Panduan</a>
+        </div>
+      </section>
+
+      <SectionCard id="product-hunter" title="Product Intelligence" description="Cari, input, import, dan nilai peluang produk affiliate dengan bahasa sederhana." icon={PackageSearch}>
         {isDemoOnly ? (
           <div className="mb-4 rounded-2xl border border-orange-200 bg-orange-50 p-4">
             <div className="flex gap-3">
@@ -1364,7 +1389,7 @@ export function AffiliateWorkflow({
         </div>
       </SectionCard>
 
-      <SectionCard id="content-factory" title="Buat Konten" description="AI Video Prompt Engineer Engine untuk membuat paket produksi lengkap: brief, hook, voice over, scene plan, prompt gambar Nano Banana, prompt video Veo 3, caption, CTA, dan compliance." icon={Sparkles}>
+      <SectionCard id="content-factory" title="Content Factory" description="Buat konten affiliate, story engine, dan prompt video siap produksi dari produk terpilih." icon={Sparkles}>
         {promptEngineMode === "TEMPLATE_MODE" ? (
           <div className="mb-4 rounded-2xl border border-yellow-200 bg-yellow-50 p-4">
             <p className="text-sm font-black text-yellow-900">Manual Prompt Template Mode</p>
@@ -1520,7 +1545,7 @@ export function AffiliateWorkflow({
         </div>
       </SectionCard>
 
-      <SectionCard id="campaign-planner" title="Rencana Posting" description="Buat rencana posting 7 atau 14 hari dari produk terpilih dan isi performa manual per hari." icon={CalendarDays}>
+      <SectionCard id="campaign-planner" title="Scheduler" description="Buat rencana posting 7 atau 14 hari dari produk terpilih dan isi performa manual per hari." icon={CalendarDays}>
         <div className="mb-4 grid gap-3 sm:grid-cols-3">
           <label className="rounded-2xl border border-line p-4">
             <span className="text-xs font-bold uppercase tracking-wide text-muted">Durasi campaign</span>
