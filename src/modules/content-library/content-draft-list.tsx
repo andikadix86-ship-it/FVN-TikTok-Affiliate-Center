@@ -10,13 +10,36 @@ import {
   getContentDraftFullText
 } from "@/modules/database/content-service";
 import { ProductSource } from "@/modules/affiliate/types";
-import { getSourceBadgeText, getSourceClassName } from "@/modules/affiliate/source-badge";
+import { getSourceClassName } from "@/modules/affiliate/source-badge";
 
 const statusOptions: Array<ContentStatus | "ALL"> = ["ALL", "DRAFT", "READY", "POSTED", "ARCHIVED"];
 const sourceOptions: Array<ProductSource | "ALL"> = ["ALL", "DEMO", "MANUAL", "CSV_IMPORT", "REAL_API"];
 
 function statusLabel(status: ContentStatus | "ALL") {
   return status === "ALL" ? "Semua" : contentStatusLabels[status];
+}
+
+function sourceLabel(source: ProductSource | "ALL") {
+  const labels: Record<ProductSource | "ALL", string> = {
+    ALL: "Semua data",
+    DEMO: "Data Contoh",
+    MANUAL: "Data Tersimpan",
+    CSV_IMPORT: "Data Marketplace",
+    REAL_API: "Data Partner"
+  };
+
+  return labels[source];
+}
+
+function sourceDescription(source: ProductSource) {
+  const labels: Record<ProductSource, string> = {
+    DEMO: "Data ini masih contoh. Hubungkan marketplace API untuk data real.",
+    MANUAL: "Data input user.",
+    CSV_IMPORT: "Data dari file user.",
+    REAL_API: "Data partner dari koneksi API."
+  };
+
+  return labels[source];
 }
 
 async function copyText(label: string, value: string, setMessage: (message: string) => void) {
@@ -96,7 +119,7 @@ export function ContentDraftList({ initialDrafts }: { initialDrafts: ContentDraf
             {statusOptions.map((item) => <option key={item} value={item}>{statusLabel(item)}</option>)}
           </select>
           <select value={source} onChange={(event) => setSource(event.target.value as ProductSource | "ALL")} className="min-h-11 rounded-xl border border-line px-3 text-sm">
-            {sourceOptions.map((item) => <option key={item} value={item}>{item === "ALL" ? "Semua source" : item}</option>)}
+            {sourceOptions.map((item) => <option key={item} value={item}>{sourceLabel(item)}</option>)}
           </select>
           <select value={contentMode} onChange={(event) => setContentMode(event.target.value)} className="min-h-11 rounded-xl border border-line px-3 text-sm">
             <option value="ALL">Semua mode</option>
@@ -128,11 +151,11 @@ export function ContentDraftList({ initialDrafts }: { initialDrafts: ContentDraf
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap gap-2">
-                  <span className={`rounded-full px-3 py-1 text-[10px] font-black ${getSourceClassName(draft.product.source)}`}>{draft.product.source}</span>
+                  <span className={`rounded-full px-3 py-1 text-[10px] font-black ${getSourceClassName(draft.product.source)}`}>{sourceLabel(draft.product.source)}</span>
                   <span className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-black text-ink">{contentStatusLabels[draft.status]}</span>
                 </div>
                 <h2 className="mt-2 text-base font-black text-ink">{draft.product.productName}</h2>
-                <p className="mt-1 text-xs font-semibold text-muted">{getSourceBadgeText(draft.product.source)}</p>
+                <p className="mt-1 text-xs font-semibold text-muted">{sourceDescription(draft.product.source)}</p>
               </div>
             </div>
             <div className="mt-3 grid gap-2 sm:grid-cols-3">

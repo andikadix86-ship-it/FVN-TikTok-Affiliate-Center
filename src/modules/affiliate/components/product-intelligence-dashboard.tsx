@@ -76,13 +76,34 @@ export function ProductIntelligenceDashboard({
   const [activeTab, setActiveTab] = useState<MainTab>("trending-list");
   const [sellerSubTab, setSellerSubTab] = useState<SellerSubTab>("all");
   const [productSubTab, setProductSubTab] = useState<ProductSubTab>("all");
+  const [query, setQuery] = useState("");
+  const [platform, setPlatform] = useState("TikTok Shop");
+  const [period, setPeriod] = useState("7 hari");
+  const [category, setCategory] = useState("Semua kategori");
+  const [sortBy, setSortBy] = useState("Trend Score");
   const hasDemoData = products.some((product) => product.source === "DEMO");
+  const categoryOptions = ["Semua kategori", ...Array.from(new Set(products.map((product) => product.category))).slice(0, 8)];
   const rankedProducts = useMemo(
-    () =>
-      products
+    () => {
+      const search = query.trim().toLowerCase();
+      const filtered = products.filter((product) => {
+        const matchesQuery = !search || [product.productName, product.category, product.notes, product.targetAudience].some((value) => value.toLowerCase().includes(search));
+        const matchesCategory = category === "Semua kategori" || product.category === category;
+        const matchesPlatform = platform === "Semua" || product.platform === "TikTok";
+
+        return matchesQuery && matchesCategory && matchesPlatform;
+      });
+
+      return filtered
         .map((product) => ({ product, score: scoreProduct(product) }))
-        .sort((a, b) => b.score.total - a.score.total),
-    [products]
+        .sort((a, b) => {
+          if (sortBy === "Komisi") return b.product.commissionRate - a.product.commissionRate;
+          if (sortBy === "Penjualan") return b.product.salesScore - a.product.salesScore;
+          if (sortBy === "Pendapatan") return estimateRevenue(b.product, b.score.total, 0) - estimateRevenue(a.product, a.score.total, 0);
+          return b.score.total - a.score.total;
+        });
+    },
+    [category, platform, products, query, sortBy]
   );
   const topProducts = rankedProducts.slice(0, 10);
   const topSellers: SellerRow[] = rankedProducts.slice(0, 8).map(({ product, score }, index) => ({
@@ -134,6 +155,8 @@ export function ProductIntelligenceDashboard({
           <label className="relative">
             <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
               placeholder="Cari produk, toko, kategori, atau brand..."
               className="min-h-12 w-full rounded-full border border-violet-100 bg-violet-50/50 pl-11 pr-4 text-sm font-semibold outline-none focus:border-violet-400 focus:bg-white"
             />
@@ -141,16 +164,23 @@ export function ProductIntelligenceDashboard({
         </div>
 
         <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-          <FilterSelect label="Platform" options={["TikTok Shop", "Shopee", "Tokopedia", "Lazada", "Semua"]} />
-          <FilterSelect label="Periode" options={["7 hari", "30 hari", "90 hari"]} />
-          <FilterSelect label="Kategori" options={["Semua kategori", ...Array.from(new Set(products.map((product) => product.category))).slice(0, 8)]} />
-          <FilterSelect label="Urutkan berdasarkan" options={["Penjualan", "Pendapatan", "Komisi", "Trend Score"]} />
+          <FilterSelect label="Platform" value={platform} onChange={setPlatform} options={["TikTok Shop", "Shopee", "Tokopedia", "Lazada", "Semua"]} />
+          <FilterSelect label="Periode" value={period} onChange={setPeriod} options={["7 hari", "30 hari", "90 hari"]} />
+          <FilterSelect label="Kategori" value={category} onChange={setCategory} options={categoryOptions} />
+          <FilterSelect label="Urutkan berdasarkan" value={sortBy} onChange={setSortBy} options={["Penjualan", "Pendapatan", "Komisi", "Trend Score"]} />
         </div>
       </header>
 
       {hasDemoData ? (
         <div className="rounded-[1.5rem] border border-amber-200 bg-amber-50 p-4">
           <p className="text-sm font-black text-amber-950">Data ini masih contoh. Hubungkan marketplace API untuk data real.</p>
+        </div>
+      ) : null}
+
+      {rankedProducts.length === 0 ? (
+        <div className="rounded-[1.5rem] border border-dashed border-violet-200 bg-white p-6 text-center">
+          <p className="text-base font-black text-ink">Belum ada data sesuai filter.</p>
+          <p className="mt-2 text-sm text-muted">Coba kosongkan pencarian, pilih kategori lain, atau ubah platform ke Semua.</p>
         </div>
       ) : null}
 
@@ -219,19 +249,19 @@ export function ProductIntelligenceDashboard({
       ) : null}
 
       {activeTab === "top-affiliator" ? (
-        <section id="top-affiliator-table" className="rounded-[2rem] border border-white bg-white p-5 shadow-soft">
+        <section id="top-affiliator-table" className="min-w-0 rounded-[2rem] border border-white bg-white p-5 shadow-soft">
           <div className="mb-4 grid gap-3 md:grid-cols-4">
-            <FilterSelect label="Kategori" options={["Semua kategori", ...Array.from(new Set(products.map((product) => product.category))).slice(0, 6)]} />
-            <FilterSelect label="Platform" options={["TikTok Shop", "Shopee", "Tokopedia", "Semua"]} />
-            <FilterSelect label="Periode" options={["7 hari", "30 hari", "90 hari"]} />
-            <FilterSelect label="Estimasi pendapatan" options={["Semua", "> Rp1 juta", "> Rp5 juta", "> Rp10 juta"]} />
+            <FilterSelect label="Kategori" value={category} onChange={setCategory} options={categoryOptions.slice(0, 7)} />
+            <FilterSelect label="Platform" value={platform} onChange={setPlatform} options={["TikTok Shop", "Shopee", "Tokopedia", "Semua"]} />
+            <FilterSelect label="Periode" value={period} onChange={setPeriod} options={["7 hari", "30 hari", "90 hari"]} />
+            <FilterSelect label="Estimasi pendapatan" value="Semua" onChange={() => undefined} options={["Semua", "> Rp1 juta", "> Rp5 juta", "> Rp10 juta"]} />
           </div>
           <TopAffiliatorTable affiliators={topAffiliators} />
         </section>
       ) : null}
 
       {activeTab === "trending-product" ? (
-        <section id="trending-products" className="rounded-[2rem] border border-white bg-white p-5 shadow-soft">
+        <section id="trending-products" className="min-w-0 rounded-[2rem] border border-white bg-white p-5 shadow-soft">
           <SubTabs
             items={[
               ["all", "Semua Produk"],
@@ -302,11 +332,11 @@ function TrendingOverview({
       </section>
 
       <section className="grid gap-5 xl:grid-cols-2">
-        <div className="rounded-[2rem] border border-white bg-white p-5 shadow-soft">
+        <div className="min-w-0 rounded-[2rem] border border-white bg-white p-5 shadow-soft">
           <h3 className="text-xl font-black text-ink">Top Affiliator</h3>
           <TopAffiliatorTable affiliators={topAffiliators} compact />
         </div>
-        <div className="rounded-[2rem] border border-white bg-white p-5 shadow-soft">
+        <div className="min-w-0 rounded-[2rem] border border-white bg-white p-5 shadow-soft">
           <h3 className="text-xl font-black text-ink">Top Seller</h3>
           <TopSellerTable sellers={topSellers} compact />
         </div>
@@ -317,7 +347,7 @@ function TrendingOverview({
 
 function TopSellerTable({ sellers, compact = false }: { sellers: SellerRow[]; compact?: boolean }) {
   return (
-    <div className="mt-4 overflow-x-auto">
+    <div className="mt-4 w-full max-w-full overflow-x-auto">
       <table className="min-w-[900px] w-full border-separate border-spacing-y-2 text-left text-sm">
         <thead className="text-xs uppercase tracking-wide text-muted">
           <tr>
@@ -372,7 +402,7 @@ function TopSellerTable({ sellers, compact = false }: { sellers: SellerRow[]; co
 
 function TopAffiliatorTable({ affiliators, compact = false }: { affiliators: AffiliatorRow[]; compact?: boolean }) {
   return (
-    <div className="mt-4 overflow-x-auto">
+    <div className="mt-4 w-full max-w-full overflow-x-auto">
       <table className="min-w-[760px] w-full border-separate border-spacing-y-2 text-left text-sm">
         <thead className="text-xs uppercase tracking-wide text-muted">
           <tr>
@@ -422,7 +452,7 @@ function TrendingProductTable({
   onProductAction: (product: AffiliateProduct, trendScore: number, action: string) => void;
 }) {
   return (
-    <div className="mt-4 overflow-x-auto">
+    <div className="mt-4 w-full max-w-full overflow-x-auto">
       <table className="min-w-[1100px] w-full border-separate border-spacing-y-2 text-left text-sm">
         <thead className="text-xs uppercase tracking-wide text-muted">
           <tr>
@@ -558,11 +588,11 @@ function SmallAction({ href, label, onClick, dark = false }: { href: string; lab
   );
 }
 
-function FilterSelect({ label, options }: { label: string; options: string[] }) {
+function FilterSelect({ label, value, options, onChange }: { label: string; value: string; options: string[]; onChange: (value: string) => void }) {
   return (
     <label className="rounded-2xl border border-violet-100 bg-white p-3">
       <span className="text-xs font-black uppercase tracking-wide text-muted">{label}</span>
-      <select className="mt-2 min-h-10 w-full rounded-xl border border-violet-100 bg-violet-50/50 px-3 text-sm font-semibold outline-none focus:border-violet-400">
+      <select value={value} onChange={(event) => onChange(event.target.value)} className="mt-2 min-h-10 w-full rounded-xl border border-violet-100 bg-violet-50/50 px-3 text-sm font-semibold outline-none focus:border-violet-400">
         {options.map((option) => <option key={option}>{option}</option>)}
       </select>
     </label>

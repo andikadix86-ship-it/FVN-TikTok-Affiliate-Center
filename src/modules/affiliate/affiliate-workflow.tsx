@@ -558,7 +558,7 @@ export function AffiliateWorkflow({
       if (response.ok && payload.product) {
         setProducts((current) => sortProducts(current.map((item) => (item.id === product.id ? payload.product : item))));
         setSelectedId(payload.product.id);
-        showStatus("URL produk tersimpan sebagai MANUAL DATA.", "success");
+        showStatus("URL produk tersimpan sebagai Data Tersimpan.", "success");
       } else {
         showStatus(payload.message ?? "URL produk tersimpan lokal saja.", "error");
       }
@@ -947,7 +947,7 @@ export function AffiliateWorkflow({
         </div>
         {isDemoOnly ? (
           <div className="mt-4 rounded-2xl border border-orange-200 bg-orange-50 p-4">
-            <p className="text-sm font-black text-orange-900">DEMO DATA - Bukan dari TikTok Shop</p>
+            <p className="text-sm font-black text-orange-900">Data Contoh - Bukan dari TikTok Shop</p>
             <p className="mt-1 text-sm leading-6 text-orange-900/80">
               Saat ini hanya ada produk demo. Tambahkan produk manual atau import CSV agar aplikasi bisa dipakai untuk produk kamu.
             </p>
@@ -1055,7 +1055,7 @@ export function AffiliateWorkflow({
           {[
             ["Mode AI", promptEngineMode === "AI_CONNECTED" ? "AI Connected" : "Template Mode"],
             ["Status TikTok", tiktokConnected ? "Connected" : "Not Connected"],
-            ["Sumber data", isDemoOnly ? "DEMO DATA" : "MANUAL DATA / CSV IMPORT"]
+            ["Sumber data", isDemoOnly ? "Data Contoh" : "Data Tersimpan / Data Marketplace"]
           ].map(([title, value]) => (
             <div key={title} className="rounded-2xl border border-line bg-white p-4">
               <p className="text-xs font-bold uppercase tracking-wide text-muted">{title}</p>
@@ -1113,7 +1113,7 @@ export function AffiliateWorkflow({
             <div className="flex gap-3">
               <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-orange-700" />
               <div>
-                <p className="text-sm font-black text-orange-900">DEMO DATA - Bukan dari TikTok Shop</p>
+                <p className="text-sm font-black text-orange-900">Data Contoh - Bukan dari TikTok Shop</p>
                 <p className="mt-1 text-sm leading-6 text-orange-900/80">
                   Produk demo hanya contoh. Tambahkan produk manual atau import CSV agar analisa lebih sesuai kebutuhan kamu.
                 </p>
@@ -1125,11 +1125,11 @@ export function AffiliateWorkflow({
         <div className="mb-4 grid gap-2 rounded-2xl border border-line bg-slate-50 p-3 sm:grid-cols-4">
           {(["DEMO", "MANUAL", "CSV_IMPORT", "REAL_API"] as ProductSource[]).map((source) => (
             <div key={source} className="rounded-xl bg-white px-3 py-2">
-              <span className={sourceBadge(source)}>{source}</span>
+              <span className={sourceBadge(source)}>{userSourceLabel(source)}</span>
               <p className="mt-2 text-xs font-bold text-ink">{getSourceBadgeText(source)}</p>
               <p className="mt-1 text-xs font-semibold text-muted">{getSourceTrustText(source)}</p>
               <p className="mt-1 text-xs font-semibold text-muted">
-                {source === "REAL_API" ? "only after API fetch" : "available"}
+                {source === "REAL_API" ? "aktif setelah API partner terhubung" : "tersedia"}
               </p>
             </div>
           ))}
@@ -1198,7 +1198,7 @@ export function AffiliateWorkflow({
               <ActionButton loading={loadingAction === "manual"} onClick={addManualProduct}>
                 Simpan Produk Manual
               </ActionButton>
-              <p className="text-xs leading-5 text-muted">Wajib: nama produk, kategori, harga, komisi, tingkat kompetisi, dan link produk. Data ini disimpan sebagai MANUAL DATA, bukan data resmi TikTok Shop.</p>
+              <p className="text-xs leading-5 text-muted">Wajib: nama produk, kategori, harga, komisi, tingkat kompetisi, dan link produk. Data ini disimpan sebagai Data Tersimpan, bukan data resmi TikTok Shop.</p>
             </div>
           </div>
 
@@ -1220,7 +1220,7 @@ export function AffiliateWorkflow({
                 Download Sample CSV
               </a>
             </div>
-            <p className="mt-2 text-xs leading-5 text-muted">Baris valid akan disimpan sebagai CSV IMPORT. Baris invalid ditolak dengan pesan jelas.</p>
+            <p className="mt-2 text-xs leading-5 text-muted">Baris valid akan disimpan sebagai Data Marketplace dari file kamu. Baris invalid ditolak dengan pesan jelas.</p>
             {csvErrors.length > 0 ? (
               <div className="mt-3 rounded-2xl border border-orange-200 bg-orange-50 p-3">
                 <p className="text-sm font-black text-orange-900">CSV validation errors</p>
@@ -1267,7 +1267,7 @@ export function AffiliateWorkflow({
             <ActionButton loading={loadingAction === "url"} onClick={addUrlProduct} className="mt-3">
               Simpan URL
             </ActionButton>
-            <p className="mt-2 text-xs leading-5 text-muted">URL hanya menjadi catatan riset manual sampai REAL API DATA aktif.</p>
+            <p className="mt-2 text-xs leading-5 text-muted">URL hanya menjadi catatan riset manual sampai Data Partner aktif.</p>
           </div>
         </div>
 
@@ -1297,7 +1297,7 @@ export function AffiliateWorkflow({
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className={sourceBadge(product.source)}>{product.source}</span>
+                      <span className={sourceBadge(product.source)}>{userSourceLabel(product.source)}</span>
                       <span className="rounded-full bg-white px-3 py-1 text-[10px] font-black text-ink">{getSourceBadgeText(product.source)}</span>
                       <span className="rounded-full bg-white px-3 py-1 text-[10px] font-black text-ink">{getSourceTrustText(product.source)}</span>
                       <span className="rounded-full bg-white px-3 py-1 text-[10px] font-black text-ink">{getRecommendationLabel(productScore.recommendation)}</span>

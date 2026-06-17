@@ -177,7 +177,7 @@ export function AffiliateDashboard({
 
       {hasDemoProducts ? (
         <div className="rounded-[1.5rem] border border-amber-200 bg-amber-50 p-4">
-          <p className="text-sm font-black text-amber-950">DEMO ONLY - Bukan dari TikTok Shop</p>
+          <p className="text-sm font-black text-amber-950">Data Contoh - Bukan dari TikTok Shop</p>
           <p className="mt-1 text-sm leading-6 text-amber-900">
             Produk demo hanya contoh. Tambahkan produk manual atau import CSV agar analisa lebih sesuai kebutuhan kamu.
           </p>
@@ -232,7 +232,7 @@ export function AffiliateDashboard({
                       <div className="flex flex-wrap items-center gap-2">
                         <h3 className="truncate text-base font-black text-ink">{product.productName}</h3>
                         <span className={`rounded-full px-2.5 py-1 text-[10px] font-black ${getSourceClassName(product.source)}`}>{getSourceBadgeText(product.source)}</span>
-                        {product.source === "DEMO" ? <span className="rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-black text-amber-900">DEMO ONLY</span> : null}
+                        {product.source === "DEMO" ? <span className="rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-black text-amber-900">Data Contoh</span> : null}
                       </div>
                       <p className="mt-1 text-sm text-muted">{product.category}</p>
                       <div className="mt-2 flex flex-wrap items-center gap-3 text-xs font-bold text-muted">
@@ -373,7 +373,7 @@ function AffiliateRightPanel({
           <h2 className="text-lg font-black text-ink">Ringkasan Profit</h2>
           <span className="rounded-full bg-violet-50 px-3 py-1 text-xs font-black text-violet-700">7 Hari Terakhir</span>
         </div>
-        {isDemoOnly ? <p className="mt-3 rounded-2xl bg-amber-50 p-3 text-xs font-bold text-amber-900">DEMO - data profit belum real.</p> : null}
+        {isDemoOnly ? <p className="mt-3 rounded-2xl bg-amber-50 p-3 text-xs font-bold text-amber-900">Data Contoh - data profit belum real.</p> : null}
         <div className="mt-4 grid gap-2">
           <MetricPill label="Total Profit" value={`Rp${analyticsStats.revenueThisWeek.toLocaleString("id-ID")}`} />
           <MetricPill label="Klik" value={String(analyticsStats.clicksThisWeek)} />

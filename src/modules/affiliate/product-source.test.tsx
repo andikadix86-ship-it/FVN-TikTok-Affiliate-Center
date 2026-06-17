@@ -36,7 +36,7 @@ describe("Product Hunter sources", () => {
       />
     );
 
-    expect(html).toContain("DEMO DATA - Bukan dari TikTok Shop");
+    expect(html).toContain("Data Contoh - Bukan dari TikTok Shop");
   });
 
   it("shows workflow source modes without presenting demo products as real API", () => {
@@ -49,25 +49,25 @@ describe("Product Hunter sources", () => {
       />
     );
 
-    expect(html).toContain("DEMO DATA - Bukan dari TikTok Shop");
-    expect(html).toContain("MANUAL");
-    expect(html).toContain("CSV_IMPORT");
-    expect(html).toContain("REAL_API");
-    expect(html).toContain("MANUAL DATA - Input user");
-    expect(html).toContain("CSV IMPORT - Dari file user");
+    expect(html).toContain("Data Contoh - Bukan dari TikTok Shop");
+    expect(html).toContain("Data Tersimpan");
+    expect(html).toContain("Data Marketplace");
+    expect(html).toContain("Data Partner");
+    expect(html).toContain("Data Tersimpan - Input user");
+    expect(html).toContain("Data Marketplace - Dari file user");
     expect(html).toContain("Input user");
-    expect(html).toContain("only after API fetch");
+    expect(html).toContain("aktif setelah API partner terhubung");
   });
 
   it("returns honest source badge labels", () => {
-    expect(getSourceBadgeText("DEMO")).toBe("DEMO DATA - Bukan dari TikTok Shop");
-    expect(getSourceBadgeText("MANUAL")).toBe("MANUAL DATA - Input user");
-    expect(getSourceBadgeText("CSV_IMPORT")).toBe("CSV IMPORT - Dari file user");
-    expect(getSourceBadgeText("REAL_API")).toBe("REAL API DATA - Data API asli");
+    expect(getSourceBadgeText("DEMO")).toBe("Data Contoh - Bukan dari TikTok Shop");
+    expect(getSourceBadgeText("MANUAL")).toBe("Data Tersimpan - Input user");
+    expect(getSourceBadgeText("CSV_IMPORT")).toBe("Data Marketplace - Dari file user");
+    expect(getSourceBadgeText("REAL_API")).toBe("Data Partner - Data API resmi");
     expect(getSourceTrustText("DEMO")).toBe("Bukan dari TikTok Shop");
     expect(getSourceTrustText("MANUAL")).toBe("Input user");
     expect(getSourceTrustText("CSV_IMPORT")).toBe("Dari file user");
-    expect(getSourceTrustText("REAL_API")).toBe("Data API asli");
+    expect(getSourceTrustText("REAL_API")).toBe("Data API resmi");
   });
 
   it("returns beginner recommendation labels", () => {

@@ -90,13 +90,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <Crown className="h-4 w-4" />
               Upgrade
             </a>
-            <button className="flex h-11 w-11 items-center justify-center rounded-full border border-violet-100 bg-white text-slate-600">
+            <a href="/#ai-agents" className="flex h-11 w-11 items-center justify-center rounded-full border border-violet-100 bg-white text-slate-600" title="Lihat rekomendasi AI">
               <Bell className="h-5 w-5" />
-            </button>
-            <button className="hidden items-center gap-2 rounded-full border border-violet-100 bg-white px-3 py-2 text-sm font-black text-ink sm:flex">
+            </a>
+            <a href="/#settings" className="hidden items-center gap-2 rounded-full border border-violet-100 bg-white px-3 py-2 text-sm font-black text-ink sm:flex" title="Buka profil dan pengaturan">
               <UserCircle className="h-6 w-6 text-violet-700" />
               Andika
-            </button>
+            </a>
           </div>
         </header>
 

@@ -2,10 +2,10 @@ import { ProductSource } from "./types";
 
 export function getSourceBadgeText(source: ProductSource) {
   const labels: Record<ProductSource, string> = {
-    DEMO: "DEMO DATA - Bukan dari TikTok Shop",
-    MANUAL: "MANUAL DATA - Input user",
-    CSV_IMPORT: "CSV IMPORT - Dari file user",
-    REAL_API: "REAL API DATA - Data API asli"
+    DEMO: "Data Contoh - Bukan dari TikTok Shop",
+    MANUAL: "Data Tersimpan - Input user",
+    CSV_IMPORT: "Data Marketplace - Dari file user",
+    REAL_API: "Data Partner - Data API resmi"
   };
 
   return labels[source];
@@ -16,7 +16,7 @@ export function getSourceTrustText(source: ProductSource) {
     DEMO: "Bukan dari TikTok Shop",
     MANUAL: "Input user",
     CSV_IMPORT: "Dari file user",
-    REAL_API: "Data API asli"
+    REAL_API: "Data API resmi"
   };
 
   return labels[source];

@@ -132,10 +132,10 @@ function WelcomeStep() {
 
 function DataSourceStep() {
   const rows = [
-    ["DEMO DATA", "contoh saja, bukan data TikTok Shop asli"],
-    ["MANUAL DATA", "produk yang kamu input sendiri"],
-    ["CSV IMPORT", "produk dari file CSV kamu"],
-    ["REAL API DATA", "data asli jika TikTok Shop API sudah connected"]
+    ["Data Contoh", "contoh saja, bukan data TikTok Shop asli"],
+    ["Data Tersimpan", "produk yang kamu input sendiri"],
+    ["Data Marketplace", "produk dari file CSV kamu"],
+    ["Data Partner", "data resmi jika marketplace API sudah connected"]
   ];
 
   return (

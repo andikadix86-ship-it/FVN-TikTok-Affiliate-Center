@@ -88,11 +88,11 @@ export function SettingsPanel({
   ];
 
   async function clearDemoData() {
-    if (!window.confirm("Hapus hanya DEMO DATA? MANUAL DATA, CSV IMPORT, dan REAL API DATA tidak akan dihapus.")) {
+    if (!window.confirm("Hapus hanya Data Contoh? Data Tersimpan, Data Marketplace, dan Data Partner tidak akan dihapus.")) {
       return;
     }
 
-    setActionMessage("Menghapus DEMO DATA...");
+    setActionMessage("Menghapus Data Contoh...");
 
     try {
       const response = await fetch("/api/products?source=DEMO", {
@@ -101,14 +101,14 @@ export function SettingsPanel({
 
       if (!response.ok) {
         const payload = await response.json();
-        setActionMessage(payload.message ?? "DEMO DATA belum bisa dihapus. Cek koneksi database.");
+        setActionMessage(payload.message ?? "Data Contoh belum bisa dihapus. Cek koneksi database.");
         return;
       }
 
-      setActionMessage("DEMO DATA sudah dihapus. MANUAL DATA dan CSV IMPORT tetap aman.");
+      setActionMessage("Data Contoh sudah dihapus. Data Tersimpan dan Data Marketplace tetap aman.");
       window.location.reload();
     } catch {
-      setActionMessage("DEMO DATA belum bisa dihapus. Cek koneksi database.");
+      setActionMessage("Data Contoh belum bisa dihapus. Cek koneksi database.");
     }
   }
 
@@ -121,7 +121,7 @@ export function SettingsPanel({
     >
       {status.productDataSource === "Demo Mode" ? (
         <div className="mb-4 rounded-2xl border border-orange-200 bg-orange-50 p-4">
-          <p className="text-sm font-black text-orange-900">DEMO DATA - Bukan dari TikTok Shop</p>
+          <p className="text-sm font-black text-orange-900">Data Contoh - Bukan dari TikTok Shop</p>
           <p className="mt-1 text-sm leading-6 text-orange-900/80">Gunakan input manual atau CSV import sebelum membaca produk sebagai kandidat affiliate kamu.</p>
         </div>
       ) : null}
