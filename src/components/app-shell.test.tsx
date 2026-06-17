@@ -29,6 +29,7 @@ describe("AppShell navigation", () => {
     expect(html).toContain("Cari produk, konten, template...");
     expect(html).toContain("Upgrade");
     expect(html).toContain("Andika");
+    expect(html).toContain("Buka akun Andika dan pengaturan TikTok");
     expect(html).toContain("/produk-affiliate");
     expect(html).toContain("/analytics");
     expect(html).toContain("/story-engine");
@@ -36,7 +37,7 @@ describe("AppShell navigation", () => {
     expect(html).toContain("/ai-agents");
     expect(html).toContain("/profit-center");
     expect(html).toContain("/tutorial-panduan");
-    expect(html).toContain("/pengaturan");
+    expect(html).toContain("/pengaturan#tiktok-accounts");
     expect(html).toContain("/terms");
     expect(html).toContain("/privacy");
     expect(html).toContain("Terms of Service");
