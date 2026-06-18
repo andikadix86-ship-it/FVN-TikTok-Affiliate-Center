@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
@@ -574,7 +574,6 @@ function TrendingProductTable({
             <th className="px-3 py-2">Tingkat Komisi</th>
             <th className="px-3 py-2">Jumlah Kreator</th>
             <th className="px-3 py-2">Rasio Konversi</th>
-            <th className="px-3 py-2">Tombol Aksi</th>
           </tr>
         </thead>
         <tbody>
@@ -583,34 +582,40 @@ function TrendingProductTable({
             const sales = estimateSales(product, score.total, index);
 
             return (
-              <tr key={product.id} className={active ? "bg-violet-50" : "bg-slate-50"}>
-                <td className="rounded-l-2xl px-3 py-3 font-black text-violet-700">#{index + 1}</td>
-                <td className="px-3 py-3">
-                  <div className="h-14 w-14 overflow-hidden rounded-2xl bg-white">
-                    {product.imageUrl ? <div className="h-full bg-cover bg-center" style={{ backgroundImage: `url(${product.imageUrl})` }} /> : null}
-                  </div>
-                </td>
-                <td className="max-w-[240px] px-3 py-3">
-                  <p className="line-clamp-2 font-black text-ink">{product.productName}</p>
-                  <div className="mt-1 flex flex-wrap gap-1">
-                    <SourceBadge source={product.source} />
-                    <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-black text-muted">{getRecommendationLabel(score.recommendation)}</span>
-                  </div>
-                </td>
-                <td className="px-3 py-3">{formatRupiah(product.price)}</td>
-                <td className="px-3 py-3 font-bold">{formatRupiah(estimateRevenue(product, score.total, index))}</td>
-                <td className="px-3 py-3"><MiniTrendChart score={score.total} /></td>
-                <td className="px-3 py-3 font-bold text-emerald-700">+{Math.max(6, score.total - 48)}%</td>
-                <td className="px-3 py-3">{sales} pcs</td>
-                <td className="px-3 py-3">{formatRupiah(product.price || 19)}</td>
-                <td className="px-3 py-3">{formatRupiah(product.price > 35 ? 0 : 2)}</td>
-                <td className="px-3 py-3">{product.commissionRate}%</td>
-                <td className="px-3 py-3">{Math.max(3, Math.round(score.total / 8))}</td>
-                <td className="px-3 py-3">{Math.max(1.2, score.total / 18).toFixed(1)}%</td>
-                <td className="rounded-r-2xl px-3 py-3">
-                  <ProductActionButtons product={product} trendScore={score.total} onProductAction={onProductAction} showcaseStatus={showcaseStatuses[product.id]} />
-                </td>
-              </tr>
+              <Fragment key={product.id}>
+                <tr className={active ? "bg-violet-50" : "bg-slate-50"}>
+                  <td className="rounded-l-2xl px-3 py-3 font-black text-violet-700">#{index + 1}</td>
+                  <td className="px-3 py-3">
+                    <div className="h-14 w-14 overflow-hidden rounded-2xl bg-white">
+                      {product.imageUrl ? <div className="h-full bg-cover bg-center" style={{ backgroundImage: `url(${product.imageUrl})` }} /> : null}
+                    </div>
+                  </td>
+                  <td className="max-w-[240px] px-3 py-3">
+                    <p className="line-clamp-2 font-black text-ink">{product.productName}</p>
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      <SourceBadge source={product.source} />
+                      <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-black text-muted">{getRecommendationLabel(score.recommendation)}</span>
+                    </div>
+                  </td>
+                  <td className="px-3 py-3">{formatRupiah(product.price)}</td>
+                  <td className="px-3 py-3 font-bold">{formatRupiah(estimateRevenue(product, score.total, index))}</td>
+                  <td className="px-3 py-3"><MiniTrendChart score={score.total} /></td>
+                  <td className="px-3 py-3 font-bold text-emerald-700">+{Math.max(6, score.total - 48)}%</td>
+                  <td className="px-3 py-3">{sales} pcs</td>
+                  <td className="px-3 py-3">{formatRupiah(product.price || 19)}</td>
+                  <td className="px-3 py-3">{formatRupiah(product.price > 35 ? 0 : 2)}</td>
+                  <td className="px-3 py-3">{product.commissionRate}%</td>
+                  <td className="px-3 py-3">{Math.max(3, Math.round(score.total / 8))}</td>
+                  <td className="rounded-r-2xl px-3 py-3">{Math.max(1.2, score.total / 18).toFixed(1)}%</td>
+                </tr>
+                <tr className={active ? "bg-violet-50" : "bg-slate-50"}>
+                  <td colSpan={13} className="rounded-b-2xl px-3 pb-3 pt-0">
+                    <div className="border-t border-violet-100/70 pt-3 sm:ml-[168px]">
+                      <ProductActionBar product={product} trendScore={score.total} onProductAction={onProductAction} showcaseStatus={showcaseStatuses[product.id]} />
+                    </div>
+                  </td>
+                </tr>
+              </Fragment>
             );
           })}
         </tbody>
@@ -685,6 +690,34 @@ function ProductActionButtons({
   );
 }
 
+function ProductActionBar({
+  product,
+  trendScore,
+  onProductAction,
+  showcaseStatus
+}: {
+  product: AffiliateProduct;
+  trendScore: number;
+  onProductAction: (product: AffiliateProduct, trendScore: number, action: string) => void;
+  showcaseStatus?: ShowcaseStatus;
+}) {
+  const click = (action: string) => onProductAction(product, trendScore, action);
+
+  return (
+    <div className="flex w-full min-w-0 flex-wrap items-center gap-1.5 sm:gap-2">
+      <SmallAction href="/produk-affiliate#product-detail" label="Lihat Detail" onClick={() => click("Lihat Detail Produk")} />
+      <SmallAction href="/produk-affiliate#product-detail" label="Save Opportunity" onClick={() => click("Save Opportunity")} />
+      <SmallAction href="/buat-konten" label="Create Content" onClick={() => click("Create Content")} dark />
+      <SmallAction href="/campaigns" label="Create Campaign" onClick={() => click("Create Campaign")} />
+      <SmallAction href="/produk-affiliate#product-detail" label="Add to TikTok" onClick={() => click("Add to TikTok Showcase")} />
+      <SmallAction href="/story-engine" label="Buat Story" onClick={() => click("Buat Story")} />
+      <SmallAction href="/multi-video-engine" label="Buat Video" onClick={() => click("Buat Video")} dark />
+      <SmallAction href="/rencana-posting" label="Jadwalkan" onClick={() => click("Jadwalkan")} dark />
+      {showcaseStatus ? <ShowcaseBadge status={showcaseStatus} /> : null}
+    </div>
+  );
+}
+
 function ShowcaseBadge({ status }: { status: ShowcaseStatus }) {
   const classes: Record<ShowcaseStatus, string> = {
     NOT_CONNECTED: "bg-amber-100 text-amber-950",
@@ -693,7 +726,7 @@ function ShowcaseBadge({ status }: { status: ShowcaseStatus }) {
     FAILED: "bg-rose-100 text-rose-950"
   };
 
-  return <span className={`inline-flex items-center rounded-full px-3 py-1.5 text-xs font-black ${classes[status]}`}>Showcase: {status}</span>;
+  return <span className={`inline-flex h-8 items-center rounded-full px-3 text-[11px] font-black ${classes[status]}`}>Showcase: {status}</span>;
 }
 
 function SmallAction({ href, label, onClick, dark = false }: { href: string; label: string; onClick?: () => void; dark?: boolean }) {
@@ -701,7 +734,9 @@ function SmallAction({ href, label, onClick, dark = false }: { href: string; lab
     <a
       href={href}
       onClick={onClick}
-      className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-black ${dark ? "bg-violet-600 text-white" : "bg-white text-violet-700"}`}
+      className={`inline-flex h-8 shrink-0 items-center justify-center gap-1 rounded-full border px-3 text-[11px] font-black leading-none transition hover:-translate-y-0.5 ${
+        dark ? "border-violet-600 bg-violet-600 text-white shadow-sm shadow-violet-200" : "border-violet-100 bg-white text-violet-700 hover:border-violet-300"
+      }`}
     >
       {label}
       <ChevronRight className="h-3.5 w-3.5" />
