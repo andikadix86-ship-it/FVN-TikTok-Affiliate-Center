@@ -428,7 +428,9 @@ function TrendingOverview({
                 <StatBox label="Penjualan" value={`${estimateSales(product, score.total, index)} pcs`} />
                 <StatBox label="Trend Score" value={`${score.total}/100`} />
               </div>
-              <ProductActionButtons product={product} trendScore={score.total} onProductAction={onProductAction} compact showcaseStatus={showcaseStatuses[product.id]} />
+              <div className="mt-4">
+                <ProductActionBar product={product} trendScore={score.total} onProductAction={onProductAction} showcaseStatus={showcaseStatuses[product.id]} />
+              </div>
             </article>
           ))}
         </div>
@@ -611,7 +613,7 @@ function TrendingProductTable({
                 <tr className={active ? "bg-violet-50" : "bg-slate-50"}>
                   <td colSpan={13} className="rounded-b-2xl px-3 pb-3 pt-0">
                     <div className="border-t border-violet-100/70 pt-3 sm:ml-[168px]">
-                      <ProductActionBar product={product} trendScore={score.total} onProductAction={onProductAction} showcaseStatus={showcaseStatuses[product.id]} />
+                      <ProductActionBar product={product} trendScore={score.total} onProductAction={onProductAction} showcaseStatus={showcaseStatuses[product.id]} showMarker />
                     </div>
                   </td>
                 </tr>
@@ -660,51 +662,24 @@ function AiRecommendationPanel({
   );
 }
 
-function ProductActionButtons({
-  product,
-  trendScore,
-  onProductAction,
-  compact = false,
-  showcaseStatus
-}: {
-  product: AffiliateProduct;
-  trendScore: number;
-  onProductAction: (product: AffiliateProduct, trendScore: number, action: string) => void;
-  compact?: boolean;
-  showcaseStatus?: ShowcaseStatus;
-}) {
-  const click = (action: string) => onProductAction(product, trendScore, action);
-
-  return (
-    <div className={`mt-4 flex flex-wrap gap-2 ${compact ? "" : "min-w-[220px]"}`}>
-      <SmallAction href="/produk-affiliate#product-detail" label="Lihat Detail Produk" onClick={() => click("Lihat Detail Produk")} />
-      <SmallAction href="/produk-affiliate#product-detail" label="Save Opportunity" onClick={() => click("Save Opportunity")} />
-      <SmallAction href="/buat-konten" label="Create Content" onClick={() => click("Create Content")} dark />
-      <SmallAction href="/campaigns" label="Create Campaign" onClick={() => click("Create Campaign")} />
-      <SmallAction href="/produk-affiliate#product-detail" label="Add to TikTok Showcase" onClick={() => click("Add to TikTok Showcase")} />
-      {showcaseStatus ? <ShowcaseBadge status={showcaseStatus} /> : null}
-      {!compact ? <SmallAction href="/story-engine" label="Buat Story" onClick={() => click("Buat Story")} /> : null}
-      {!compact ? <SmallAction href="/multi-video-engine" label="Buat Video" onClick={() => click("Buat Video")} /> : null}
-      {!compact ? <SmallAction href="/rencana-posting" label="Jadwalkan" onClick={() => click("Jadwalkan")} /> : null}
-    </div>
-  );
-}
-
 function ProductActionBar({
   product,
   trendScore,
   onProductAction,
-  showcaseStatus
+  showcaseStatus,
+  showMarker = false
 }: {
   product: AffiliateProduct;
   trendScore: number;
   onProductAction: (product: AffiliateProduct, trendScore: number, action: string) => void;
   showcaseStatus?: ShowcaseStatus;
+  showMarker?: boolean;
 }) {
   const click = (action: string) => onProductAction(product, trendScore, action);
 
   return (
     <div className="flex w-full min-w-0 flex-wrap items-center gap-1.5 sm:gap-2">
+      {showMarker ? <span className="inline-flex h-8 items-center rounded-full bg-violet-50 px-3 text-[11px] font-black text-violet-700">Action Bar Layout v2</span> : null}
       <SmallAction href="/produk-affiliate#product-detail" label="Lihat Detail" onClick={() => click("Lihat Detail Produk")} />
       <SmallAction href="/produk-affiliate#product-detail" label="Save Opportunity" onClick={() => click("Save Opportunity")} />
       <SmallAction href="/buat-konten" label="Create Content" onClick={() => click("Create Content")} dark />
@@ -726,7 +701,7 @@ function ShowcaseBadge({ status }: { status: ShowcaseStatus }) {
     FAILED: "bg-rose-100 text-rose-950"
   };
 
-  return <span className={`inline-flex h-8 items-center rounded-full px-3 text-[11px] font-black ${classes[status]}`}>Showcase: {status}</span>;
+  return <span className={`inline-flex h-8 shrink-0 items-center rounded-full px-3 text-[11px] font-black whitespace-nowrap ${classes[status]}`}>Showcase: {status}</span>;
 }
 
 function SmallAction({ href, label, onClick, dark = false }: { href: string; label: string; onClick?: () => void; dark?: boolean }) {
@@ -734,7 +709,7 @@ function SmallAction({ href, label, onClick, dark = false }: { href: string; lab
     <a
       href={href}
       onClick={onClick}
-      className={`inline-flex h-8 shrink-0 items-center justify-center gap-1 rounded-full border px-3 text-[11px] font-black leading-none transition hover:-translate-y-0.5 ${
+      className={`inline-flex h-8 shrink-0 items-center justify-center gap-1 rounded-full border px-3 text-[11px] font-black leading-none whitespace-nowrap transition hover:-translate-y-0.5 ${
         dark ? "border-violet-600 bg-violet-600 text-white shadow-sm shadow-violet-200" : "border-violet-100 bg-white text-violet-700 hover:border-violet-300"
       }`}
     >
