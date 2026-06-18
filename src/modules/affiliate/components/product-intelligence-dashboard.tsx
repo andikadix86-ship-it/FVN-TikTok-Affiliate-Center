@@ -359,6 +359,7 @@ export function ProductIntelligenceDashboard({
             active={productSubTab}
             onChange={(value) => setProductSubTab(value as ProductSubTab)}
           />
+          <ProductActionMarker className="mb-3" />
           <TrendingProductTable
             products={filterProductTab(topProducts, productSubTab)}
             selectedProductId={selectedProductId}
@@ -466,7 +467,7 @@ function TopSellerTable({ sellers, compact = false }: { sellers: SellerRow[]; co
             {!compact ? <th className="px-3 py-2">Harga Jual Rata-rata</th> : null}
             {!compact ? <th className="px-3 py-2">Pendapatan Affiliate</th> : null}
             {!compact ? <th className="px-3 py-2">Pendapatan Video</th> : null}
-            <th className="px-3 py-2">Tombol Aksi</th>
+            <th className="px-3 py-2">Aksi Toko</th>
           </tr>
         </thead>
         <tbody>
@@ -613,7 +614,7 @@ function TrendingProductTable({
                 <tr className={active ? "bg-violet-50" : "bg-slate-50"}>
                   <td colSpan={13} className="rounded-b-2xl px-3 pb-3 pt-0">
                     <div className="border-t border-violet-100/70 pt-3 sm:ml-[168px]">
-                      <ProductActionBar product={product} trendScore={score.total} onProductAction={onProductAction} showcaseStatus={showcaseStatuses[product.id]} showMarker />
+                      <ProductActionBar product={product} trendScore={score.total} onProductAction={onProductAction} showcaseStatus={showcaseStatuses[product.id]} />
                     </div>
                   </td>
                 </tr>
@@ -666,29 +667,37 @@ function ProductActionBar({
   product,
   trendScore,
   onProductAction,
-  showcaseStatus,
-  showMarker = false
+  showcaseStatus
 }: {
   product: AffiliateProduct;
   trendScore: number;
   onProductAction: (product: AffiliateProduct, trendScore: number, action: string) => void;
   showcaseStatus?: ShowcaseStatus;
-  showMarker?: boolean;
 }) {
   const click = (action: string) => onProductAction(product, trendScore, action);
 
   return (
-    <div className="flex w-full min-w-0 flex-wrap items-center gap-1.5 sm:gap-2">
-      {showMarker ? <span className="inline-flex h-8 items-center rounded-full bg-violet-50 px-3 text-[11px] font-black text-violet-700">Action Bar Layout v2</span> : null}
-      <SmallAction href="/produk-affiliate#product-detail" label="Lihat Detail" onClick={() => click("Lihat Detail Produk")} />
-      <SmallAction href="/produk-affiliate#product-detail" label="Save Opportunity" onClick={() => click("Save Opportunity")} />
-      <SmallAction href="/buat-konten" label="Create Content" onClick={() => click("Create Content")} dark />
-      <SmallAction href="/campaigns" label="Create Campaign" onClick={() => click("Create Campaign")} />
-      <SmallAction href="/produk-affiliate#product-detail" label="Add to TikTok" onClick={() => click("Add to TikTok Showcase")} />
-      <SmallAction href="/story-engine" label="Buat Story" onClick={() => click("Buat Story")} />
-      <SmallAction href="/multi-video-engine" label="Buat Video" onClick={() => click("Buat Video")} dark />
-      <SmallAction href="/rencana-posting" label="Jadwalkan" onClick={() => click("Jadwalkan")} dark />
-      {showcaseStatus ? <ShowcaseBadge status={showcaseStatus} /> : null}
+    <div className="w-full min-w-0">
+      <div className="flex w-full min-w-0 flex-wrap items-center gap-1.5 sm:gap-2">
+        <SmallAction href="/produk-affiliate#product-detail" label="Lihat Detail" onClick={() => click("Lihat Detail Produk")} />
+        <SmallAction href="/produk-affiliate#product-detail" label="Save Opportunity" onClick={() => click("Save Opportunity")} />
+        <SmallAction href="/buat-konten" label="Create Content" onClick={() => click("Create Content")} dark />
+        <SmallAction href="/campaigns" label="Create Campaign" onClick={() => click("Create Campaign")} />
+        <SmallAction href="/produk-affiliate#product-detail" label="Add to TikTok" onClick={() => click("Add to TikTok Showcase")} />
+        <SmallAction href="/story-engine" label="Buat Story" onClick={() => click("Buat Story")} />
+        <SmallAction href="/multi-video-engine" label="Buat Video" onClick={() => click("Buat Video")} dark />
+        <SmallAction href="/rencana-posting" label="Jadwalkan" onClick={() => click("Jadwalkan")} dark />
+        {showcaseStatus ? <ShowcaseBadge status={showcaseStatus} /> : null}
+      </div>
+      <ProductActionMarker className="mt-2" />
+    </div>
+  );
+}
+
+function ProductActionMarker({ className = "" }: { className?: string }) {
+  return (
+    <div className={`inline-flex items-center rounded-md border border-yellow-400 bg-yellow-100 px-3 py-1 text-[11px] font-black uppercase tracking-wide text-yellow-900 ${className}`}>
+      PRODUCT ACTION BAR V3 ACTIVE
     </div>
   );
 }
