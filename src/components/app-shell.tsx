@@ -11,6 +11,7 @@ import {
   Gauge,
   Layers3,
   Library,
+  LogOut,
   PackageSearch,
   Search,
   Settings,
@@ -19,6 +20,7 @@ import {
   Video
 } from "lucide-react";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: Gauge },
@@ -56,6 +58,17 @@ const workflowSteps = [
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() ?? "/";
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  async function logout() {
+    setLoggingOut(true);
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      window.location.assign("/login");
+    } finally {
+      setLoggingOut(false);
+    }
+  }
 
   return (
     <main className="min-h-screen bg-[#f7f4ff]">
@@ -121,6 +134,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <UserCircle className="h-6 w-6 text-violet-700" />
               <span className="hidden sm:inline">Andika</span>
             </a>
+            <button
+              type="button"
+              onClick={logout}
+              disabled={loggingOut}
+              className="flex h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-violet-100 bg-white px-3 text-sm font-black text-ink transition hover:bg-violet-50 hover:text-violet-700 disabled:cursor-not-allowed disabled:opacity-70"
+              title="Logout"
+            >
+              <LogOut className="h-4 w-4" />
+              <span className="hidden md:inline">{loggingOut ? "Signing out..." : "Logout"}</span>
+            </button>
           </div>
         </header>
 
@@ -169,7 +192,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
 function isActivePath(pathname: string, href: string) {
   if (href === "/") {
-    return pathname === "/";
+    return pathname === "/" || pathname === "/dashboard";
   }
 
   return pathname === href || pathname.startsWith(`${href}/`);
