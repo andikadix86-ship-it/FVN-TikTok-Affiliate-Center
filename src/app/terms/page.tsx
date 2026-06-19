@@ -12,13 +12,13 @@ export default function TermsPage() {
           <div className="mt-6 space-y-5 text-sm leading-7 text-muted">
             <section>
               <h2 className="text-lg font-black text-ink">1. App Name</h2>
-              <p>These Terms of Service apply to FVN TikTok Affiliate Center.</p>
+              <p>These Terms of Service apply to FVN Affiliate Center.</p>
             </section>
 
             <section>
               <h2 className="text-lg font-black text-ink">2. Purpose</h2>
               <p>
-                FVN TikTok Affiliate Center helps users manage TikTok affiliate products, content drafts, manual posting workflow, campaign planning, and manual analytics.
+                FVN Affiliate Center helps users manage affiliate products, content drafts, manual posting workflow, campaign planning, and manual analytics.
               </p>
             </section>
 

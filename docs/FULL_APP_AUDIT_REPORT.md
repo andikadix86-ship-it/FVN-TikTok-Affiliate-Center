@@ -12,7 +12,7 @@ Test status: Passed. `npm test` completed successfully with 25 test files and 91
 
 Lint status: Passed. `npm run lint` completed with no ESLint warnings or errors.
 
-Database status: Prisma client generation is working. Production database connection still depends on Vercel `DATABASE_URL` and `DIRECT_URL` values being configured. Use a new dedicated Supabase database for FVN TikTok Affiliate Center.
+Database status: Prisma client generation is working. Production database connection still depends on Vercel `DATABASE_URL` and `DIRECT_URL` values being configured. Use a new dedicated Supabase database for FVN Affiliate Center.
 
 TikTok OAuth status: Login Kit implementation and diagnostics are present. Production testing still requires HTTPS redirect URI configuration in TikTok Developer Portal and Vercel environment variables.
 
@@ -42,7 +42,7 @@ Security status: No committed secrets were found during audit scans. A local unt
    - Optional AI and TikTok Shop variables as needed.
 
 2. Run production database setup:
-   - Use a new dedicated Supabase database for FVN TikTok Affiliate Center.
+   - Use a new dedicated Supabase database for FVN Affiliate Center.
    - Do not reuse the old AI Clipper database.
    - Apply Prisma migrations to Supabase/PostgreSQL.
    - Seed demo data only if needed for first-run testing.
@@ -111,7 +111,7 @@ Checked:
 - `/api/health` returns only safe coarse statuses.
 - No database URL, access token, refresh token, OpenAI key, Gemini key, or TikTok secret should be exposed in UI.
 - `.env.example` contains empty placeholders for `DATABASE_URL` and `DIRECT_URL`.
-- The Prisma schema contains only standalone TikTok Affiliate Center models.
+- The Prisma schema contains only standalone Affiliate Center models.
 - The clean initial migration starts from an empty database and does not reference old AI Clipper tables.
 
 Important remaining action:

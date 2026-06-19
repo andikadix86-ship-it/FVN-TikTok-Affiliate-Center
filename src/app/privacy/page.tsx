@@ -12,13 +12,13 @@ export default function PrivacyPage() {
           <div className="mt-6 space-y-5 text-sm leading-7 text-muted">
             <section>
               <h2 className="text-lg font-black text-ink">1. App Name</h2>
-              <p>This Privacy Policy applies to FVN TikTok Affiliate Center.</p>
+              <p>This Privacy Policy applies to FVN Affiliate Center.</p>
             </section>
 
             <section>
               <h2 className="text-lg font-black text-ink">2. What The App Does</h2>
               <p>
-                FVN TikTok Affiliate Center helps users manage TikTok affiliate products, content drafts, manual posting workflow, campaign planning, and manual analytics.
+                FVN Affiliate Center helps users manage affiliate products, content drafts, manual posting workflow, campaign planning, and manual analytics.
               </p>
             </section>
 

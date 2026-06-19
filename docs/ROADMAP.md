@@ -47,7 +47,7 @@
 ## Phase 7: Separate Clipper App
 
 - Keep AI Clipper as a separate application.
-- Do not merge Clipper features into TikTok Affiliate Center.
+- Do not merge Clipper features into Affiliate Center.
 - Share concepts only when useful, not folders or runtime coupling.
 
 ## Phase 8: Separate Creative Content Creator App

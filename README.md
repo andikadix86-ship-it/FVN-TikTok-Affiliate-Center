@@ -1,6 +1,6 @@
-# FVN TikTok Affiliate Center
+# FVN Affiliate Center
 
-FVN TikTok Affiliate Center is a simple TikTok Affiliate operating system for beginner affiliates. It helps users collect product ideas, score product opportunity, generate TikTok content drafts, plan manual posting, track posted videos, review manual analytics, and follow a daily action plan.
+FVN Affiliate Center is a creator commerce dashboard for affiliate product research, content planning, campaign management, and publishing workflow.
 
 ## Main Workflow
 
@@ -114,9 +114,9 @@ npm test
 
 ## Supabase Setup
 
-Use a separate Supabase project/database for FVN TikTok Affiliate Center. Do not reuse the old AI Clipper database unless you are intentionally doing an isolated test and understand that table names, data shape, and migrations are different.
+Use a separate Supabase project/database for FVN Affiliate Center. Do not reuse the old AI Clipper database unless you are intentionally doing an isolated test and understand that table names, data shape, and migrations are different.
 
-1. Open Supabase and create a new project for `FVN TikTok Affiliate Center`.
+1. Open Supabase and create a new project for `FVN Affiliate Center`.
 2. Wait until the new database is ready.
 3. In Supabase Project Settings, open Database connection settings.
 4. Copy the pooled PostgreSQL connection string into `DATABASE_URL`.

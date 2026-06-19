@@ -1,6 +1,6 @@
 # MVP Testing Checklist
 
-Use this checklist before sharing, deploying, or continuing development of FVN TikTok Affiliate Center.
+Use this checklist before sharing, deploying, or continuing development of FVN Affiliate Center.
 
 ## A. Product Flow
 

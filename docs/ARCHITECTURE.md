@@ -1,6 +1,6 @@
 # Architecture Notes
 
-FVN TikTok Affiliate Center is a standalone Next.js 14 application focused on TikTok affiliate workflows. It is separate from `D:\FVN\AI CLIPPER`.
+FVN Affiliate Center is a standalone Next.js 14 creator commerce dashboard for affiliate product research, content planning, campaign management, and publishing workflow. It is separate from `D:\FVN\AI CLIPPER`.
 
 ## Folder Structure
 
@@ -86,4 +86,3 @@ Future adapter responsibilities:
 - Avoid scraping.
 - Avoid showing API data unless credentials and official responses are valid.
 - Keep manual/CSV/demo modes available as fallbacks.
-

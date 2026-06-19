@@ -10,7 +10,7 @@ type AuthLayoutProps = {
 
 const benefits = [
   { icon: PackageSearch, title: "Product intelligence", text: "Riset produk, skor peluang, dan rekomendasi konten dalam satu workspace." },
-  { icon: BarChart3, title: "Affiliate workflow", text: "Kelola draft, campaign, posting manual, dan performa TikTok affiliate." },
+  { icon: BarChart3, title: "Affiliate workflow", text: "Kelola draft, campaign, posting manual, dan performa creator commerce." },
   { icon: Globe2, title: "Global growth ready", text: "Dibuat untuk creator yang ingin scale dengan proses yang rapi." }
 ];
 
@@ -23,13 +23,13 @@ export function AuthLayout({ children, title, subtitle, footer }: AuthLayoutProp
             <div className="mb-8 flex items-center gap-3">
               <FvnLogo size="md" />
               <div>
-                <p className="text-sm font-black text-ink">FVN TikTok Affiliate Center</p>
+                <p className="text-sm font-black text-ink">FVN Affiliate Center</p>
                 <p className="mt-1 text-xs font-bold text-violet-700">Smart Commerce, Global Growth</p>
               </div>
             </div>
-            <h1 className="text-5xl font-black leading-tight text-ink">FVN TikTok Affiliate Center</h1>
+            <h1 className="text-5xl font-black leading-tight text-ink">FVN Affiliate Center</h1>
             <p className="mt-5 max-w-lg text-base font-semibold leading-7 text-muted">
-              Command center untuk product hunting, content workflow, TikTok account connection, dan affiliate growth planning.
+              Command center untuk product hunting, content workflow, creator platform connection, dan affiliate growth planning.
             </p>
             <div className="mt-9 space-y-4">
               {benefits.map((benefit) => {

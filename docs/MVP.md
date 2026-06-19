@@ -1,4 +1,4 @@
-# TikTok Affiliate Center MVP
+# Affiliate Center MVP
 
 This project is intentionally standalone. It keeps the initial scope narrow: find products, score them, generate content prompts, connect TikTok, plan campaigns, and configure providers.
 

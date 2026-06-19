@@ -77,7 +77,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20 text-xl font-black">F</div>
           <div>
             <p className="text-sm font-black">FVN Affiliate</p>
-            <p className="text-xs text-white/75">TikTok Center</p>
+            <p className="text-xs text-white/75">Creator Commerce</p>
           </div>
         </a>
 
@@ -154,7 +154,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
         <footer className="border-t border-violet-100 bg-white px-4 py-6 sm:px-6 lg:px-8">
           <div className="mx-auto flex max-w-[1500px] flex-col gap-2 text-sm text-muted sm:flex-row sm:items-center sm:justify-between">
-            <p>FVN TikTok Affiliate Center</p>
+            <p>FVN Affiliate Center</p>
             <div className="flex gap-4">
               <a href="/terms" className="font-semibold hover:text-ink">Terms of Service</a>
               <a href="/privacy" className="font-semibold hover:text-ink">Privacy Policy</a>

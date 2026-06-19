@@ -1,5 +1,5 @@
 ---
-title: "FVN TikTok Affiliate Center Complete User Guide v1.0"
+title: "FVN Affiliate Center Complete User Guide v1.0"
 subtitle: "Professional PDF-ready documentation for creators, operators, and administrators"
 version: "v1.0"
 toc: true
@@ -36,9 +36,9 @@ th, td { border: 1px solid #ddd7ff; padding: 8px; vertical-align: top; }
 th { background: #f1eeff; }
 </style>
 
-# FVN TikTok Affiliate Center Complete User Guide v1.0
+# FVN Affiliate Center Complete User Guide v1.0
 
-This guide is the complete operational documentation for FVN TikTok Affiliate Center. It is written for affiliate creators, content operators, campaign planners, account managers, analysts, and administrators who need a practical reference for day-to-day work.
+This guide is the complete operational documentation for FVN Affiliate Center. It is written for affiliate creators, content operators, campaign planners, account managers, analysts, and administrators who need a practical reference for day-to-day work.
 
 The guide is PDF-ready and includes explicit print page breaks. When converted with a Markdown processor that supports raw HTML and print CSS, the document is designed to produce more than 100 pages.
 
@@ -104,7 +104,7 @@ The recommended operating flow is:
 
 ## Data And Provider Status
 
-FVN TikTok Affiliate Center can operate in three data modes:
+FVN Affiliate Center can operate in three data modes:
 
 | Mode | Meaning | User Expectation |
 |---|---|---|
@@ -136,7 +136,7 @@ With 14 covered areas plus front matter, the document contains more than 100 PDF
 
 ## Dashboard - Tujuan
 
-Dashboard is the daily control room for FVN TikTok Affiliate Center. It gives the operator a fast overview of account connection status, content workflow health, affiliate product progress, scheduling readiness, and current performance signals.
+Dashboard is the daily control room for FVN Affiliate Center. It gives the operator a fast overview of account connection status, content workflow health, affiliate product progress, scheduling readiness, and current performance signals.
 
 Primary goals:
 
@@ -1262,7 +1262,7 @@ Screenshot placeholder: Settings page with TikTok API badge, AI provider badge, 
 
 ## TikTok Integration - Tujuan
 
-TikTok Integration connects FVN TikTok Affiliate Center to TikTok account and affiliate workflows. It supports review/demo mode, OAuth connection flow, API status badges, account profile display, and product showcase readiness.
+TikTok Integration connects FVN Affiliate Center to TikTok account and affiliate workflows. It supports review/demo mode, OAuth connection flow, API status badges, account profile display, and product showcase readiness.
 
 Primary goals:
 
@@ -1359,7 +1359,7 @@ Screenshot placeholder: TikTok Integration flow showing Connect TikTok, authoriz
 
 ## Administrator Guide - Tujuan
 
-The Administrator Guide explains how to operate, review, and maintain FVN TikTok Affiliate Center from a system owner perspective.
+The Administrator Guide explains how to operate, review, and maintain FVN Affiliate Center from a system owner perspective.
 
 Primary goals:
 
@@ -1461,7 +1461,7 @@ Screenshot placeholder: Administrator view with provider health, environment che
 
 Use this checklist before release:
 
-- App name is consistently FVN Affiliate Center or FVN TikTok Affiliate Center where context requires.
+- App name is consistently FVN Affiliate Center.
 - Public website, Terms, and Privacy URLs are reachable.
 - Dashboard shows TikTok connection status.
 - Product Intelligence displays at least 10 default products and 25 expanded products.
