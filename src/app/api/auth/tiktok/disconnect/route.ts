@@ -14,15 +14,15 @@ export async function POST() {
   if (env.DATABASE_URL) {
     try {
       await prisma.tikTokAccount.deleteMany();
-      await writeTikTokOAuthLog("SUCCESS", "TikTok account disconnected.", undefined, "disconnect_success");
+      await writeTikTokOAuthLog("SUCCESS", "Platform account disconnected.", undefined, "disconnect_success");
     } catch (error) {
-      await writeTikTokOAuthLog("ERROR", "TikTok disconnect failed.", error, "disconnect_failed");
+      await writeTikTokOAuthLog("ERROR", "Platform disconnect failed.", error, "disconnect_failed");
     }
   }
 
   const response = NextResponse.json({
     disconnected: true,
-    message: "TikTok account disconnected."
+    message: "Platform account disconnected."
   });
 
   response.cookies.delete(TIKTOK_CONNECTED_COOKIE);

@@ -77,9 +77,9 @@ export function buildTemplateContentPack(input: PromptInput): ContentPack {
     productCategory: promptInput.product.category,
     targetAudience: options.targetAudience,
     sellingPoint: mainSellingPoint,
-    problemSolved: promptInput.product.problemSolved ?? "Problem harian yang bisa divisualkan dalam konten TikTok.",
+    problemSolved: promptInput.product.problemSolved ?? "Problem harian yang bisa divisualkan dalam konten short video.",
     affiliateAngle: `${options.contentMode} untuk ${options.targetAudience}`,
-    platform: "TikTok" as const,
+    platform: "Short Video" as const,
     videoStyle: resolveVideoStyle(options.contentMode)
   };
   const complianceChecklist = {

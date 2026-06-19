@@ -131,11 +131,11 @@ export function generateActionPlan(input: ActionPlanInput): ActionPlanResult {
     addUnique(actions, {
       priority: "Low",
       actionType: "TEST_PRODUCT",
-      title: "Koneksi akun TikTok jika dibutuhkan",
+      title: "Koneksi akun platform jika dibutuhkan",
       reason: "Tracking akun akan lebih rapi jika akun terhubung, tetapi mode manual tetap bisa digunakan.",
-      nextStep: "Hubungkan akun dari halaman Akun TikTok saat sudah siap.",
+      nextStep: "Hubungkan akun dari halaman Akun Platform saat sudah siap.",
       href: "/#tiktok-accounts",
-      buttonLabel: "Akun TikTok"
+      buttonLabel: "Akun Platform"
     });
   }
 
@@ -148,7 +148,7 @@ export function generateActionPlan(input: ActionPlanInput): ActionPlanResult {
         actionType: "POST_READY_DRAFT",
         title: "Posting draft ini hari ini",
         reason: `${product.productName} punya score tinggi dan draft sudah siap upload.`,
-        nextStep: "Copy caption, hashtag, dan CTA lalu upload manual ke TikTok.",
+        nextStep: "Copy caption, hashtag, dan CTA lalu upload manual ke platform pilihan.",
         href: `/content-library/${readyDraft.id}`,
         buttonLabel: "Lihat Draft",
         relatedProduct: product.id,

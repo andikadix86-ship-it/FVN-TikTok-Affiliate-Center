@@ -5,13 +5,13 @@ const guides = [
   ["Cara cari produk", "Buka Product Intelligence, gunakan filter kategori, lalu pilih produk dengan peluang terbaik."],
   ["Cara buat konten", "Buka Content Factory, pilih template, generate hook, script, caption, hashtag, dan CTA."],
   ["Cara buat story", "Kirim draft ke Story Engine untuk menyusun storyline, scene plan, voice over, dan subtitle."],
-  ["Cara jadwalkan", "Pilih konten dari Content Library, atur tanggal/jam, lalu upload manual ke TikTok."],
+  ["Cara jadwalkan", "Pilih konten dari Content Library, atur tanggal/jam, lalu upload manual ke platform."],
   ["Cara baca profit", "Input views, klik, order, dan revenue manual, lalu cek Profit Center dan Analytics."]
 ];
 
 const faqs = [
-  ["Apakah aplikasi auto-post ke TikTok?", "Belum. MVP ini membantu persiapan dan tracking manual."],
-  ["Apakah data produk selalu dari TikTok Shop?", "Tidak. Data bisa berupa Data Contoh, Data Tersimpan, Data Marketplace, atau Data Partner jika API resmi sudah terhubung."],
+  ["Apakah aplikasi auto-post ke platform?", "Belum. MVP ini membantu persiapan dan tracking manual."],
+  ["Apakah data produk selalu dari marketplace resmi?", "Tidak. Data bisa berupa Data Contoh, Data Tersimpan, Data Marketplace, atau Data Partner jika API resmi sudah terhubung."],
   ["Kalau AI provider belum aktif?", "Content Factory tetap memakai Template Mode."]
 ];
 

@@ -20,7 +20,7 @@ const input = {
   }
 };
 
-describe("upgraded TikTok affiliate prompt engine", () => {
+describe("upgraded affiliate prompt engine", () => {
   it("resolves providers and falls back safely to template mode", async () => {
     expect(resolvePromptProvider({})).toBe("TEMPLATE");
     expect(resolvePromptProvider({ geminiApiKey: "gemini" })).toBe("GEMINI");
@@ -32,7 +32,7 @@ describe("upgraded TikTok affiliate prompt engine", () => {
     expect(pack.hooks).toHaveLength(10);
   });
 
-  it("generates first-three-second hooks with relatable TikTok patterns", () => {
+  it("generates first-three-second hooks with relatable short video patterns", () => {
     const hooks = buildHooks(input);
 
     expect(hooks).toHaveLength(10);
@@ -56,7 +56,7 @@ describe("upgraded TikTok affiliate prompt engine", () => {
     const pack = buildTemplateContentPack(input);
 
     expect(pack.contentTitle).toContain(sampleProducts[0].productName);
-    expect(pack.productBrief?.platform).toBe("TikTok");
+    expect(pack.productBrief?.platform).toBe("Short Video");
     expect(pack.script60).toContain("Opening hook");
     expect(pack.structuredScenePlan?.[0].cameraAngle).toBeTruthy();
     expect(pack.nanoBananaPrompts?.productHeroImagePrompt.prompt).toContain("vertical 9:16");

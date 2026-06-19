@@ -29,30 +29,30 @@ export default function TermsPage() {
             </section>
 
             <section>
-              <h2 className="text-lg font-black text-ink">3. TikTok Login</h2>
+              <h2 className="text-lg font-black text-ink">3. Platform Login</h2>
               <p>
-                TikTok Login is used only to connect a TikTok account when the user authorizes it. The app uses TikTok Login Kit for account connection and OAuth diagnostics.
+                Platform login is used only to connect a creator account when the user authorizes it. The app uses an authorized platform integration for account connection and OAuth diagnostics.
               </p>
             </section>
 
             <section>
               <h2 className="text-lg font-black text-ink">4. Manual Publishing</h2>
               <p>
-                This MVP does not auto-post to TikTok. Users upload videos manually to TikTok and may save the posted video URL in the app for tracking.
+                This MVP does not auto-post to a creator platform. Users upload videos manually and may save the posted video URL in the app for tracking.
               </p>
             </section>
 
             <section>
               <h2 className="text-lg font-black text-ink">5. Product Data</h2>
               <p>
-                Product data is manual, CSV import, or demo data unless an official TikTok Shop API integration is connected later. Demo, manual, and CSV data should not be treated as official TikTok Shop data.
+                Product data is manual, CSV import, or demo data unless an official commerce API integration is connected later. Demo, manual, and CSV data should not be treated as official marketplace data.
               </p>
             </section>
 
             <section>
               <h2 className="text-lg font-black text-ink">6. User Responsibility</h2>
               <p>
-                Users are responsible for checking product information, complying with TikTok policies, using safe claims, and manually entering accurate performance data.
+                Users are responsible for checking product information, complying with platform policies, using safe claims, and manually entering accurate performance data.
               </p>
             </section>
 

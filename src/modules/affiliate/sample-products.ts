@@ -60,7 +60,7 @@ export const sampleProducts: AffiliateProduct[] = seeds.map((seed, index) => {
     competitionLevel,
     productUrl: `https://example.com/demo/${id}`,
     imageUrl: `https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=80&sig=${index}`,
-    targetAudience: index % 2 === 0 ? "Creator affiliate pemula" : "Pembeli aktif TikTok Shop",
+    targetAudience: index % 2 === 0 ? "Creator affiliate pemula" : "Pembeli aktif marketplace",
     problemSolved,
     mainBenefit,
     demoIdea,

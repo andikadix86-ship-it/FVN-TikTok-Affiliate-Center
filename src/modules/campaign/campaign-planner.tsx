@@ -7,7 +7,7 @@ export function CampaignPlanner() {
     <SectionCard
       id="campaigns"
       title="Rencana Posting"
-      description="Susun posting TikTok sederhana dari satu produk dan satu angle utama."
+      description="Susun posting short video sederhana dari satu produk dan satu angle utama."
       icon={CalendarDays}
     >
       <div className="grid gap-3 md:grid-cols-3">

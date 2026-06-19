@@ -33,7 +33,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
   } catch {
     return NextResponse.json(
       {
-        message: "Konten belum bisa ditandai sudah posting. Cek URL video TikTok dan koneksi database."
+        message: "Konten belum bisa ditandai sudah posting. Cek URL video platform dan koneksi database."
       },
       { status: 400 }
     );

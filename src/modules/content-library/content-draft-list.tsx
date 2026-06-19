@@ -11,13 +11,13 @@ import {
 } from "@/modules/database/content-service";
 import { ProductSource } from "@/modules/affiliate/types";
 import { getSourceClassName } from "@/modules/affiliate/source-badge";
-import { GeneratedLibraryItem, saveGeneratedLibraryItems, readGeneratedLibraryItems } from "@/modules/affiliate/affiliate-center-core";
+import { GeneratedLibraryItem, getVideoPlatformLabel, saveGeneratedLibraryItems, readGeneratedLibraryItems } from "@/modules/affiliate/affiliate-center-core";
 
 const statusOptions: Array<ContentStatus | "ALL"> = ["ALL", "DRAFT", "READY", "POSTED", "ARCHIVED"];
 const sourceOptions: Array<ProductSource | "ALL"> = ["ALL", "DEMO", "MANUAL", "CSV_IMPORT", "REAL_API"];
 const generatedSourceOptions = ["ALL", "Content Factory", "Story Engine", "Multi Video Engine", "Creative Studio"];
 const typeOptions = ["ALL", "TEXT", "IMAGE", "VIDEO"];
-const platformOptions = ["ALL", "TikTok", "Reels", "Shorts"];
+const platformOptions = ["ALL", "Short Video", "Reels", "Shorts"];
 
 type CaptionDetail = {
   title: string;
@@ -89,7 +89,9 @@ export function ContentDraftList({ initialDrafts }: { initialDrafts: ContentDraf
       const matchesStatus = status === "ALL" || (status === "READY" && ["Generated", "Saved"].includes(item.status)) || (status === "DRAFT" && item.status === "Draft") || (status === "POSTED" && item.status === "Scheduled");
       const matchesSource = generatedSource === "ALL" || item.sourceLabel === generatedSource;
       const matchesType = type === "ALL" || item.type === type;
-      const matchesPlatform = platform === "ALL" || item.platform === platform || item.tags.includes(platform);
+      const itemPlatform = getVideoPlatformLabel(item.platform ?? "");
+      const itemTags = item.tags.map(getVideoPlatformLabel);
+      const matchesPlatform = platform === "ALL" || itemPlatform === platform || itemTags.includes(platform);
       return matchesQuery && matchesStatus && matchesSource && matchesType && matchesPlatform;
     });
   }, [generatedItems, generatedSource, platform, query, status, type]);
@@ -235,7 +237,7 @@ export function ContentDraftList({ initialDrafts }: { initialDrafts: ContentDraf
               {item.imagePrompt ? <p className="mt-3 text-xs leading-5 text-violet-700"><strong>Image prompt:</strong> {item.imagePrompt}</p> : null}
               {item.videoPrompt ? <p className="mt-2 text-xs leading-5 text-violet-700"><strong>Video prompt:</strong> {item.videoPrompt}</p> : null}
               <div className="mt-3 flex flex-wrap gap-2">
-                {item.tags.map((tag) => <span key={tag} className="rounded-full bg-slate-50 px-2 py-1 text-[10px] font-bold text-muted">{tag}</span>)}
+                {item.tags.map((tag) => <span key={tag} className="rounded-full bg-slate-50 px-2 py-1 text-[10px] font-bold text-muted">{getVideoPlatformLabel(tag)}</span>)}
               </div>
               <div className="mt-4 flex flex-wrap gap-2">
                 <button onClick={() => runGeneratedAction(item, "edit")} className="icon-btn">Edit</button>
@@ -321,7 +323,7 @@ function CaptionDetailModal({ detail, onClose, onMessage }: { detail: CaptionDet
       statusCode: "SAVED",
       type: "TEXT",
       productName: detail.productName,
-      platform: "TikTok",
+      platform: "Short Video",
       preview: `${caption}${hashtagText ? `\n${hashtagText}` : ""}`,
       tags: ["caption", "content-library", ...(detail.hashtags ?? [])],
       createdAt: new Date().toISOString()

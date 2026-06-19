@@ -2,13 +2,13 @@ import { PromptInput, ScenePlanItem, Veo3Prompt, Veo3PromptSet, defaultPromptOpt
 
 function videoPrompt(input: PromptInput, title: string, duration: string, action: string, cameraAngle: string, cameraMovement: string, audioDirection: string): Veo3Prompt {
   const { product, options = defaultPromptOptions } = input;
-  const style = options.contentMode === "Product Demo" ? "realistic TikTok UGC product demo" : "realistic TikTok affiliate UGC";
+  const style = options.contentMode === "Product Demo" ? "realistic short video UGC product demo" : "realistic affiliate short video UGC";
   const environment = options.targetAudience === "Ibu Rumah Tangga" ? "bright Indonesian home setting" : "clean everyday Indonesian indoor setting";
   const prompt = [
     `${title}. Main subject: ${product.productName}.`,
     `Product action: ${action}.`,
     `Environment/location: ${environment}.`,
-    "Scene composition: vertical TikTok 9:16, product visible in the first 2 seconds, clear space for subtitles.",
+    "Scene composition: vertical short video 9:16, product visible in the first 2 seconds, clear space for subtitles.",
     `Camera angle: ${cameraAngle}.`,
     `Camera movement: ${cameraMovement}.`,
     "Lens/optical effect: natural phone camera look, shallow depth of field only for close-ups, no unrealistic effects.",
@@ -26,7 +26,7 @@ function videoPrompt(input: PromptInput, title: string, duration: string, action
     mainSubject: product.productName,
     productAction: action,
     environmentLocation: environment,
-    sceneComposition: "Vertical TikTok 9:16, product visible early, subtitle-safe framing",
+    sceneComposition: "Vertical short video 9:16, product visible early, subtitle-safe framing",
     cameraAngle,
     cameraMovement,
     lensOpticalEffect: "Natural phone camera, light depth of field for close-ups",

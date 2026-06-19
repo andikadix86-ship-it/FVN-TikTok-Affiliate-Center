@@ -2,10 +2,8 @@ import { cookies } from "next/headers";
 import { AppShell } from "@/components/app-shell";
 import { env } from "@/lib/env";
 import {
-  TIKTOK_AUTH_URL,
   TIKTOK_OAUTH_ERROR_COOKIE,
   TIKTOK_OAUTH_SUCCESS_COOKIE,
-  TIKTOK_TOKEN_URL,
   validateTikTokEnv
 } from "@/modules/tiktok/oauth";
 import { OAuthTestPanel } from "@/modules/tiktok/oauth-test-panel";
@@ -18,9 +16,9 @@ export default function TikTokOAuthTestPage() {
   const cookieStore = cookies();
   const validation = validateTikTokEnv();
   const rows = [
-    ["TikTok Client Key", validation.clientKey],
-    ["TikTok Client Secret", validation.clientSecret],
-    ["TikTok Redirect URI", validation.redirectUri],
+    ["Platform Client Key", validation.clientKey],
+    ["Platform Client Secret", validation.clientSecret],
+    ["Platform Redirect URI", validation.redirectUri],
     ["Redirect URI HTTPS", statusText(validation.redirect.https)],
     ["Redirect URI Static", statusText(validation.redirect.static)],
     ["Redirect URI Has Query", validation.redirect.hasQuery ? "yes" : "no"],
@@ -37,7 +35,7 @@ export default function TikTokOAuthTestPage() {
       <section className="px-4 pb-8 pt-5 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-6xl rounded-[2rem] border border-line bg-white p-5 shadow-soft sm:p-7">
           <p className="text-sm font-bold uppercase tracking-wide text-mint">OAuth Diagnostics</p>
-          <h1 className="mt-2 text-3xl font-bold text-ink">Test Koneksi TikTok</h1>
+          <h1 className="mt-2 text-3xl font-bold text-ink">Test Koneksi Platform</h1>
           <p className="mt-2 text-sm leading-6 text-muted">
             Cek env, redirect URI, endpoint Login Kit, dan error terakhir tanpa menampilkan client secret atau token.
           </p>
@@ -73,11 +71,11 @@ export default function TikTokOAuthTestPage() {
           <div className="mt-5 grid gap-3 sm:grid-cols-2">
             <div className="rounded-2xl border border-line p-4">
               <p className="text-xs font-bold uppercase tracking-wide text-muted">Authorize URL</p>
-              <p className="mt-2 break-all text-sm text-muted">{TIKTOK_AUTH_URL}</p>
+              <p className="mt-2 break-all text-sm text-muted">Official platform authorize endpoint configured.</p>
             </div>
             <div className="rounded-2xl border border-line p-4">
               <p className="text-xs font-bold uppercase tracking-wide text-muted">Token URL</p>
-              <p className="mt-2 break-all text-sm text-muted">{TIKTOK_TOKEN_URL}</p>
+              <p className="mt-2 break-all text-sm text-muted">Official platform token endpoint configured.</p>
             </div>
           </div>
         </div>

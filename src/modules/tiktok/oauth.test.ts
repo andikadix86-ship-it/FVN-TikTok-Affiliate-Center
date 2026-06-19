@@ -50,7 +50,7 @@ describe("TikTok OAuth Web Login Kit", () => {
     expect(invalid.errors).toContain("Redirect URI harus diawali https://");
     expect(invalid.errors).toContain("Redirect URI tidak boleh memakai query parameter");
     expect(invalid.errors).toContain("Redirect URI tidak boleh memakai tanda #");
-    expect(invalid.errors).toContain("Redirect URI harus sama persis dengan yang didaftarkan di TikTok Developer Portal");
+    expect(invalid.errors).toContain("Redirect URI harus sama persis dengan yang didaftarkan di developer portal");
   });
 
   it("handles state mismatch and missing code in callback parsing", () => {

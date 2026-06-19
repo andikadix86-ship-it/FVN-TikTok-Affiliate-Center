@@ -13,7 +13,7 @@ export function getSourceBadgeText(source: ProductSource) {
 
 export function getSourceTrustText(source: ProductSource) {
   const labels: Record<ProductSource, string> = {
-    DEMO: "Bukan dari TikTok Shop",
+    DEMO: "Bukan dari marketplace resmi",
     MANUAL: "Input user",
     CSV_IMPORT: "Dari file user",
     REAL_API: "Data API resmi"

@@ -67,7 +67,7 @@ export function buildDemoTikTokAccountView(): TikTokAccountView {
     demoMode: true,
     connectionStatus: "Connected",
     username: "@fvn_demo_creator",
-    displayName: "Demo TikTok Account",
+    displayName: "Demo Creator Account",
     avatarUrl: "",
     followerCount: "12,480",
     videoCount: "86",

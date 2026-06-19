@@ -148,7 +148,7 @@ export function AffiliateDashboard({
   ];
   const scheduleItems = latestDrafts.length > 0
     ? latestDrafts.map((draft, index) => ({
-        platform: "TikTok",
+        platform: "Short Video",
         title: draft.productName,
         time: `${9 + index * 3}:00`,
         status: draft.status
@@ -169,12 +169,12 @@ export function AffiliateDashboard({
               <a href="/buat-konten" className="rounded-full border border-white/30 px-5 py-3 text-sm font-black text-white">Buat Konten</a>
               <a href="/accounts?connect=tiktok" className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-5 py-3 text-sm font-black text-white">
                 <UserPlus className="h-4 w-4" />
-                Connect TikTok
+                Connect Platform
               </a>
             </div>
             <div className="mt-4 flex flex-wrap gap-2">
               <span className={`rounded-full px-3 py-1 text-xs font-black ${tiktokConnected && tiktokApiConfigured ? "bg-emerald-100 text-emerald-950" : "bg-amber-100 text-amber-950"}`}>
-                {tiktokConnected && tiktokApiConfigured ? "TikTok API Connected" : "TikTok API Not Connected"}
+                {tiktokConnected && tiktokApiConfigured ? "Platform API Connected" : "Platform API Not Connected"}
               </span>
               <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-black text-white">
                 {tiktokConnected ? "Connected" : tiktokApiConfigured ? "Not Connected" : "Connected (Demo)"}

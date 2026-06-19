@@ -9,13 +9,13 @@ export function buildHashtags({ product, options }: PromptInput) {
   const audience = options?.targetAudience ?? "Affiliate Pemula";
 
   return [
-    "#TikTokShop",
+    "#SocialCommerce",
     "#KeranjangKuning",
-    "#AffiliateTikTok",
+    "#AffiliateContent",
     "#ReviewProduk",
     tag(product.category),
     tag(mode),
     tag(audience),
-    "#RacunTikTok"
+    "#ProdukPilihan"
   ];
 }

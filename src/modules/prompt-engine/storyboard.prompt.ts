@@ -5,11 +5,11 @@ function framePrompt(input: PromptInput, scene: ScenePlanItem, title: string) {
   const { product, options = defaultPromptOptions } = input;
 
   return [
-    `Subject: ${product.productName} untuk konten affiliate TikTok.`,
+    `Subject: ${product.productName} untuk konten affiliate short video.`,
     `Action: ${scene.visualAction}`,
     `Location/Context: konteks Indonesia yang realistis untuk ${options.targetAudience}.`,
     `Composition: vertical 9:16, ${scene.cameraAngle}, produk terlihat jelas, ruang aman untuk subtitle.`,
-    `Style: ${options.contentMode}, realistic TikTok UGC production frame.`,
+    `Style: ${options.contentMode}, realistic short video UGC production frame.`,
     "Lighting: soft indoor light, detail produk mudah terlihat.",
     `Camera Angle: ${scene.cameraAngle}.`,
     `Product Detail: ${product.category}, tampilkan bentuk dan fungsi tanpa klaim berlebihan.`,
@@ -44,7 +44,7 @@ export function buildStoryboard(input: PromptInput, scenes: ScenePlanItem[] = bu
       subtitleText: scene.voiceOverLine,
       cameraAngle: scene.cameraAngle,
       cameraMovement: scene.cameraMovement,
-      composition: "Vertical 9:16 TikTok frame, product visible, subtitle-safe lower third.",
+      composition: "Vertical 9:16 short video frame, product visible, subtitle-safe lower third.",
       lighting: "Soft indoor light / natural morning light.",
       mood: `${options.tone}, realistis, beginner-friendly.`,
       transition: scene.transitionSuggestion,

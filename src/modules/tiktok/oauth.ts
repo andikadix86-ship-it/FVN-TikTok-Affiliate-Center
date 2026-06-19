@@ -66,7 +66,7 @@ export function validateRedirectUri(redirectUri = env.TIKTOK_REDIRECT_URI, {
   let hasHash = false;
 
   if (!redirectUri) {
-    errors.push("TIKTOK_REDIRECT_URI is missing.");
+    errors.push("PLATFORM_REDIRECT_URI is missing.");
     return {
       configured: false,
       absolute,
@@ -102,7 +102,7 @@ export function validateRedirectUri(redirectUri = env.TIKTOK_REDIRECT_URI, {
   }
 
   if (expectedRedirectUri && redirectUri !== expectedRedirectUri) {
-    errors.push("Redirect URI harus sama persis dengan yang didaftarkan di TikTok Developer Portal");
+    errors.push("Redirect URI harus sama persis dengan yang didaftarkan di developer portal");
   }
 
   return {
@@ -140,11 +140,11 @@ export function validateTikTokEnv({
   let appUrlStatus: "configured" | "missing" | "invalid" = appUrl ? "configured" : "missing";
 
   if (!clientKey) {
-    errors.push("TIKTOK_CLIENT_KEY is missing.");
+    errors.push("PLATFORM_CLIENT_KEY is missing.");
   }
 
   if (!clientSecret) {
-    errors.push("TIKTOK_CLIENT_SECRET is missing.");
+    errors.push("PLATFORM_CLIENT_SECRET is missing.");
   }
 
   if (!appUrl) {
@@ -240,7 +240,7 @@ export function parseTikTokCallback({
       ok: false,
       status: 400,
       errorCode: error,
-      message: errorDescription ? `TikTok returned an error: ${error}. ${errorDescription}` : `TikTok returned an error: ${error}.`
+      message: errorDescription ? `Platform returned an error: ${error}. ${errorDescription}` : `Platform returned an error: ${error}.`
     };
   }
 
@@ -249,7 +249,7 @@ export function parseTikTokCallback({
       ok: false,
       status: 400,
       errorCode: "missing_code",
-      message: "TikTok callback is missing authorization code."
+      message: "Platform callback is missing authorization code."
     };
   }
 
@@ -258,7 +258,7 @@ export function parseTikTokCallback({
       ok: false,
       status: 400,
       errorCode: "state_mismatch",
-      message: "TikTok OAuth state mismatch. Please retry the connection from this app."
+      message: "Platform OAuth state mismatch. Please retry the connection from this app."
     };
   }
 

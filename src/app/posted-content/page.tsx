@@ -64,7 +64,7 @@ export default async function PostedContentPage() {
           <div className="mb-4 rounded-[2rem] border border-line bg-white p-5 shadow-soft">
             <p className="text-sm font-bold uppercase tracking-wide text-mint">Manual Publishing</p>
             <h1 className="mt-2 text-3xl font-black text-ink">Konten Terposting</h1>
-            <p className="mt-2 text-sm leading-6 text-muted">Track video yang sudah kamu upload manual ke TikTok. Tidak ada auto-posting di MVP ini.</p>
+            <p className="mt-2 text-sm leading-6 text-muted">Track video yang sudah kamu upload manual ke platform. Tidak ada auto-posting di MVP ini.</p>
           </div>
           <PostedContentList initialItems={items} campaigns={campaigns} />
         </div>

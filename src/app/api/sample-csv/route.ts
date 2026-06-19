@@ -4,7 +4,7 @@ export async function GET() {
   return new Response(SAMPLE_PRODUCT_CSV, {
     headers: {
       "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": "attachment; filename=\"tiktok-affiliate-products-sample.csv\""
+      "Content-Disposition": "attachment; filename=\"affiliate-products-sample.csv\""
     }
   });
 }

@@ -51,7 +51,7 @@ export function SettingsPanel({
         }
 
         setHealthStatus(
-          `app ${payload.app}; database ${payload.database}; TikTok OAuth ${payload.tiktokOAuth}; AI ${payload.aiProvider}; source ${payload.productSource}`
+          `app ${payload.app}; database ${payload.database}; Platform OAuth ${payload.tiktokOAuth}; AI ${payload.aiProvider}; source ${payload.productSource}`
         );
       })
       .catch(() => {
@@ -67,16 +67,16 @@ export function SettingsPanel({
 
   const settings = [
     { label: "Production URL", value: productionUrl || "Missing" },
-    { label: "TikTok Redirect URI", value: tiktokRedirectUri || "Missing" },
+    { label: "Platform Redirect URI", value: tiktokRedirectUri || "Missing" },
     { label: "Status App URL", value: status.appUrl },
     { label: "Database", value: databaseConnected ? "Connected" : "Error / Not Connected" },
-    { label: "TikTok OAuth", value: tiktokOAuthConfigured ? "Configured" : "Missing" },
-    { label: "TikTok Login", value: tiktokLoginConnected ? "Connected" : "Not Connected" },
-    { label: "TikTok Display API", value: tiktokLoginConnected ? "Connected" : "Not Connected" },
-    { label: "TikTok Shop API", value: tiktokShopApiStatus.status },
-    { label: "TikTok Auto Posting", value: "Not Enabled" },
+    { label: "Platform OAuth", value: tiktokOAuthConfigured ? "Configured" : "Missing" },
+    { label: "Platform Login", value: tiktokLoginConnected ? "Connected" : "Not Connected" },
+    { label: "Platform Display API", value: tiktokLoginConnected ? "Connected" : "Not Connected" },
+    { label: "Platform Commerce API", value: tiktokShopApiStatus.status },
+    { label: "Platform Auto Posting", value: "Not Enabled" },
     { label: "Publishing Mode", value: "Manual" },
-    { label: "TikTok Performance Data", value: "Manual Input" },
+    { label: "Platform Performance Data", value: "Manual Input" },
     { label: "Last OAuth error", value: lastOAuthError || "none" },
     { label: "AI Provider", value: aiProviderConfigured ? "Configured" : "Template Mode" },
     { label: "Product Source Mode", value: status.productDataSource },
@@ -116,12 +116,12 @@ export function SettingsPanel({
     <SectionCard
       id="settings"
       title="Pengaturan"
-      description="Cek koneksi database, OAuth TikTok, AI Provider, dan sumber data produk."
+      description="Cek koneksi database, OAuth platform, AI Provider, dan sumber data produk."
       icon={Settings}
     >
       {status.productDataSource === "Demo Mode" ? (
         <div className="mb-4 rounded-2xl border border-orange-200 bg-orange-50 p-4">
-          <p className="text-sm font-black text-orange-900">Data Contoh - Bukan dari TikTok Shop</p>
+          <p className="text-sm font-black text-orange-900">Data Contoh - Bukan dari marketplace resmi</p>
           <p className="mt-1 text-sm leading-6 text-orange-900/80">Gunakan input manual atau CSV import sebelum membaca produk sebagai kandidat affiliate kamu.</p>
         </div>
       ) : null}
@@ -135,7 +135,7 @@ export function SettingsPanel({
       </div>
       {tiktokOAuthErrors.length > 0 ? (
         <div className="mt-4 rounded-2xl border border-orange-200 bg-orange-50 p-4">
-          <p className="text-sm font-black text-orange-900">TikTok OAuth configuration needs attention</p>
+          <p className="text-sm font-black text-orange-900">Platform OAuth configuration needs attention</p>
           <ul className="mt-2 space-y-1 text-sm leading-6 text-orange-900/80">
             {tiktokOAuthErrors.map((error) => (
               <li key={error}>- {error}</li>
@@ -145,13 +145,13 @@ export function SettingsPanel({
       ) : null}
       {!tiktokShopApiStatus.configured ? (
         <div className="mt-4 rounded-2xl border border-yellow-200 bg-yellow-50 p-4">
-          <p className="text-sm font-black text-yellow-900">TikTok Shop API belum aktif.</p>
+          <p className="text-sm font-black text-yellow-900">Platform Commerce API belum aktif.</p>
           <p className="mt-1 text-sm leading-6 text-yellow-900/80">Gunakan input manual atau CSV import dulu.</p>
         </div>
       ) : null}
       <div className="mt-4 rounded-2xl border border-blue-200 bg-blue-50 p-4">
         <p className="text-sm font-black text-blue-900">Publishing Mode: Manual</p>
-        <p className="mt-1 text-sm leading-6 text-blue-900/80">Mode manual lebih aman untuk MVP. Auto-posting TikTok bisa ditambahkan nanti jika API dan scope sudah approved.</p>
+        <p className="mt-1 text-sm leading-6 text-blue-900/80">Mode manual lebih aman untuk MVP. Auto-posting platform bisa ditambahkan nanti jika API dan scope sudah approved.</p>
       </div>
       <div className="mt-4 flex flex-wrap gap-2">
         <button onClick={clearDemoData} className="inline-flex items-center gap-2 rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold text-ink">
@@ -160,7 +160,7 @@ export function SettingsPanel({
         </button>
         <a
           href={`data:text/csv;charset=utf-8,${encodeURIComponent(SAMPLE_PRODUCT_CSV)}`}
-          download="tiktok-affiliate-products-sample.csv"
+          download="affiliate-products-sample.csv"
           className="inline-flex items-center gap-2 rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white"
         >
           <Download className="h-4 w-4" />
@@ -171,7 +171,7 @@ export function SettingsPanel({
           className="inline-flex items-center gap-2 rounded-full border border-line bg-white px-4 py-2 text-sm font-semibold text-ink"
         >
           <ExternalLink className="h-4 w-4" />
-          Buka Test OAuth TikTok
+          Buka Test OAuth Platform
         </a>
         <button
           onClick={() => {
@@ -196,9 +196,9 @@ export function SettingsPanel({
         <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm leading-6 text-muted">
           <li>Deployed to Vercel</li>
           <li>Env added in Vercel</li>
-          <li>Redirect URI added in TikTok Developer Portal</li>
+          <li>Redirect URI added in developer portal</li>
           <li>App has Login Kit product</li>
-          <li>Test Connect TikTok</li>
+          <li>Test Connect Platform</li>
         </ol>
       </div>
       {actionMessage ? (

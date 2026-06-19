@@ -15,9 +15,9 @@ export function TikTokConnectionPanel({
   account: TikTokAccountView;
 }) {
   const rows = [
-    ["TIKTOK_CLIENT_KEY", envStatus.clientKey],
-    ["TIKTOK_CLIENT_SECRET", envStatus.clientSecret],
-    ["TIKTOK_REDIRECT_URI", envStatus.redirectUri],
+    ["PLATFORM_CLIENT_KEY", envStatus.clientKey],
+    ["PLATFORM_CLIENT_SECRET", envStatus.clientSecret],
+    ["PLATFORM_REDIRECT_URI", envStatus.redirectUri],
     ["Status koneksi", loginConnected ? "Connected" : "Not Connected"],
     ["Error OAuth terakhir", lastOAuthError || "none"]
   ];
@@ -25,8 +25,8 @@ export function TikTokConnectionPanel({
   return (
     <SectionCard
       id="tiktok-accounts"
-      title="Akun TikTok"
-      description="Hubungkan TikTok Login Kit saat credential aplikasi sudah siap. Mode manual tetap bisa dipakai dulu."
+      title="Akun Platform"
+      description="Hubungkan creator platform login saat credential aplikasi sudah siap. Mode manual tetap bisa dipakai dulu."
       icon={Link2}
     >
       <div className="mb-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -47,7 +47,7 @@ export function TikTokConnectionPanel({
         <div>
           <p className="text-sm font-bold text-ink">Status koneksi</p>
           <p className="mt-1 text-sm text-muted">
-            {loginConnected ? "Connected. TikTok Login Kit authorization completed." : "Akun TikTok belum terhubung. Kamu tetap bisa memakai mode manual/CSV dulu."}
+            {loginConnected ? "Connected. Platform authorization completed." : "Akun platform belum terhubung. Kamu tetap bisa memakai mode manual/CSV dulu."}
           </p>
           <div className="mt-3 grid gap-2 sm:grid-cols-4">
             {[
@@ -68,7 +68,7 @@ export function TikTokConnectionPanel({
           </div>
         </div>
         <a href="/api/auth/tiktok/login" className="rounded-full bg-ink px-4 py-2 text-center text-sm font-semibold text-white">
-          Hubungkan TikTok
+          Hubungkan Platform
         </a>
         <a href="/tiktok/oauth-test" className="rounded-full border border-line px-4 py-2 text-center text-sm font-semibold text-ink">
           Open OAuth Test Page
@@ -83,7 +83,7 @@ export function TikTokConnectionPanel({
         </button>
         <form action="/api/auth/tiktok/disconnect" method="post">
           <button className="w-full rounded-full border border-line px-4 py-2 text-center text-sm font-semibold text-ink" type="submit">
-            Disconnect TikTok
+            Disconnect Platform
           </button>
         </form>
       </div>

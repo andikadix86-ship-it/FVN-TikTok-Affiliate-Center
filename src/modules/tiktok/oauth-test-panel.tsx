@@ -71,13 +71,13 @@ export function OAuthTestPanel({
         {loadingAction === "copy" ? "Copying..." : "Copy Redirect URI"}
       </button>
       <a href="/api/auth/tiktok/login" className="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white">
-        Connect TikTok
+        Connect Platform
       </a>
       {message ? <p className="basis-full text-sm font-semibold text-teal-800">{message}</p> : null}
       {generatedUrl ? (
         <div className="basis-full rounded-2xl border border-line bg-slate-50 p-4">
           <p className="text-xs font-bold uppercase tracking-wide text-muted">Generated Login URL</p>
-          <p className="mt-2 break-all text-sm text-ink">{generatedUrl}</p>
+          <p className="mt-2 text-sm text-ink">Login URL berhasil dibuat untuk authorized platform integration. Endpoint disembunyikan dari UI publik.</p>
         </div>
       ) : null}
     </div>

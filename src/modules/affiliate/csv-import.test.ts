@@ -34,6 +34,6 @@ describe("CSV import validation", () => {
 
     expect(result.products).toHaveLength(10);
     expect(result.products.every((product) => product.source === "CSV_IMPORT")).toBe(true);
-    expect(SAMPLE_PRODUCT_CSV).toContain("Sample only - not TikTok Shop API data");
+    expect(SAMPLE_PRODUCT_CSV).toContain("Sample only - not official marketplace API data");
   });
 });

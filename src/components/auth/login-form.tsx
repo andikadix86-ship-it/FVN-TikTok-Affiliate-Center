@@ -9,7 +9,7 @@ import { OAuthButton } from "@/components/auth/oauth-button";
 const errorMessages: Record<string, string> = {
   "google-not-configured": "Google login belum dikonfigurasi di environment.",
   "google-auth-failed": "Login Google gagal. Coba lagi atau gunakan email.",
-  "tiktok-coming-soon": "Login TikTok sedang disiapkan dan belum aktif."
+  "tiktok-coming-soon": "Platform login sedang disiapkan dan belum aktif."
 };
 
 export function LoginForm({ googleEnabled, tiktokEnabled, initialError }: { googleEnabled: boolean; tiktokEnabled: boolean; initialError?: string }) {
@@ -47,7 +47,7 @@ export function LoginForm({ googleEnabled, tiktokEnabled, initialError }: { goog
     <div className="space-y-5">
       <div className="grid gap-3 sm:grid-cols-2">
         <OAuthButton href="/api/auth/login/google" label="Continue with Google" icon={Chrome} disabled={!googleEnabled} badge={googleEnabled ? undefined : "Setup"} />
-        <OAuthButton href="/api/auth/login/tiktok" label="Continue with TikTok" icon={Music2} disabled={!tiktokEnabled} badge="Soon" />
+        <OAuthButton href="/api/auth/login/tiktok" label="Continue with Platform" icon={Music2} disabled={!tiktokEnabled} badge="Soon" />
       </div>
 
       <div className="flex items-center gap-3 text-xs font-black uppercase text-slate-400">

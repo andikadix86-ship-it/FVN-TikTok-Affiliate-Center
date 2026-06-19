@@ -4,14 +4,14 @@ function buildPrompt(input: PromptInput, variant: string, action: string, compos
   const { product, options = defaultPromptOptions } = input;
   const audience = options.targetAudience;
   const context = audience === "Ibu Rumah Tangga" ? "rumah Indonesia modern sederhana" : "konteks pasar Indonesia, ruangan bersih dan realistis";
-  const subject = `${product.productName} sebagai produk affiliate TikTok`;
+  const subject = `${product.productName} sebagai produk affiliate social commerce`;
   const productDetail = `${product.category}, harga sekitar ${product.price}, tampilkan bentuk dan detail produk dengan jelas tanpa klaim berlebihan`;
   const prompt = [
     `${variant}: ${subject}.`,
     `Action: ${action}.`,
     `Location/context: ${context}.`,
     `Composition: ${composition}, vertical 9:16, ruang aman untuk teks overlay.`,
-    `Style: realistic Indonesian TikTok affiliate visual, clean UGC product content, not overly polished.`,
+    `Style: realistic Indonesian affiliate short video visual, clean UGC product content, not overly polished.`,
     `Lighting: soft indoor light with clear product visibility.`,
     `Camera angle: close-up or medium shot focused on real product use.`,
     `Product detail: ${productDetail}.`,
@@ -25,7 +25,7 @@ function buildPrompt(input: PromptInput, variant: string, action: string, compos
     action,
     locationContext: context,
     composition,
-    style: "Realistic TikTok affiliate UGC for Indonesian market",
+    style: "Realistic affiliate UGC for Indonesian market",
     lighting: "Soft indoor light, bright enough to inspect the product",
     cameraAngle: "Close-up / medium shot",
     productDetail,
@@ -56,7 +56,7 @@ export function buildNanoBananaPromptSet(input: PromptInput): NanoBananaPromptSe
     ),
     thumbnailPrompt: buildPrompt(
       input,
-      "TikTok thumbnail",
+      "Short video thumbnail",
       `make ${productName} instantly noticeable in the first glance`,
       "high contrast subject, clear negative space for big text, product close-up",
       "Large readable hook text, max 6 Indonesian words"
@@ -71,7 +71,7 @@ export function buildNanoBananaPromptSet(input: PromptInput): NanoBananaPromptSe
     imageEditingPrompt: buildPrompt(
       input,
       "Image editing prompt",
-      `enhance uploaded product image for TikTok affiliate content`,
+      `enhance uploaded product image for affiliate short video content`,
       "keep product unchanged, improve background, crop, lighting, sharpness, and vertical framing",
       "Add optional small text overlay only if it does not cover product details"
     )

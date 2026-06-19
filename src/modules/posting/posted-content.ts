@@ -6,7 +6,7 @@ export const postedContentInputSchema = z.object({
   campaignDayNumber: z.coerce.number().int().min(1).optional().nullable(),
   productId: z.string().min(1),
   tiktokAccountId: z.string().optional().nullable(),
-  tiktokVideoUrl: z.string().url("Link Video TikTok harus berupa URL"),
+  tiktokVideoUrl: z.string().url("Link video platform harus berupa URL"),
   postedAt: z.string().min(1),
   accountUsed: z.string().optional().nullable(),
   notes: z.string().optional().nullable()

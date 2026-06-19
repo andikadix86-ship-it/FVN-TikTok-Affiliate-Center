@@ -18,7 +18,7 @@ export async function GET() {
   const envStatus = validateTikTokEnv();
 
   if (!envStatus.valid) {
-    const message = "TikTok OAuth environment is missing or invalid.";
+    const message = "Platform OAuth environment is missing or invalid.";
     const response = NextResponse.json({
       error: message,
       details: envStatus.errors
@@ -62,7 +62,7 @@ export async function GET() {
     });
   }
   response.cookies.delete(TIKTOK_OAUTH_ERROR_COOKIE);
-  await writeTikTokOAuthLog("SUCCESS", "TikTok login URL generated.", {
+  await writeTikTokOAuthLog("SUCCESS", "Platform login URL generated.", {
     pkceEnabled,
     endpoint: "v2 authorize"
   });

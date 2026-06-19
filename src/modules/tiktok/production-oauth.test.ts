@@ -25,9 +25,9 @@ describe("production OAuth validation", () => {
     });
 
     expect(result.status).toBe("invalid");
-    expect(result.errors).toContain("TIKTOK_REDIRECT_URI must start with https://.");
-    expect(result.errors).toContain("TIKTOK_REDIRECT_URI must not include a query string.");
-    expect(result.errors).toContain("TIKTOK_REDIRECT_URI must not include a # fragment.");
+    expect(result.errors).toContain("PLATFORM_REDIRECT_URI must start with https://.");
+    expect(result.errors).toContain("PLATFORM_REDIRECT_URI must not include a query string.");
+    expect(result.errors).toContain("PLATFORM_REDIRECT_URI must not include a # fragment.");
   });
 
   it("requires HTTPS app URL in production", () => {

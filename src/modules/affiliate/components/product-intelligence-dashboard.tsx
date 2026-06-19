@@ -82,7 +82,7 @@ export function ProductIntelligenceDashboard({
   const [sellerSubTab, setSellerSubTab] = useState<SellerSubTab>("all");
   const [productSubTab, setProductSubTab] = useState<ProductSubTab>("all");
   const [query, setQuery] = useState("");
-  const [platform, setPlatform] = useState("TikTok Shop");
+  const [platform, setPlatform] = useState("Platform Commerce");
   const [period, setPeriod] = useState("7 hari");
   const [category, setCategory] = useState("Semua kategori");
   const [sortBy, setSortBy] = useState("Trend Score");
@@ -98,7 +98,7 @@ export function ProductIntelligenceDashboard({
       const filtered = products.filter((product) => {
         const matchesQuery = !search || [product.productName, product.category, product.notes, product.targetAudience].some((value) => value.toLowerCase().includes(search));
         const matchesCategory = category === "Semua kategori" || product.category === category;
-        const matchesPlatform = platform === "Semua" || product.platform === "TikTok";
+        const matchesPlatform = platform === "Semua" || platform === "Platform Commerce" || product.platform === platform;
 
         return matchesQuery && matchesCategory && matchesPlatform;
       });
@@ -137,7 +137,7 @@ export function ProductIntelligenceDashboard({
     rank: index + 1,
     name: creatorNames[index % creatorNames.length],
     productName: product.productName,
-    platform: "TikTok Shop",
+    platform: "Platform Commerce",
     revenue: estimateRevenue(product, score.total, index) * 0.32,
     sales: estimateSales(product, score.total, index),
     engagement: Math.max(3.2, Math.min(12.8, score.total / 10)),
@@ -150,7 +150,7 @@ export function ProductIntelligenceDashboard({
     ["Produk Affiliate Potensial", String(rankedProducts.filter((item) => item.score.total >= 70).length), "#trending-products", PackageCheck]
   ];
   const handleProductAction = (product: AffiliateProduct, trendScore: number, action: string) => {
-    if (action === "Add to TikTok Showcase") {
+    if (action === "Add to Platform Showcase") {
       const result = addProductToTikTokShowcase(product.id, tiktokConnected ? "active-tiktok-account" : undefined, tiktokConnected);
       setShowcaseStatuses((current) => ({ ...current, [product.id]: result.showcaseStatus }));
       setNotice(result.message);
@@ -184,7 +184,7 @@ export function ProductIntelligenceDashboard({
         </div>
 
         <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-          <FilterSelect label="Platform" value={platform} onChange={setPlatform} options={["TikTok Shop", "Shopee", "Tokopedia", "Lazada", "Semua"]} />
+          <FilterSelect label="Platform" value={platform} onChange={setPlatform} options={["Platform Commerce", "Shopee", "Tokopedia", "Lazada", "Semua"]} />
           <FilterSelect label="Periode" value={period} onChange={setPeriod} options={["7 hari", "30 hari", "90 hari"]} />
           <FilterSelect label="Kategori" value={category} onChange={setCategory} options={categoryOptions} />
           <FilterSelect label="Urutkan berdasarkan" value={sortBy} onChange={setSortBy} options={["Penjualan", "Pendapatan", "Komisi", "Trend Score"]} />
@@ -338,7 +338,7 @@ export function ProductIntelligenceDashboard({
         <section id="top-affiliator-table" className="min-w-0 rounded-[2rem] border border-white bg-white p-5 shadow-soft">
           <div className="mb-4 grid gap-3 md:grid-cols-4">
             <FilterSelect label="Kategori" value={category} onChange={setCategory} options={categoryOptions.slice(0, 7)} />
-            <FilterSelect label="Platform" value={platform} onChange={setPlatform} options={["TikTok Shop", "Shopee", "Tokopedia", "Semua"]} />
+            <FilterSelect label="Platform" value={platform} onChange={setPlatform} options={["Platform Commerce", "Shopee", "Tokopedia", "Semua"]} />
             <FilterSelect label="Periode" value={period} onChange={setPeriod} options={["7 hari", "30 hari", "90 hari"]} />
             <FilterSelect label="Estimasi pendapatan" value="Semua" onChange={() => undefined} options={["Semua", "> Rp1 juta", "> Rp5 juta", "> Rp10 juta"]} />
           </div>
@@ -479,7 +479,7 @@ function TopSellerTable({ sellers, compact = false }: { sellers: SellerRow[]; co
                   <Avatar imageUrl={seller.logo} label={seller.name} icon={<Store className="h-5 w-5" />} />
                   <div>
                     <p className="font-black text-ink">{seller.name}</p>
-                    <p className="text-xs text-muted">TikTok Shop</p>
+                    <p className="text-xs text-muted">Platform Commerce</p>
                   </div>
                 </div>
               </td>
@@ -683,7 +683,7 @@ function ProductActionBar({
         <SmallAction href="/produk-affiliate#product-detail" label="Save Opportunity" onClick={() => click("Save Opportunity")} />
         <SmallAction href="/buat-konten" label="Create Content" onClick={() => click("Create Content")} dark />
         <SmallAction href="/campaigns" label="Create Campaign" onClick={() => click("Create Campaign")} />
-        <SmallAction href="/produk-affiliate#product-detail" label="Add to TikTok" onClick={() => click("Add to TikTok Showcase")} />
+        <SmallAction href="/produk-affiliate#product-detail" label="Add to Platform" onClick={() => click("Add to Platform Showcase")} />
         <SmallAction href="/story-engine" label="Buat Story" onClick={() => click("Buat Story")} />
         <SmallAction href="/multi-video-engine" label="Buat Video" onClick={() => click("Buat Video")} dark />
         <SmallAction href="/rencana-posting" label="Jadwalkan" onClick={() => click("Jadwalkan")} dark />

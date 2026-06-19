@@ -31,28 +31,28 @@ export default function PrivacyPage() {
             <section>
               <h2 className="text-lg font-black text-ink">3. Information Users Provide</h2>
               <p>
-                Users may enter product data, CSV product data, content drafts, campaign plans, TikTok video URLs, notes, and manual performance numbers such as views, clicks, orders, and revenue.
+                Users may enter product data, CSV product data, content drafts, campaign plans, posted video URLs, notes, and manual performance numbers such as views, clicks, orders, and revenue.
               </p>
             </section>
 
             <section>
-              <h2 className="text-lg font-black text-ink">4. TikTok Login</h2>
+              <h2 className="text-lg font-black text-ink">4. Platform Login</h2>
               <p>
-                TikTok Login is used only to connect a TikTok account when the user authorizes it. The app may receive basic account information from TikTok according to the approved Login Kit scope.
+                Platform login is used only to connect a creator account when the user authorizes it. The app may receive basic account information according to the approved login scope.
               </p>
             </section>
 
             <section>
               <h2 className="text-lg font-black text-ink">5. No Auto-Posting</h2>
               <p>
-                This MVP does not auto-post to TikTok. Users upload videos manually. The app only stores posted video links and manual performance data when users enter them.
+                This MVP does not auto-post to a creator platform. Users upload videos manually. The app only stores posted video links and manual performance data when users enter them.
               </p>
             </section>
 
             <section>
               <h2 className="text-lg font-black text-ink">6. Product Data Source</h2>
               <p>
-                Product data is manual, CSV import, or demo data unless an official TikTok Shop API integration is connected later. The app does not claim demo, manual, or CSV data is official TikTok Shop data.
+                Product data is manual, CSV import, or demo data unless an official commerce API integration is connected later. The app does not claim demo, manual, or CSV data is official marketplace data.
               </p>
             </section>
 

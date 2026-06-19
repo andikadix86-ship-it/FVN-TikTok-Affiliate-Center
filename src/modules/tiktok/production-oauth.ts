@@ -46,32 +46,32 @@ export function validateTikTokProductionOAuth({
   const errors: string[] = [];
 
   if (!clientKey) {
-    errors.push("TIKTOK_CLIENT_KEY is missing.");
+    errors.push("PLATFORM_CLIENT_KEY is missing.");
   }
 
   if (!clientSecret) {
-    errors.push("TIKTOK_CLIENT_SECRET is missing.");
+    errors.push("PLATFORM_CLIENT_SECRET is missing.");
   }
 
   if (!redirectUri) {
-    errors.push("TIKTOK_REDIRECT_URI is missing.");
+    errors.push("PLATFORM_REDIRECT_URI is missing.");
   } else {
     try {
       const url = new URL(redirectUri);
 
       if (url.protocol !== "https:") {
-        errors.push("TIKTOK_REDIRECT_URI must start with https://.");
+        errors.push("PLATFORM_REDIRECT_URI must start with https://.");
       }
 
       if (url.search) {
-        errors.push("TIKTOK_REDIRECT_URI must not include a query string.");
+        errors.push("PLATFORM_REDIRECT_URI must not include a query string.");
       }
 
       if (url.hash) {
-        errors.push("TIKTOK_REDIRECT_URI must not include a # fragment.");
+        errors.push("PLATFORM_REDIRECT_URI must not include a # fragment.");
       }
     } catch {
-      errors.push("TIKTOK_REDIRECT_URI must be a valid URL.");
+      errors.push("PLATFORM_REDIRECT_URI must be a valid URL.");
     }
   }
 

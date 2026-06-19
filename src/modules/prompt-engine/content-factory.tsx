@@ -11,7 +11,7 @@ export function ContentFactory() {
     <SectionCard
       id="content-factory"
       title="Buat Konten"
-      description="Ubah produk terpilih menjadi draft script TikTok yang aman untuk pemula."
+      description="Ubah produk terpilih menjadi draft script short video yang aman untuk pemula."
       icon={Sparkles}
     >
       <div className="rounded-2xl border border-line bg-slate-50 p-4">

@@ -22,6 +22,7 @@ import {
   createContentFactoryOutput,
   createMultiVideoVariants,
   createStoryEngineOutput,
+  getVideoPlatformLabel,
   MultiVideoVariant,
   saveGeneratedLibraryItems,
   StoryMode,
@@ -155,7 +156,7 @@ export function ContentFactoryFlowPanel({
       status: "Saved",
       type: "TEXT",
       productName: product.productName,
-      platform: "TikTok",
+      platform: "Short Video",
       preview: `${scriptOutput.hook}\n${scriptOutput.opening}\n${scriptOutput.mainScript}\n${scriptOutput.caption}`,
       tags: [contentType, "content-factory", ...scriptOutput.hashtag],
       createdAt: new Date().toISOString()
@@ -229,7 +230,7 @@ export function StoryEngineDashboard({ product, trendScore, contentPack }: { pro
         status: "Saved",
         type: "TEXT",
         productName: product.productName,
-        platform: "TikTok",
+        platform: "Short Video",
         preview: `${storyOutput.shortScript}\n${storyOutput.scenePlan.join("\n")}\n${storyOutput.caption}`,
         imagePrompt: storyOutput.imagePrompt,
         videoPrompt: storyOutput.videoPrompt,
@@ -330,7 +331,7 @@ export function MultiVideoEngineDashboard({ product, trendScore, contentPack }: 
   const [captionDetail, setCaptionDetail] = useState<CaptionDetail | null>(null);
   const [editingPlan, setEditingPlan] = useState<MultiVideoVariant | null>(null);
   const [scheduleOpen, setScheduleOpen] = useState(false);
-  const [scheduleDraft, setScheduleDraft] = useState<ScheduleDraft>({ platform: "TikTok", account: "NOT_CONNECTED", date: "", time: "" });
+  const [scheduleDraft, setScheduleDraft] = useState<ScheduleDraft>({ platform: "Short Video", account: "NOT_CONNECTED", date: "", time: "" });
   const formats = ["Review", "Problem Solution", "Before After", "Testimoni", "Edukasi", "Komedi Ringan", "Perbandingan", "Fakta Menarik", "Soft Selling", "CTA Hard Selling"];
   const platformOptions: VideoPlatform[] = ["TikTok", "Reels", "Shorts", "Instagram Feed", "YouTube Landscape"];
   const aspectOptions: VideoAspectRatio[] = ["9:16", "1:1", "16:9", "4:5"];
@@ -360,8 +361,8 @@ export function MultiVideoEngineDashboard({ product, trendScore, contentPack }: 
   function generateVideos() {
     const variants = createMultiVideoVariants(product, count, undefined, activeSettings).map((variant, index) => ({
       ...variant,
-      title: `${format} #${index + 1} - ${product.productName} (${variant.platform} ${variant.duration})`,
-      hook: `${variant.platform} ${variant.duration}: ${product.productName} untuk angle ${format}.`,
+      title: `${format} #${index + 1} - ${product.productName} (${getVideoPlatformLabel(variant.platform)} ${variant.duration})`,
+      hook: `${getVideoPlatformLabel(variant.platform)} ${variant.duration}: ${product.productName} untuk angle ${format}.`,
       script: `${format} untuk ${product.productName}. Gunakan format ${variant.aspectRatio}, resolusi ${variant.resolution}, generator ${variant.generator}, lalu tutup dengan CTA jelas.`,
       status: "Draft" as const,
       generationStatus: "GENERATING" as const,
@@ -434,9 +435,9 @@ export function MultiVideoEngineDashboard({ product, trendScore, contentPack }: 
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-sm font-black text-ink">Video Settings</p>
-            <p className="mt-1 text-sm text-muted">Default: TikTok/Reels/Shorts memakai 9:16 dan 1080x1920. Preset berubah otomatis saat platform diganti.</p>
+            <p className="mt-1 text-sm text-muted">Default: Short Video/Reels/Shorts memakai 9:16 dan 1080x1920. Preset berubah otomatis saat platform diganti.</p>
           </div>
-          <span className="rounded-full bg-violet-50 px-3 py-1 text-xs font-black text-violet-700">{platform} - {aspectRatio} - {resolution}</span>
+          <span className="rounded-full bg-violet-50 px-3 py-1 text-xs font-black text-violet-700">{getVideoPlatformLabel(platform)} - {aspectRatio} - {resolution}</span>
         </div>
         <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-6">
           <SelectCard label="Platform" value={platform} options={platformOptions} onChange={(value) => applyPlatformDefaults(value as VideoPlatform)} />
@@ -490,7 +491,7 @@ export function MultiVideoEngineDashboard({ product, trendScore, contentPack }: 
 
 export function SchedulerDashboard({ product, contentStats }: { product: AffiliateProduct; contentStats: ContentStats }) {
   const schedule = [
-    { title: `${product.productName} - Video Review`, platform: "TikTok", time: "09:00", status: "Scheduled" },
+    { title: `${product.productName} - Video Review`, platform: "Short Video", time: "09:00", status: "Scheduled" },
     { title: `${product.productName} - Story Selling`, platform: "Instagram Reels", time: "13:00", status: "Pending Approval" },
     { title: `${product.productName} - Problem Solution`, platform: "YouTube Shorts", time: "19:30", status: "Need Revision" }
   ];
@@ -620,7 +621,7 @@ function MultiVideoPreviewCard({ plan, product, onEdit, onCaptionClick }: { plan
           ) : (
             <div className="absolute inset-0">
               <div className="absolute inset-x-4 top-4 flex items-center justify-between gap-3">
-                <span className="rounded-full bg-white/15 px-3 py-1 text-[10px] font-black backdrop-blur">{plan.platform}</span>
+                <span className="rounded-full bg-white/15 px-3 py-1 text-[10px] font-black backdrop-blur">{getVideoPlatformLabel(plan.platform)}</span>
                 <span className={`rounded-full px-3 py-1 text-[10px] font-black ${previewStatusClass(previewStatus)}`}>{previewStatus}</span>
               </div>
               <div className="absolute left-5 top-16 flex items-center gap-2 rounded-2xl border border-white/15 bg-white/10 p-3 shadow-2xl backdrop-blur">
@@ -661,7 +662,7 @@ function MultiVideoPreviewCard({ plan, product, onEdit, onCaptionClick }: { plan
           </div>
           <div className="flex flex-wrap gap-2">
             <span className={`rounded-full px-3 py-1 text-[10px] font-black ${previewStatusClass(previewStatus)}`}>{previewStatus}</span>
-            <span className="rounded-full bg-violet-100 px-3 py-1 text-[10px] font-black text-violet-800">{plan.platform}</span>
+            <span className="rounded-full bg-violet-100 px-3 py-1 text-[10px] font-black text-violet-800">{getVideoPlatformLabel(plan.platform)}</span>
             <span className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-black text-ink">{plan.duration}</span>
             <span className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-black text-ink">{plan.aspectRatio}</span>
             <span className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-black text-ink">{plan.resolution}</span>
@@ -734,7 +735,7 @@ function CaptionDetailModal({ detail, onClose, onMessage }: { detail: CaptionDet
       statusCode: "SAVED",
       type: "TEXT",
       productName: detail.productName,
-      platform: "TikTok",
+      platform: "Short Video",
       preview: `${caption}${hashtagText ? `\n${hashtagText}` : ""}`,
       tags: ["caption", detail.sourceLabel, ...(detail.hashtags ?? [])],
       createdAt: new Date().toISOString()
@@ -847,8 +848,8 @@ function ScheduleModal({ draft, onClose, onSave }: { draft: ScheduleDraft; onClo
           <button onClick={onClose} className="rounded-full border border-line px-3 py-1 text-sm font-black text-ink">Close</button>
         </div>
         <div className="mt-4 grid gap-3">
-          <SelectCard label="Platform" value={form.platform} options={["TikTok", "Reels", "Shorts", "Instagram", "YouTube"]} onChange={(value) => setForm((current) => ({ ...current, platform: value }))} />
-          <SelectCard label="Akun" value={form.account} options={["NOT_CONNECTED", "TikTok Account 1", "Instagram Account 1", "YouTube Account 1"]} onChange={(value) => setForm((current) => ({ ...current, account: value }))} />
+          <SelectCard label="Platform" value={form.platform} options={["Short Video", "Reels", "Shorts", "Instagram", "YouTube"]} onChange={(value) => setForm((current) => ({ ...current, platform: value }))} />
+          <SelectCard label="Akun" value={form.account} options={["NOT_CONNECTED", "Creator Account 1", "Instagram Account 1", "YouTube Account 1"]} onChange={(value) => setForm((current) => ({ ...current, account: value }))} />
           <label className="rounded-[1.5rem] border border-line bg-white p-4">
             <span className="text-xs font-black uppercase tracking-wide text-muted">Tanggal</span>
             <input type="date" value={form.date} onChange={(event) => setForm((current) => ({ ...current, date: event.target.value }))} className="mt-2 min-h-11 w-full rounded-xl border border-line px-3 text-sm font-bold" />
@@ -961,7 +962,7 @@ function SelectCard({ label, value, options, onChange }: { label: string; value:
     <label className="rounded-[1.5rem] border border-line bg-white p-4">
       <span className="text-xs font-black uppercase tracking-wide text-muted">{label}</span>
       <select value={value} onChange={(event) => onChange(event.target.value)} className="mt-2 min-h-11 w-full rounded-xl border border-line px-3 text-sm font-bold outline-none focus:border-violet-400">
-        {options.map((option) => <option key={option} value={option}>{option === "30" ? "30 hari konten" : option}</option>)}
+        {options.map((option) => <option key={option} value={option}>{option === "30" ? "30 hari konten" : getVideoPlatformLabel(option)}</option>)}
       </select>
     </label>
   );

@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
   const envStatus = validateTikTokEnv();
 
   if (!envStatus.valid) {
-    return oauthErrorResponse("TikTok OAuth environment is missing or invalid.", 500, envStatus.errors, "env_invalid");
+    return oauthErrorResponse("Platform OAuth environment is missing or invalid.", 500, envStatus.errors, "env_invalid");
   }
 
   const parsed = parseTikTokCallback({
@@ -81,7 +81,7 @@ export async function GET(request: NextRequest) {
   const tokenResult = await exchangeTikTokCodeForToken(parsed.code, envStatus.pkceEnabled ? codeVerifier : undefined);
 
   if (!tokenResult.ok) {
-    return oauthErrorResponse("TikTok token exchange failed. Check OAuth app credentials and redirect URI.", 502, {
+    return oauthErrorResponse("Platform token exchange failed. Check OAuth app credentials and redirect URI.", 502, {
       status: tokenResult.status,
       payload: tokenResult.payload
     }, "token_exchange_failed");
@@ -110,8 +110,8 @@ export async function GET(request: NextRequest) {
       avatarUrl = typeof profileAvatarUrl === "string" ? profileAvatarUrl : undefined;
       profileDeepLink = openId ? `https://www.tiktok.com/@${openId}` : undefined;
     } else {
-      profileWarning = "Akun terhubung, tetapi profil belum bisa dibaca. Cek scope TikTok Developer.";
-      await writeTikTokOAuthLog("ERROR", "TikTok profile fetch failed.", {
+      profileWarning = "Akun terhubung, tetapi profil belum bisa dibaca. Cek scope developer portal.";
+      await writeTikTokOAuthLog("ERROR", "Platform profile fetch failed.", {
         status: profile.status,
         payload: profile.payload
       }, "profile_fetch_failed");
@@ -129,16 +129,16 @@ export async function GET(request: NextRequest) {
       expiresIn: typeof expiresIn === "number" ? expiresIn : undefined
     });
   } catch (error) {
-    await writeTikTokOAuthLog("ERROR", "TikTok account save failed.", error, "account_save_failed");
+    await writeTikTokOAuthLog("ERROR", "Platform account save failed.", error, "account_save_failed");
   }
 
-  await writeTikTokOAuthLog("SUCCESS", "TikTok token exchange success.", {
+  await writeTikTokOAuthLog("SUCCESS", "Platform token exchange success.", {
     hasAccessToken: Boolean(accessToken),
     openId
   }, "token_exchange_success");
 
   const tokenWarning = buildTokenStorageWarning();
-  const message = profileWarning ? `${profileWarning} ${tokenWarning}` : `TikTok account connected. ${tokenWarning}`;
+  const message = profileWarning ? `${profileWarning} ${tokenWarning}` : `Platform account connected. ${tokenWarning}`;
   const response = NextResponse.redirect(new URL("/accounts?oauth=success", request.url));
 
   response.cookies.delete(TIKTOK_STATE_COOKIE);

@@ -86,7 +86,7 @@ describe("Product Hunter sources", () => {
     expect(getSourceBadgeText("MANUAL")).toBe("MANUAL");
     expect(getSourceBadgeText("CSV_IMPORT")).toBe("CSV_IMPORT");
     expect(getSourceBadgeText("REAL_API")).toBe("REAL_API");
-    expect(getSourceTrustText("DEMO")).toBe("Bukan dari TikTok Shop");
+    expect(getSourceTrustText("DEMO")).toBe("Bukan dari marketplace resmi");
     expect(getSourceTrustText("MANUAL")).toBe("Input user");
     expect(getSourceTrustText("CSV_IMPORT")).toBe("Dari file user");
     expect(getSourceTrustText("REAL_API")).toBe("Data API resmi");
@@ -160,7 +160,7 @@ describe("Product Hunter sources", () => {
     expect(multiVideoHtml).toContain("Video Generator");
     expect(multiVideoHtml).toContain("Video Settings");
     expect(multiVideoHtml).toContain("Platform");
-    expect(multiVideoHtml).toContain("TikTok - 9:16 - 1080x1920");
+    expect(multiVideoHtml).toContain("Short Video - 9:16 - 1080x1920");
     expect(multiVideoHtml).toContain("Mock Preview");
     expect(multiVideoHtml).toContain("Preview generated from prompt only - real media provider not connected.");
     expect(multiVideoHtml).toContain("Lihat Caption");

@@ -29,7 +29,7 @@ describe("AppShell navigation", () => {
     expect(html).toContain("Cari produk, konten, template...");
     expect(html).toContain("Upgrade");
     expect(html).toContain("Andika");
-    expect(html).toContain("Buka akun Andika dan pengaturan TikTok");
+    expect(html).toContain("Buka akun Andika dan pengaturan platform");
     expect(html).toContain("/produk-affiliate");
     expect(html).toContain("/analytics");
     expect(html).toContain("/story-engine");

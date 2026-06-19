@@ -25,7 +25,7 @@ describe("TikTok account service", () => {
 
     expect(account.connected).toBe(true);
     expect(account.demoMode).toBe(true);
-    expect(account.displayName).toBe("Demo TikTok Account");
+    expect(account.displayName).toBe("Demo Creator Account");
     expect(account.username).toBe("@fvn_demo_creator");
     expect(account.connectionStatus).toBe("Connected");
   });

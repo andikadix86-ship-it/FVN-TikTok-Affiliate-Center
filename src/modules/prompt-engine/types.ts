@@ -30,7 +30,7 @@ export type TargetAudience =
   | "Mahasiswa"
   | "Pekerja Kantoran"
   | "UMKM"
-  | "General TikTok Audience";
+  | "General Short Video Audience";
 
 export type ToneOption =
   | "Natural"
@@ -80,7 +80,7 @@ export type ProductBrief = {
   sellingPoint: string;
   problemSolved: string;
   affiliateAngle: string;
-  platform: "TikTok";
+  platform: "Short Video";
   videoStyle: VideoStyle;
 };
 
@@ -395,7 +395,7 @@ export const targetAudiences: TargetAudience[] = [
   "Mahasiswa",
   "Pekerja Kantoran",
   "UMKM",
-  "General TikTok Audience"
+  "General Short Video Audience"
 ];
 
 export const toneOptions: ToneOption[] = [

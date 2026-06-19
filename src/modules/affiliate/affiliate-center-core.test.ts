@@ -103,9 +103,9 @@ describe("affiliate center core workflows", () => {
     expect(items.every((item) => item.statusCode === "DRAFT")).toBe(true);
   });
 
-  it("returns NOT_CONNECTED for TikTok Showcase without OAuth/account", () => {
+  it("returns NOT_CONNECTED for platform showcase without OAuth/account", () => {
     const result = addProductToTikTokShowcase(product.id, undefined, false);
     expect(result.showcaseStatus).toBe("NOT_CONNECTED");
-    expect(result.message).toBe("TikTok Shop API belum terhubung. Produk belum bisa ditambahkan ke Showcase.");
+    expect(result.message).toBe("Platform API belum terhubung. Produk belum bisa ditambahkan ke Showcase.");
   });
 });

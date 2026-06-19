@@ -53,7 +53,7 @@ export function RegisterForm({ googleEnabled, tiktokEnabled }: { googleEnabled: 
     <div className="space-y-5">
       <div className="grid gap-3 sm:grid-cols-2">
         <OAuthButton href="/api/auth/login/google" label="Continue with Google" icon={Chrome} disabled={!googleEnabled} badge={googleEnabled ? undefined : "Setup"} />
-        <OAuthButton href="/api/auth/login/tiktok" label="Continue with TikTok" icon={Music2} disabled={!tiktokEnabled} badge="Soon" />
+        <OAuthButton href="/api/auth/login/tiktok" label="Continue with Platform" icon={Music2} disabled={!tiktokEnabled} badge="Soon" />
       </div>
 
       <div className="flex items-center gap-3 text-xs font-black uppercase text-slate-400">

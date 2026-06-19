@@ -52,7 +52,7 @@ export function AnalyticsDashboard({
   if (items.length === 0) {
     return (
       <div className="rounded-[2rem] border border-dashed border-line bg-white p-8 text-center">
-        <p className="text-lg font-black text-ink">Belum ada data performa. Setelah kamu posting video TikTok, input views, clicks, orders, dan revenue secara manual.</p>
+        <p className="text-lg font-black text-ink">Belum ada data performa. Setelah kamu posting video platform, input views, clicks, orders, dan revenue secara manual.</p>
         <a href="/posted-content" className="mt-4 inline-flex rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white">Lihat Konten Terposting</a>
       </div>
     );
@@ -61,7 +61,7 @@ export function AnalyticsDashboard({
   return (
     <div className="grid gap-4">
       <div className="rounded-2xl border border-yellow-200 bg-yellow-50 p-4">
-        <p className="text-sm font-black text-yellow-900">Data analisa berasal dari input manual user. Aplikasi belum mengambil analytics langsung dari TikTok.</p>
+        <p className="text-sm font-black text-yellow-900">Data analisa berasal dari input manual user. Aplikasi belum mengambil analytics langsung dari Platform API.</p>
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-white p-4">

@@ -62,7 +62,7 @@ export function PostedContentList({
   if (items.length === 0) {
     return (
       <div className="rounded-[2rem] border border-dashed border-line bg-white p-8 text-center">
-        <p className="text-lg font-black text-ink">Belum ada konten terposting. Setelah upload video ke TikTok, tandai draft sebagai sudah posting dan simpan link videonya di sini.</p>
+        <p className="text-lg font-black text-ink">Belum ada konten terposting. Setelah upload video ke platform, tandai draft sebagai sudah posting dan simpan link videonya di sini.</p>
         <a href="/content-library" className="mt-4 inline-flex rounded-full bg-ink px-4 py-2 text-sm font-semibold text-white">Lihat Draft Siap Posting</a>
       </div>
     );
@@ -72,8 +72,8 @@ export function PostedContentList({
     <div className="grid gap-4">
       {message ? <div className="rounded-2xl border border-line bg-slate-50 p-4 text-sm font-bold text-ink">{message}</div> : null}
       <div className="rounded-2xl border border-yellow-200 bg-yellow-50 p-4">
-        <p className="text-sm font-black text-yellow-900">Untuk MVP ini, aplikasi belum melakukan auto-post ke TikTok. Upload video tetap dilakukan manual oleh user.</p>
-        <p className="mt-1 text-sm leading-6 text-yellow-900/80">Data performa di halaman ini adalah input manual, bukan data otomatis dari TikTok API.</p>
+        <p className="text-sm font-black text-yellow-900">Untuk MVP ini, aplikasi belum melakukan auto-post ke platform. Upload video tetap dilakukan manual oleh user.</p>
+        <p className="mt-1 text-sm leading-6 text-yellow-900/80">Data performa di halaman ini adalah input manual, bukan data otomatis dari Platform API.</p>
       </div>
       {items.filter((item) => !item.archived).map((item) => {
         const summary = calculatePostedPerformanceSummary(item);
@@ -88,7 +88,7 @@ export function PostedContentList({
               </div>
               <a href={item.tiktokVideoUrl} target="_blank" className="icon-btn">
                 <ExternalLink className="h-4 w-4" />
-                Buka Video TikTok
+                Buka Video Platform
               </a>
             </div>
             <div className="mt-3 grid gap-2 sm:grid-cols-4">

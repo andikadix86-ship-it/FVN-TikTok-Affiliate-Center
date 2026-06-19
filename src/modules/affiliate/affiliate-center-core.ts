@@ -101,6 +101,10 @@ export type TikTokShowcaseEntry = {
 
 export const generatedContentLibraryKey = "fvn-generated-content-library";
 
+export function getVideoPlatformLabel(platform: VideoPlatform | string) {
+  return platform === "TikTok" ? "Short Video" : platform;
+}
+
 export function productDisplayLimit(expanded: boolean) {
   return expanded ? 25 : 10;
 }
@@ -116,7 +120,7 @@ export function addProductToTikTokShowcase(input: string | { productId: string; 
       accountId: payload.accountId ?? "",
       platform: "TIKTOK",
       showcaseStatus: "NOT_CONNECTED",
-      message: "TikTok Shop API belum terhubung. Produk belum bisa ditambahkan ke Showcase."
+      message: "Platform API belum terhubung. Produk belum bisa ditambahkan ke Showcase."
     };
   }
 
@@ -125,7 +129,7 @@ export function addProductToTikTokShowcase(input: string | { productId: string; 
     accountId: payload.accountId,
     platform: "TIKTOK",
     showcaseStatus: "PENDING",
-    message: "Produk masuk antrean Showcase. Siap diarahkan ke TikTok Shop / Affiliate Showcase API saat koneksi real aktif."
+    message: "Produk masuk antrean Showcase. Siap diarahkan ke Platform API saat koneksi real aktif."
   };
 }
 
@@ -141,7 +145,7 @@ export function createContentFactoryOutput(product: AffiliateProduct, contentTyp
       mainScript: `Tampilkan masalah, jelaskan kenapa masalah itu mengganggu, lalu posisikan ${product.productName} sebagai solusi praktis. Tunjukkan demo singkat dan manfaat utama: ${benefit}.`,
       cta,
       caption: `${product.productName} sebagai solusi praktis untuk masalah harian.`,
-      hashtag: ["#ProblemSolution", "#AffiliateTikTok", "#ReviewJujur"]
+      hashtag: ["#ProblemSolution", "#AffiliateContent", "#ReviewJujur"]
     };
   }
 
@@ -153,7 +157,7 @@ export function createContentFactoryOutput(product: AffiliateProduct, contentTyp
       mainScript: `Bandingkan opsi biasa dengan ${product.productName}: kepraktisan, harga, cara pakai, dan siapa yang paling cocok. Hindari klaim absolut, fokus pada perbedaan yang bisa dilihat.`,
       cta,
       caption: `Comparison singkat ${product.productName} sebelum checkout.`,
-      hashtag: ["#ComparisonReview", "#TipsBelanja", "#AffiliateTikTok"]
+      hashtag: ["#ComparisonReview", "#TipsBelanja", "#AffiliateContent"]
     };
   }
 
@@ -165,7 +169,7 @@ export function createContentFactoryOutput(product: AffiliateProduct, contentTyp
       mainScript: `Rekam gaya UGC: unboxing singkat, alasan tertarik, demo pakai, reaksi setelah mencoba, lalu catatan jujur tentang ${product.productName}.`,
       cta,
       caption: `UGC natural untuk ${product.productName}.`,
-      hashtag: ["#UGCIndonesia", "#ReviewProduk", "#AffiliateTikTok"]
+      hashtag: ["#UGCIndonesia", "#ReviewProduk", "#AffiliateContent"]
     };
   }
 
@@ -177,7 +181,7 @@ export function createContentFactoryOutput(product: AffiliateProduct, contentTyp
       mainScript: `Buat script padat: 1 detik hook, 5 detik masalah, 6 detik demo ${product.productName}, 3 detik CTA. Gunakan subtitle pendek dan visual jelas.`,
       cta,
       caption: `Short video cepat untuk ${product.productName}.`,
-      hashtag: ["#ShortVideo", "#TikTokAffiliate", "#ProdukViral"]
+      hashtag: ["#ShortVideo", "#AffiliateContent", "#ProdukViral"]
     };
   }
 
@@ -189,7 +193,7 @@ export function createContentFactoryOutput(product: AffiliateProduct, contentTyp
       mainScript: `Script live: pembukaan, demo manfaat ${benefit}, jawab keberatan harga/kualitas, ulangi CTA, dan arahkan penonton cek keranjang atau showcase.`,
       cta,
       caption: `Live selling script untuk ${product.productName}.`,
-      hashtag: ["#LiveSelling", "#TikTokShop", "#AffiliateTikTok"]
+      hashtag: ["#LiveSelling", "#SocialCommerce", "#AffiliateContent"]
     };
   }
 
@@ -200,7 +204,7 @@ export function createContentFactoryOutput(product: AffiliateProduct, contentTyp
     mainScript: `Review fitur utama ${product.productName}, tunjukkan cara pakai, jelaskan manfaat ${benefit}, lalu beri catatan objektif agar review terasa kredibel.`,
     cta,
     caption: `Review cepat ${product.productName}. Cek manfaat, cara pakai, dan pertimbangkan sebelum membeli.`,
-    hashtag: ["#VideoReview", "#ReviewProduk", "#AffiliateTikTok"]
+    hashtag: ["#VideoReview", "#ReviewProduk", "#AffiliateContent"]
   };
 }
 
@@ -264,7 +268,7 @@ export function createStoryEngineOutput(product: AffiliateProduct, mode: StoryMo
     imagePrompt: `Vertical 9:16 image prompt for ${product.productName}, ${mode}, clean focal point, readable subtitle space.`,
     videoPrompt: `Vertical short video for ${product.productName}. Use ${base.structure}. Natural motion, product-safe claims, subtitle-safe framing.`,
     caption: `${product.productName}: ${base.structure}.`,
-    hashtag: [`#${product.category.replace(/[^a-z0-9]+/gi, "") || "Affiliate"}`, "#FVNAffiliate", "#TikTokAffiliate"],
+    hashtag: [`#${product.category.replace(/[^a-z0-9]+/gi, "") || "Affiliate"}`, "#FVNAffiliate", "#AffiliateContent"],
     cta
   };
 }
@@ -281,9 +285,10 @@ export function createMultiVideoVariants(product: AffiliateProduct, count: numbe
   return Array.from({ length: bounded }, (_, index) => {
     const duration = durations[index % durations.length];
     const platform = platforms[index % platforms.length];
-    const title = `${product.productName} - ${platform} ${duration} ${aspectRatio} #${index + 1}`;
+    const platformLabel = getVideoPlatformLabel(platform);
+    const title = `${product.productName} - ${platformLabel} ${duration} ${aspectRatio} #${index + 1}`;
     const imagePrompt = `Preview image for ${title}, aspect ratio ${aspectRatio}, resolution ${resolution}, product focal point, clean text-safe composition, generator ${generator}.`;
-    const videoPrompt = `Generate ${duration} ${platform} video for ${product.productName} using ${generator}. Aspect ratio ${aspectRatio}, resolution ${resolution}. Scenes: ${scenes.join(" | ")}.`;
+    const videoPrompt = `Generate ${duration} ${platformLabel} video for ${product.productName} using ${generator}. Aspect ratio ${aspectRatio}, resolution ${resolution}. Scenes: ${scenes.join(" | ")}.`;
     return {
       id: `multi-video-${product.id}-${index + 1}`,
       title,
@@ -298,12 +303,12 @@ export function createMultiVideoVariants(product: AffiliateProduct, count: numbe
       videoPrompt,
       script: story?.shortScript ?? `${product.productName}: hook, problem, demo, benefit, CTA.`,
       voiceOver: story?.voiceOver ?? `${product.productName}. Mulai dari masalah, tunjukkan solusi, beri contoh singkat, lalu arahkan penonton untuk bertindak.`,
-      subtitle: story?.subtitle ?? `${product.productName} | ${duration} | ${platform}`,
+      subtitle: story?.subtitle ?? `${product.productName} | ${duration} | ${platformLabel}`,
       caption: story?.caption ?? `Konsep ${duration} untuk ${product.productName}.`,
-      hashtag: story?.hashtag ?? ["#FVNAffiliate", "#TikTokAffiliate"],
+      hashtag: story?.hashtag ?? ["#FVNAffiliate", "#AffiliateContent"],
       cta: story?.cta ?? "Cek detail produk sebelum membeli.",
-      previewImagePlaceholder: `Mock visual placeholder for ${product.productName}, ${platform}, ${duration}, ${aspectRatio}, ${resolution}.`,
-      previewVideoPlaceholder: `Mock Preview for ${product.productName}, ${platform}, ${duration}, ${generator}.`,
+      previewImagePlaceholder: `Mock visual placeholder for ${product.productName}, ${platformLabel}, ${duration}, ${aspectRatio}, ${resolution}.`,
+      previewVideoPlaceholder: `Mock Preview for ${product.productName}, ${platformLabel}, ${duration}, ${generator}.`,
       generationStatus: "DEMO",
       generationProgress: 100,
       status: "Draft"
@@ -328,11 +333,11 @@ export function videosToLibraryItems(product: AffiliateProduct, variants: MultiV
     statusCode: statusCode[status],
     type: "VIDEO",
     productName: product.productName,
-    platform: variant.platform,
+    platform: getVideoPlatformLabel(variant.platform),
     preview: `${variant.hook}\n${variant.script}\n${variant.sceneList.join("\n")}\n${variant.caption}\n${variant.aspectRatio} ${variant.resolution} ${variant.generator}`,
     imagePrompt: variant.imagePrompt,
     videoPrompt: variant.videoPrompt,
-    tags: [variant.platform, variant.duration, variant.aspectRatio, variant.resolution, variant.generator, "multi-video", ...variant.hashtag],
+    tags: [getVideoPlatformLabel(variant.platform), variant.duration, variant.aspectRatio, variant.resolution, variant.generator, "multi-video", ...variant.hashtag],
     createdAt: now
   }));
 }

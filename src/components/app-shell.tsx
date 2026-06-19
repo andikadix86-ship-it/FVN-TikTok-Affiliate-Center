@@ -130,7 +130,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <a href="/ai-agents" className="flex h-11 w-11 items-center justify-center rounded-full border border-violet-100 bg-white text-slate-600" title="Lihat rekomendasi AI">
               <Bell className="h-5 w-5" />
             </a>
-            <a href="/pengaturan#tiktok-accounts" className="flex h-11 w-11 shrink-0 items-center justify-center gap-2 rounded-full border border-violet-100 bg-white text-sm font-black text-ink sm:w-auto sm:px-3 sm:py-2" title="Buka akun Andika dan pengaturan TikTok" aria-label="Buka akun Andika dan pengaturan TikTok">
+            <a href="/pengaturan#tiktok-accounts" className="flex h-11 w-11 shrink-0 items-center justify-center gap-2 rounded-full border border-violet-100 bg-white text-sm font-black text-ink sm:w-auto sm:px-3 sm:py-2" title="Buka akun Andika dan pengaturan platform" aria-label="Buka akun Andika dan pengaturan platform">
               <UserCircle className="h-6 w-6 text-violet-700" />
               <span className="hidden sm:inline">Andika</span>
             </a>

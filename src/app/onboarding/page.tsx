@@ -67,7 +67,7 @@ export default function OnboardingPage() {
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <p className="text-sm font-bold uppercase tracking-wide text-mint">Onboarding</p>
-              <h1 className="mt-2 text-3xl font-bold leading-tight text-ink">Mulai Affiliate TikTok dengan Lebih Terarah</h1>
+              <h1 className="mt-2 text-3xl font-bold leading-tight text-ink">Mulai Affiliate dengan Lebih Terarah</h1>
               <p className="mt-2 text-sm leading-6 text-muted">Ikuti langkah singkat ini untuk memahami alur produk, konten, campaign, dan evaluasi performa.</p>
             </div>
             <a href="/" className="rounded-full border border-line px-4 py-2 text-center text-sm font-semibold text-ink">
@@ -132,7 +132,7 @@ function WelcomeStep() {
 
 function DataSourceStep() {
   const rows = [
-    ["Data Contoh", "contoh saja, bukan data TikTok Shop asli"],
+    ["Data Contoh", "contoh saja, bukan data marketplace resmi"],
     ["Data Tersimpan", "produk yang kamu input sendiri"],
     ["Data Marketplace", "produk dari file CSV kamu"],
     ["Data Partner", "data resmi jika marketplace API sudah connected"]

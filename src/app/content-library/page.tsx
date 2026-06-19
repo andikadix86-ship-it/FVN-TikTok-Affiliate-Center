@@ -28,7 +28,7 @@ export default async function ContentLibraryPage() {
           <div className="mb-4 rounded-[2rem] border border-line bg-white p-5 shadow-soft">
             <p className="text-sm font-bold uppercase tracking-wide text-mint">Content Library</p>
             <h1 className="mt-2 text-3xl font-black text-ink">Draft Konten</h1>
-            <p className="mt-2 text-sm leading-6 text-muted">Simpan, cari, edit, dan pakai ulang semua draft konten TikTok affiliate dari Content Factory.</p>
+            <p className="mt-2 text-sm leading-6 text-muted">Simpan, cari, edit, dan pakai ulang semua draft konten affiliate dari Content Factory.</p>
           </div>
           <ContentDraftList initialDrafts={drafts} />
         </div>

@@ -15,10 +15,10 @@ describe("TikTokConnectionCenter", () => {
       />
     );
 
-    expect(html).toContain("Connect TikTok");
+    expect(html).toContain("Connect Platform");
     expect(html).toContain("Authorize Demo");
-    expect(html).toContain("TikTok API Not Connected");
-    expect(html).toContain("Demo TikTok Account");
+    expect(html).toContain("Platform API Not Connected");
+    expect(html).toContain("Demo Creator Account");
     expect(html).toContain("@fvn_demo_creator");
     expect(html).toContain("Connected (Demo)");
   });

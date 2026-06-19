@@ -12,7 +12,7 @@ describe("TikTok Shop API adapter", () => {
 
     expect(status.configured).toBe(false);
     expect(status.status).toBe("Not Connected");
-    expect(status.message).toBe("TikTok Shop API belum terhubung");
+    expect(status.message).toBe("Platform Commerce API belum terhubung");
   });
 
   it("does not fake REAL_API products", async () => {

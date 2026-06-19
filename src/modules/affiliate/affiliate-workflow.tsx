@@ -550,7 +550,7 @@ export function AffiliateWorkflow({
       ...productFromForm("MANUAL", {
         ...urlForm,
         productUrl: urlInput,
-        notes: urlForm.notes || "Link produk disimpan. Data harga/komisi tetap dari input user sampai TikTok Shop API aktif."
+        notes: urlForm.notes || "Link produk disimpan. Data harga/komisi tetap dari input user sampai Platform Commerce API aktif."
       }),
       id: `url-${Date.now()}`
     };
@@ -955,7 +955,7 @@ export function AffiliateWorkflow({
       <section id="legacy-dashboard" className="hidden">
         <p className="text-sm font-semibold uppercase tracking-wide text-mint">Dashboard</p>
         <h1 className="mt-2 max-w-3xl text-3xl font-bold leading-tight text-ink sm:text-5xl">
-          Kelola produk, konten, dan rencana posting affiliate TikTok dari satu tempat.
+          Kelola produk, konten, dan rencana posting affiliate dari satu tempat.
         </h1>
         <div className="mt-4 rounded-2xl bg-ink p-5 text-white">
           <p className="text-sm font-bold text-white/70">Produk terbaik hari ini</p>
@@ -1073,7 +1073,7 @@ export function AffiliateWorkflow({
         <div className="mt-4 grid gap-3 lg:grid-cols-3">
           {[
             ["Mode AI", promptEngineMode === "AI_CONNECTED" ? "AI Connected" : "Template Mode"],
-            ["Status TikTok", tiktokConnected ? "Connected" : "Not Connected"],
+            ["Status Platform", tiktokConnected ? "Connected" : "Not Connected"],
             ["Sumber data", isDemoOnly ? "DEMO" : "MANUAL / CSV_IMPORT / REAL_API"]
           ].map(([title, value]) => (
             <div key={title} className="rounded-2xl border border-line bg-white p-4">
@@ -1222,7 +1222,7 @@ export function AffiliateWorkflow({
               <ActionButton loading={loadingAction === "manual"} onClick={addManualProduct}>
                 Simpan Produk Manual
               </ActionButton>
-              <p className="text-xs leading-5 text-muted">Wajib: nama produk, kategori, harga, komisi, tingkat kompetisi, dan link produk. Data ini disimpan sebagai Data Tersimpan, bukan data resmi TikTok Shop.</p>
+              <p className="text-xs leading-5 text-muted">Wajib: nama produk, kategori, harga, komisi, tingkat kompetisi, dan link produk. Data ini disimpan sebagai Data Tersimpan, bukan data resmi marketplace.</p>
             </div>
           </div>
 
@@ -1262,7 +1262,7 @@ export function AffiliateWorkflow({
               <Link className="h-4 w-4" />
               <p className="text-sm font-bold text-ink">Input link produk</p>
             </div>
-            <input value={urlInput} onChange={(event) => setUrlInput(event.target.value)} placeholder="Tempel link produk TikTok Shop" className="min-h-11 w-full rounded-xl border border-line px-3 text-sm outline-none focus:border-mint" />
+            <input value={urlInput} onChange={(event) => setUrlInput(event.target.value)} placeholder="Tempel link produk marketplace" className="min-h-11 w-full rounded-xl border border-line px-3 text-sm outline-none focus:border-mint" />
             <div className="mt-2 grid gap-2">
               {[
                 ["productName", "Nama produk"],
@@ -1287,7 +1287,7 @@ export function AffiliateWorkflow({
                 <option value="high">Kompetisi tinggi</option>
               </select>
             </div>
-            <p className="mt-2 text-sm leading-6 text-muted">Link produk disimpan, tetapi data harga/komisi tetap dari input kamu sampai TikTok Shop API aktif.</p>
+            <p className="mt-2 text-sm leading-6 text-muted">Link produk disimpan, tetapi data harga/komisi tetap dari input kamu sampai Platform Commerce API aktif.</p>
             <ActionButton loading={loadingAction === "url"} onClick={addUrlProduct} className="mt-3">
               Simpan URL
             </ActionButton>
@@ -1545,7 +1545,7 @@ export function AffiliateWorkflow({
             Lihat Draft Konten
           </a>
         </div>
-        <p className="mt-2 text-xs leading-5 text-muted">Gunakan package ini sebagai draft produksi. Upload ke TikTok tetap manual; aplikasi belum melakukan auto-post.</p>
+        <p className="mt-2 text-xs leading-5 text-muted">Gunakan package ini sebagai draft produksi. Upload ke platform tetap manual; aplikasi belum melakukan auto-post.</p>
         {!generatedPack ? (
           <div className="mt-4 rounded-2xl border border-dashed border-line bg-slate-50 p-4">
             <p className="text-sm font-black text-ink">Belum ada konten. Pilih produk lalu buat script konten.</p>
@@ -1712,7 +1712,7 @@ export function AffiliateWorkflow({
           <ActionButton loading={loadingAction === "performance"} onClick={savePerformance} className="mt-4">
             Simpan Performa
           </ActionButton>
-          <p className="mt-2 text-xs leading-5 text-muted">Masukkan angka manual dari TikTok atau TikTok Shop. App hanya menghitung dari data yang Anda isi.</p>
+          <p className="mt-2 text-xs leading-5 text-muted">Masukkan angka manual dari platform atau marketplace. App hanya menghitung dari data yang Anda isi.</p>
           {suggestions.length > 0 ? (
             <div className="mt-4 rounded-2xl border border-orange-200 bg-orange-50 p-4">
               <p className="text-sm font-black text-orange-900">Saran perbaikan setelah 5 hari</p>
@@ -1821,7 +1821,7 @@ function CaptionOverlayTools({
   return (
     <div className="rounded-2xl border border-line bg-white p-4 lg:col-span-2">
       <p className="text-sm font-bold text-ink">Caption dan Text Overlay Tools</p>
-      <p className="mt-1 text-xs leading-5 text-muted">Atur subtitle overlay dengan safe-area agar teks tidak menutup produk dan tetap nyaman dibaca di layar TikTok.</p>
+      <p className="mt-1 text-xs leading-5 text-muted">Atur subtitle overlay dengan safe-area agar teks tidak menutup produk dan tetap nyaman dibaca di layar short video.</p>
       <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <SelectControl label="Position" value={subtitleSettings.position} onChange={(value) => update("position", value as SubtitleSettings["position"])} options={["top", "center", "bottom"]} />
         <SelectControl label="Alignment" value={subtitleSettings.alignment} onChange={(value) => update("alignment", value as SubtitleSettings["alignment"])} options={["left", "center", "right"]} />
@@ -1834,7 +1834,7 @@ function CaptionOverlayTools({
         </label>
         <div className="rounded-2xl border border-line bg-slate-50 p-3 sm:col-span-2">
           <p className="text-xs font-black uppercase tracking-wide text-muted">Safe-area positioning</p>
-          <p className="mt-2 text-sm leading-6 text-muted">Subtitle memakai area aman 9:16 dengan jarak dari tepi atas/bawah. User approval required sebelum upload manual ke TikTok.</p>
+          <p className="mt-2 text-sm leading-6 text-muted">Subtitle memakai area aman 9:16 dengan jarak dari tepi atas/bawah. User approval required sebelum upload manual ke platform.</p>
         </div>
       </div>
     </div>

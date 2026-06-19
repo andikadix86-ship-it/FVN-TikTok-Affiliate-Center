@@ -8,13 +8,13 @@ const audiencePain: Record<string, string> = {
   Mahasiswa: "yang pengen barang kepake buat harian",
   "Pekerja Kantoran": "yang aktivitasnya padat dan butuh praktis",
   UMKM: "yang butuh alat bantu sederhana buat kerja",
-  "General TikTok Audience": "yang sering nemu masalah kecil tiap hari"
+  "General Short Video Audience": "yang sering nemu masalah kecil tiap hari"
 };
 
 export function buildHooks({ product, options = defaultPromptOptions }: PromptInput) {
   const productName = product.productName;
   const category = product.category.toLowerCase();
-  const pain = audiencePain[options.targetAudience] ?? audiencePain["General TikTok Audience"];
+  const pain = audiencePain[options.targetAudience] ?? audiencePain["General Short Video Audience"];
 
   return [
     `Yang ${pain}, coba lihat ini...`,

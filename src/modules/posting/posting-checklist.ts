@@ -8,7 +8,7 @@ export const postingChecklistItems = [
   "CTA keranjang kuning sudah jelas",
   "Klaim aman / tidak berlebihan",
   "Video sudah diedit",
-  "Siap upload ke TikTok"
+  "Siap upload ke platform"
 ] as const;
 
 export type PostingReadinessStatus = "Belum Siap" | "Hampir Siap" | "Siap Posting";

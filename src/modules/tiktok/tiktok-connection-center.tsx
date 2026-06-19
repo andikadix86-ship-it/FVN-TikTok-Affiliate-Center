@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { CheckCircle2, ExternalLink, Loader2, PlayCircle, ShieldCheck, UserCircle } from "lucide-react";
 import type { TikTokAccountView } from "./account-service";
 
-type ConnectionStep = "Dashboard" | "Connect TikTok" | "Authorize" | "Return" | "Connected";
+type ConnectionStep = "Dashboard" | "Connect Platform" | "Authorize" | "Return" | "Connected";
 
 export function TikTokConnectionCenter({
   account,
@@ -24,7 +24,7 @@ export function TikTokConnectionCenter({
     demoMode: true,
     connectionStatus: "Connected",
     username: "@fvn_demo_creator",
-    displayName: "Demo TikTok Account",
+    displayName: "Demo Creator Account",
     avatarUrl: "",
     followerCount: "12,480",
     videoCount: "86",
@@ -36,31 +36,31 @@ export function TikTokConnectionCenter({
   };
   const [status, setStatus] = useState<TikTokAccountView["connectionStatus"]>(loginConnected ? account.connectionStatus : apiConfigured ? "Not Connected" : "Connected");
   const [activeAccount, setActiveAccount] = useState<TikTokAccountView>(loginConnected ? account : demoAccount);
-  const [step, setStep] = useState<ConnectionStep>(startFlow ? "Connect TikTok" : loginConnected || !apiConfigured ? "Connected" : "Dashboard");
+  const [step, setStep] = useState<ConnectionStep>(startFlow ? "Connect Platform" : loginConnected || !apiConfigured ? "Connected" : "Dashboard");
   const [message, setMessage] = useState("");
-  const apiBadge = loginConnected && apiConfigured ? "TikTok API Connected" : "TikTok API Not Connected";
+  const apiBadge = loginConnected && apiConfigured ? "Platform API Connected" : "Platform API Not Connected";
   const showConnected = loginConnected || (!apiConfigured && activeAccount.demoMode);
 
   useEffect(() => {
     if (startFlow) {
-      setStep("Connect TikTok");
-      setMessage("Flow siap direkam: Dashboard -> Connect TikTok -> Authorize -> Return -> Connected.");
+      setStep("Connect Platform");
+      setMessage("Flow siap direkam: Dashboard -> Connect Platform -> Authorize -> Return -> Connected.");
     }
   }, [startFlow]);
 
   function authorizeDemo() {
     setStatus("Connecting");
     setStep("Authorize");
-    setMessage("Connecting to TikTok demo authorization...");
+    setMessage("Connecting to platform demo authorization...");
     window.setTimeout(() => {
       setStep("Return");
-      setMessage("Returning from TikTok authorization...");
+      setMessage("Returning from platform authorization...");
     }, 450);
     window.setTimeout(() => {
       setActiveAccount(demoAccount);
       setStatus("Connected");
       setStep("Connected");
-      setMessage("Connected (Demo). Real TikTok API is not connected yet.");
+      setMessage("Connected (Demo). Real platform API is not connected yet.");
     }, 900);
   }
 
@@ -68,9 +68,9 @@ export function TikTokConnectionCenter({
     <section className={`rounded-[2rem] border border-white bg-white p-5 shadow-soft ${compact ? "" : "space-y-5"}`}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-violet-600">TikTok Connection Center</p>
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-violet-600">Creator Platform Connection Center</p>
           <h2 className="mt-1 text-2xl font-black text-ink">Accounts / Social Accounts</h2>
-          <p className="mt-2 text-sm leading-6 text-muted">Connect TikTok untuk showcase, profile sync, scheduling context, dan review flow.</p>
+          <p className="mt-2 text-sm leading-6 text-muted">Connect creator platform account untuk showcase, profile sync, scheduling context, dan review flow.</p>
         </div>
         <span className={`rounded-full px-3 py-1 text-xs font-black ${loginConnected && apiConfigured ? "bg-emerald-100 text-emerald-950" : "bg-amber-100 text-amber-950"}`}>
           {apiBadge}
@@ -89,14 +89,14 @@ export function TikTokConnectionCenter({
       <div className="grid gap-4 lg:grid-cols-[1fr_0.8fr]">
         <div className="rounded-[1.5rem] border border-line bg-slate-50 p-4">
           <div className="flex flex-wrap gap-2">
-            {(["Dashboard", "Connect TikTok", "Authorize", "Return", "Connected"] as ConnectionStep[]).map((item) => (
+            {(["Dashboard", "Connect Platform", "Authorize", "Return", "Connected"] as ConnectionStep[]).map((item) => (
               <span key={item} className={`rounded-full px-3 py-1 text-xs font-black ${step === item ? "bg-violet-600 text-white" : "bg-white text-muted"}`}>{item}</span>
             ))}
           </div>
           <div className="mt-4 flex flex-wrap gap-2">
             <a href="/accounts?connect=tiktok" className="inline-flex items-center gap-2 rounded-full bg-violet-600 px-4 py-2 text-sm font-black text-white">
               <PlayCircle className="h-4 w-4" />
-              Connect TikTok
+              Connect Platform
             </a>
             {apiConfigured ? (
               <a href="/api/auth/tiktok/login" className="inline-flex items-center gap-2 rounded-full border border-line bg-white px-4 py-2 text-sm font-black text-ink">
@@ -127,11 +127,11 @@ export function TikTokConnectionCenter({
             )}
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <p className="text-base font-black text-ink">{showConnected ? activeAccount.displayName : "No TikTok account connected"}</p>
+                <p className="text-base font-black text-ink">{showConnected ? activeAccount.displayName : "No creator platform account connected"}</p>
                 {activeAccount.demoMode ? <span className="rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-black text-amber-950">Connected (Demo)</span> : null}
                 {loginConnected && !activeAccount.demoMode ? <CheckCircle2 className="h-4 w-4 text-emerald-700" /> : null}
               </div>
-              <p className="mt-1 text-sm font-bold text-muted">{showConnected ? activeAccount.username : "Connect TikTok to show username"}</p>
+              <p className="mt-1 text-sm font-bold text-muted">{showConnected ? activeAccount.username : "Connect account to show username"}</p>
             </div>
           </div>
           <div className="mt-4 grid gap-2 sm:grid-cols-3">

@@ -191,7 +191,7 @@ export function ContentDraftDetail({ draft }: { draft: ContentDraft }) {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-lg font-black text-ink">Checklist Posting</p>
-            <p className="mt-1 text-sm leading-6 text-muted">Untuk MVP ini, aplikasi belum melakukan auto-post ke TikTok. Upload video tetap dilakukan manual oleh user.</p>
+            <p className="mt-1 text-sm leading-6 text-muted">Untuk MVP ini, aplikasi belum melakukan auto-post ke platform. Upload video tetap dilakukan manual oleh user.</p>
           </div>
           <span className="rounded-full bg-slate-100 px-4 py-2 text-sm font-black text-ink">{checklistStatus}</span>
         </div>
@@ -217,15 +217,15 @@ export function ContentDraftDetail({ draft }: { draft: ContentDraft }) {
         {showPostedForm ? (
           <div className="mt-4 grid gap-3 rounded-2xl border border-line bg-slate-50 p-4 sm:grid-cols-2">
             <label className="grid gap-1">
-              <span className="text-xs font-bold uppercase tracking-wide text-muted">Link Video TikTok</span>
-              <input value={postedForm.tiktokVideoUrl} onChange={(event) => setPostedForm((active) => ({ ...active, tiktokVideoUrl: event.target.value }))} placeholder="https://www.tiktok.com/@user/video/..." className="min-h-11 rounded-xl border border-line px-3 text-sm" />
+              <span className="text-xs font-bold uppercase tracking-wide text-muted">Link Video Platform</span>
+              <input value={postedForm.tiktokVideoUrl} onChange={(event) => setPostedForm((active) => ({ ...active, tiktokVideoUrl: event.target.value }))} placeholder="https://platform.example/@user/video/..." className="min-h-11 rounded-xl border border-line px-3 text-sm" />
             </label>
             <label className="grid gap-1">
               <span className="text-xs font-bold uppercase tracking-wide text-muted">Tanggal posting</span>
               <input type="date" value={postedForm.postedAt} onChange={(event) => setPostedForm((active) => ({ ...active, postedAt: event.target.value }))} className="min-h-11 rounded-xl border border-line px-3 text-sm" />
             </label>
             <label className="grid gap-1">
-              <span className="text-xs font-bold uppercase tracking-wide text-muted">Akun TikTok yang dipakai</span>
+              <span className="text-xs font-bold uppercase tracking-wide text-muted">Akun platform yang dipakai</span>
               <input value={postedForm.accountUsed} onChange={(event) => setPostedForm((active) => ({ ...active, accountUsed: event.target.value }))} className="min-h-11 rounded-xl border border-line px-3 text-sm" />
             </label>
             <label className="grid gap-1">

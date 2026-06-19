@@ -35,7 +35,7 @@ export function isTikTokShopApiConfigured({
   return {
     configured,
     status: configured ? "Connected" : "Not Connected",
-    message: configured ? "TikTok Shop API configured." : "TikTok Shop API belum terhubung",
+    message: configured ? "Platform Commerce API configured." : "Platform Commerce API belum terhubung",
     region: region || "ID"
   };
 }
@@ -79,7 +79,7 @@ export function mapTikTokShopProductToProductModel(payload: TikTokShopProductPay
     problemSolved: "",
     mainBenefit: "",
     demoIdea: "",
-    notes: "Real API Data from official TikTok Shop API adapter.",
+    notes: "Real API Data from official Platform Commerce API adapter.",
     contentPotential: 70,
     beginnerFriendliness: 70,
     createdAt: now,
