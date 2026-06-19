@@ -1,14 +1,11 @@
 import { AppShell } from "@/components/app-shell";
 import type { Metadata } from "next";
 
-const verificationSignature = "tiktok-developers-site-verification=ixyOV4GEWntG4Bd1rkRKkJqjQYqa5j0a";
+const verificationSignature = "tiktok-developers-site-verification=fUQKJtr9H7sfwsdnM2Vka4hB7Z2dEQWp";
 
 export const metadata: Metadata = {
   title: "Terms of Service - FVN Affiliate Center",
-  description: "Terms of Service for FVN Affiliate Center.",
-  other: {
-    "tiktok-developers-site-verification": "ixyOV4GEWntG4Bd1rkRKkJqjQYqa5j0a"
-  }
+  description: "Terms of Service for FVN Affiliate Center."
 };
 
 export default function TermsPage() {
