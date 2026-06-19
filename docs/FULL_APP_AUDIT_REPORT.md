@@ -82,8 +82,8 @@ Security status: No committed secrets were found during audit scans. A local unt
 1. Removed local untracked credential file `.evvv - Copy.example`.
 2. Removed stray untracked local files named `dir` and `git`.
 3. Updated `.env.example` to use the production Vercel URL:
-   - `NEXT_PUBLIC_APP_URL="https://fvn-tik-tok-affiliate-center.vercel.app"`
-   - `TIKTOK_REDIRECT_URI="https://fvn-tik-tok-affiliate-center.vercel.app/api/auth/tiktok/callback"`
+   - `NEXT_PUBLIC_APP_URL="https://fvn-affiliate-center.vercel.app"`
+   - `TIKTOK_REDIRECT_URI="https://fvn-affiliate-center.vercel.app/api/auth/tiktok/callback"`
 4. Added route aliases for expected public navigation paths:
    - `/products`
    - `/produk-affiliate`
@@ -142,7 +142,7 @@ Results:
 4. Open `/api/health` on the Vercel URL.
 5. Open `/tiktok/oauth-test` on the Vercel URL.
 6. Add the production callback URL to TikTok Developer Portal:
-   - `https://fvn-tik-tok-affiliate-center.vercel.app/api/auth/tiktok/callback`
+   - `https://fvn-affiliate-center.vercel.app/api/auth/tiktok/callback`
 7. Test TikTok Login Kit on the production URL.
 8. Submit TikTok app review after Terms, Privacy, URL verification, and OAuth testing pass.
 

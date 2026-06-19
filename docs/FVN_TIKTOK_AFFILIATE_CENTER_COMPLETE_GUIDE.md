@@ -1322,11 +1322,11 @@ Showcase status values:
 ## TikTok Integration - FAQ
 
 **What is the public website URL?**  
-https://fvn-tik-tok-affiliate-center.vercel.app
+https://fvn-affiliate-center.vercel.app
 
 **What are the public legal URLs?**  
-Terms: https://fvn-tik-tok-affiliate-center.vercel.app/terms  
-Privacy: https://fvn-tik-tok-affiliate-center.vercel.app/privacy
+Terms: https://fvn-affiliate-center.vercel.app/terms  
+Privacy: https://fvn-affiliate-center.vercel.app/privacy
 
 **Can Add to TikTok Showcase work without TikTok Shop API?**  
 No. It should create a NOT_CONNECTED status and show a clear warning.

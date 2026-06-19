@@ -68,11 +68,12 @@ Create `.env` locally and configure the same values in Vercel for production.
 ```env
 DATABASE_URL=""
 DIRECT_URL=""
-NEXT_PUBLIC_APP_URL="https://your-vercel-domain.vercel.app"
+NEXT_PUBLIC_APP_URL="https://fvn-affiliate-center.vercel.app"
+NEXTAUTH_URL="https://fvn-affiliate-center.vercel.app"
 
 TIKTOK_CLIENT_KEY=""
 TIKTOK_CLIENT_SECRET=""
-TIKTOK_REDIRECT_URI="https://your-vercel-domain.vercel.app/api/auth/tiktok/callback"
+TIKTOK_REDIRECT_URI="https://fvn-affiliate-center.vercel.app/api/auth/tiktok/callback"
 TIKTOK_OAUTH_PKCE_ENABLED="false"
 
 TIKTOK_SHOP_APP_KEY=""
@@ -153,7 +154,7 @@ The seed script only creates demo products with `source=DEMO`.
 8. Copy the production redirect URI:
 
 ```text
-https://your-vercel-domain.vercel.app/api/auth/tiktok/callback
+https://fvn-affiliate-center.vercel.app/api/auth/tiktok/callback
 ```
 
 9. Add the redirect URI to TikTok Developer Portal Login Kit config.

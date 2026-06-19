@@ -37,7 +37,7 @@ describe("TikTok OAuth Web Login Kit", () => {
 
     expect(body.get("grant_type")).toBe("authorization_code");
     expect(body.get("code")).toBe("auth-code-123");
-    expect(body.get("redirect_uri")).toBe("https://your-vercel-domain.vercel.app/api/auth/tiktok/callback");
+    expect(body.get("redirect_uri")).toBe("https://fvn-affiliate-center.vercel.app/api/auth/tiktok/callback");
   });
 
   it("validates redirect URI rules with friendly errors", () => {

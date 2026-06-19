@@ -1,4 +1,10 @@
 import { AppShell } from "@/components/app-shell";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Privacy Policy - FVN Affiliate Center",
+  description: "Privacy Policy for FVN Affiliate Center."
+};
 
 export default function PrivacyPage() {
   return (

@@ -41,7 +41,7 @@
 
 ## Phase 6: Shopee/Tokopedia Later
 
-- Add marketplace-specific modules only after TikTok Affiliate MVP is stable.
+- Add marketplace-specific modules only after the affiliate MVP is stable.
 - Keep non-TikTok marketplace logic separate from TikTok-specific modules.
 
 ## Phase 7: Separate Clipper App
@@ -54,4 +54,3 @@
 
 - Build a future creative content creator as its own standalone app.
 - Keep advanced creative workflows separate from affiliate MVP operations.
-

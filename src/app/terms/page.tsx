@@ -1,4 +1,10 @@
 import { AppShell } from "@/components/app-shell";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Terms of Service - FVN Affiliate Center",
+  description: "Terms of Service for FVN Affiliate Center."
+};
 
 export default function TermsPage() {
   return (
