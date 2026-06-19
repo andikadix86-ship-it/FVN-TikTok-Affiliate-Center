@@ -1,7 +1,7 @@
 import { AppShell } from "@/components/app-shell";
 import type { Metadata } from "next";
 
-const verificationSignature = "tiktok-developers-site-verification=fUQKJtr9H7sfwsdnM2Vka4hB7Z2dEQWp";
+const verificationSignature = "tiktok-developers-site-verification=HgWwZ7RcJZNuO3LL5MGT2Ks923nVHY0a";
 
 export const metadata: Metadata = {
   title: "Terms of Service - FVN Affiliate Center",
